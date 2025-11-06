@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use DutchCodingCompany\FilamentSocialite\FilamentSocialitePlugin;
 use DutchCodingCompany\FilamentSocialite\Provider;
 use Filament\Http\Middleware\Authenticate;
@@ -58,16 +59,17 @@ class AdminPanelProvider extends PanelProvider
             -> authMiddleware ( [
                 Authenticate::class,
             ] )
-            -> plugin (
+            -> plugins ( [
+                FilamentShieldPlugin ::make (),
                 FilamentSocialitePlugin ::make ()
+                                        -> domainAllowList ( config ( 'services.oauth.allowed_domains', [] ) )
                                         -> registration ( true )
-                    -> domainAllowList ( config ( 'services.oauth.allowed_domains', [] ) )
                                         -> providers ( [
                                             Provider ::make ( 'google' )
                                                      -> label ( 'Google' )
                                                      -> icon ( 'fab-google' )
                                                      -> color ( Color::Red ),
                                         ] )
-            );
+            ] );
     }
 }
