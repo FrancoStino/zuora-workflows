@@ -246,7 +246,7 @@
                     return e.prototype.create = function ( t ) {
                         this.lastId++;
                         var n = this.lastId, r = this.prefix + n, i = this.name + "[" + n + "]", o = !1,
-                            u = function () {
+                            u                                                                      = function () {
                                 o || ( t.apply( null, arguments ), o = !0 )
                             };
                         return this[ n ] = u, {
@@ -295,14 +295,14 @@
                         var i = this;
                         if ( i.loading[ t ] && i.loading[ t ].length > 0 ) i.loading[ t ].push( r ); else {
                             i.loading[ t ] = [ r ];
-                            var o = m.createScriptRequest( i.getPath( t, n ) ),
-                                u = i.receivers.create( function ( p ) {
+                            var o          = m.createScriptRequest( i.getPath( t, n ) ),
+                                u          = i.receivers.create( function ( p ) {
                                     if ( i.receivers.remove( u ), i.loading[ t ] ) {
                                         var _ = i.loading[ t ];
                                         delete i.loading[ t ];
                                         for ( var g = function ( E ) {
                                             E || o.cleanup()
-                                        }, k = 0 ; k < _.length ; k++ ) _[ k ]( p, g )
+                                        }, k        = 0 ; k < _.length ; k++ ) _[ k ]( p, g )
                                     }
                                 } );
                             o.send( u )
@@ -764,9 +764,9 @@
                     }, e
                 } )(), Ke = Qe, Ye = function ( e, t ) {
                     return function ( n, r ) {
-                        var i = "http" + ( t ? "s" : "" ) + "://",
+                        var i                                                        = "http" + ( t ? "s" : "" ) + "://",
                             o = i + ( e.host || e.options.host ) + e.options.path, u = m.createJSONPRequest( o, n ),
-                            p = m.ScriptReceivers.create( function ( _, g ) {
+                            p                                                        = m.ScriptReceivers.create( function ( _, g ) {
                                 s.remove( p ), u.cleanup(), g && g.host && ( e.host = g.host ), r && r( _, g )
                             } );
                         u.send( p )
@@ -2138,7 +2138,7 @@
                         return r[ ce ] = ue, ue
                     }
 
-                    var o = Object.assign( {}, t, {
+                    var o                                                  = Object.assign( {}, t, {
                             hostNonTLS: e.wsHost + ":" + e.wsPort,
                             hostTLS:    e.wsHost + ":" + e.wssPort,
                             httpPath:   e.wsPath
@@ -2146,27 +2146,27 @@
                             hostNonTLS: e.httpHost + ":" + e.httpPort,
                             hostTLS:    e.httpHost + ":" + e.httpsPort,
                             httpPath:   e.httpPath
-                        } ), _ = {
+                        } ), _                                             = {
                             loop:         !0,
                             timeout:      15e3,
                             timeoutLimit: 6e4
-                        }, g = new Gt( {
+                        }, g                                               = new Gt( {
                             lives:        2,
                             minPingDelay: 1e4,
                             maxPingDelay: e.activityTimeout
-                        } ), k = new Gt( {
+                        } ), k                                             = new Gt( {
                             lives:        2,
                             minPingDelay: 1e4,
                             maxPingDelay: e.activityTimeout
-                        } ), E = i( "ws", "ws", 3, o, g ), X = i( "wss", "ws", 3, u, g ),
-                        vi = i( "sockjs", "sockjs", 1, p ), ne = i( "xhr_streaming", "xhr_streaming", 1, p, k ),
-                        yi = i( "xdr_streaming", "xdr_streaming", 1, p, k ),
-                        re = i( "xhr_polling", "xhr_polling", 1, p ), gi = i( "xdr_polling", "xdr_polling", 1, p ),
-                        ie = new Y( [ E ], _ ), _i = new Y( [ X ], _ ), bi = new Y( [ vi ], _ ),
-                        oe = new Y( [ new it( ot( ne ), ne, yi ) ], _ ),
-                        se = new Y( [ new it( ot( re ), re, gi ) ], _ ),
-                        ae = new Y( [ new it( ot( oe ), new kt( [ oe, new lt( se, { delay: 4e3 } ) ] ), se ) ], _ ),
-                        xt = new it( ot( ae ), ae, bi ), Ot;
+                        } ), E                                             = i( "ws", "ws", 3, o, g ), X = i( "wss", "ws", 3, u, g ),
+                        vi                                                 = i( "sockjs", "sockjs", 1, p ), ne             = i( "xhr_streaming", "xhr_streaming", 1, p, k ),
+                        yi                                                 = i( "xdr_streaming", "xdr_streaming", 1, p, k ),
+                        re                                                 = i( "xhr_polling", "xhr_polling", 1, p ), gi   = i( "xdr_polling", "xdr_polling", 1, p ),
+                        ie                                                 = new Y( [ E ], _ ), _i                         = new Y( [ X ], _ ), bi = new Y( [ vi ], _ ),
+                        oe                                                 = new Y( [ new it( ot( ne ), ne, yi ) ], _ ),
+                        se                                                 = new Y( [ new it( ot( re ), re, gi ) ], _ ),
+                        ae                                                 = new Y( [ new it( ot( oe ), new kt( [ oe, new lt( se, { delay: 4e3 } ) ] ), se ) ], _ ),
+                        xt                                                 = new it( ot( ae ), ae, bi ), Ot;
                     return t.useTLS ? Ot = new kt( [ ie, new lt( xt, { delay: 2e3 } ) ] ) : Ot = new kt( [ ie, new lt( _i, { delay: 2e3 } ), new lt( xt, { delay: 5e3 } ) ] ), new sr( new fr( new it( ot( E ), Ot, xt ) ), r, {
                         ttl:      18e5,
                         timeline: t.timeline,
@@ -2467,7 +2467,7 @@
                         try {
                             return window.localStorage
                         } catch {
-                            return
+
                         }
                     },
                     createXHR:                      function () {
@@ -2562,21 +2562,21 @@
                         if ( this.isSupported() ) {
                             if ( this.priority < t ) return Zt( new q, n )
                         } else return Zt( new z, n );
-                        var i = !1,
-                            o = this.transport.createConnection( this.name, this.priority, this.options.key, this.options ),
+                        var i           = !1,
+                            o           = this.transport.createConnection( this.name, this.priority, this.options.key, this.options ),
                             u = null, p = function () {
                                 o.unbind( "initialized", p ), o.connect()
-                            }, _ = function () {
+                            }, _        = function () {
                                 u = G.createHandshake( o, function ( X ) {
                                     i = !0, E(), n( null, X )
                                 } )
-                            }, g = function ( X ) {
+                            }, g        = function ( X ) {
                                 E(), n( X )
-                            }, k = function () {
+                            }, k        = function () {
                                 E();
                                 var X;
                                 X = ut( o ), n( new M( X ) )
-                            }, E = function () {
+                            }, E        = function () {
                                 o.unbind( "initialized", p ), o.unbind( "open", _ ), o.unbind( "error", g ), o.unbind( "closed", k )
                             };
                         return o.bind( "initialized", p ), o.bind( "open", _ ), o.bind( "error", g ), o.bind( "closed", k ), o.initialize(), {

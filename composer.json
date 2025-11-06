@@ -10,6 +10,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bezhansalleh/filament-shield": "^4.0",
         "dutchcodingcompany/filament-socialite": "^3.0",
         "filament/filament": "^4.2",
         "laravel/framework": "^12.0",
