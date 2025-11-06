@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use DutchCodingCompany\FilamentSocialite\FilamentSocialitePlugin;
 use DutchCodingCompany\FilamentSocialite\Provider;
 use Filament\Http\Middleware\Authenticate;
@@ -29,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             -> default ()
             -> id ( 'admin' )
             -> path ( 'admin' )
-            -> login ()
+            -> login ( Login::class )
             -> colors ( [
                 'primary' => Color::Amber,
             ] )
@@ -60,6 +61,12 @@ class AdminPanelProvider extends PanelProvider
             -> plugin (
                 FilamentSocialitePlugin ::make ()
                                         -> registration ( true )
+                                        -> showDivider ( false )
+                                        -> domainAllowList ( 
+                                            env('OAUTH_ALLOWED_DOMAINS') 
+                                                ? explode(',', env('OAUTH_ALLOWED_DOMAINS')) 
+                                                : [] 
+                                        )
                                         -> providers ( [
                                             Provider ::make ( 'google' )
                                                      -> label ( 'Google' )
