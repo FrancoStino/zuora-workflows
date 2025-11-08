@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Customer;
 use App\Services\ZuoraService;
+use BezhanSalleh\FilamentShield\Traits\HasPageShield;
 use Exception;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class WorkflowDashboard extends Page implements HasTable
 {
+    use HasPageShield;
     use InteractsWithTable;
 
     protected static ?string $title            = 'Workflow Dashboard';
@@ -22,21 +24,9 @@ class WorkflowDashboard extends Page implements HasTable
     protected static ?int    $navigationSort   = 2;
     public ?Customer         $selectedCustomer = null;
 
-    public static function canAccess () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
     public function getView () : string
     {
         return 'filament.pages.workflow-dashboard';
-    }
-
-    public function mount () : void
-    {
-        if ( !auth () -> user () -> hasRole ( 'super_admin' ) ) {
-            abort ( 403, 'Access denied' );
-        }
     }
 
     public function getCustomers ()

@@ -37,34 +37,6 @@ class UserResource extends Resource
         ];
     }
 
-    public static function getNavigationItems () : array
-    {
-        $user = auth () -> user ();
-        if ( !$user || !$user -> hasRole ( 'super_admin' ) ) {
-            return [];
-        }
-        return parent ::getNavigationItems ();
-    }
-
-    public static function canViewAny () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canCreate () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canEdit ( $record ) : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canDelete ( $record ) : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
 
     public static function getPages () : array
     {
