@@ -30,25 +30,6 @@ class WorkflowResource extends Resource
         return WorkflowsTable ::configure ( $table );
     }
 
-    public static function canViewAny () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canCreate () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canEdit ( $record ) : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canDelete ( $record ) : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
 
     public static function getRelations () : array
     {
