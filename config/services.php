@@ -47,9 +47,4 @@ return [
         'redirect'      => fn () => url ( '/admin/oauth/callback/google' ),
     ],
 
-    'zuora' => [
-        'client_id'     => env ( 'ZUORA_CLIENT_ID' ),
-        'client_secret' => env ( 'ZUORA_CLIENT_SECRET' ),
-    ],
-
 ];

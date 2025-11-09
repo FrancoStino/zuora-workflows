@@ -59,17 +59,13 @@ class ZuoraService
 
     public function getAccessToken ( string $clientId = null, string $clientSecret = null, string $baseUrl = null ) : string
     {
-        // Use provided credentials or fall back to environment variables
-        $clientId     = $clientId ?? config ( 'services.zuora.client_id' );
-        $clientSecret = $clientSecret ?? config ( 'services.zuora.client_secret' );
-        $baseUrl      = $baseUrl ?? config ( 'services.zuora.base_url', 'https://rest.zuora.com' );
+        if ( !$clientId || !$clientSecret ) {
+            throw new Exception( 'Zuora credentials must be provided.' );
+        }
 
         $cacheKey = 'zuora_access_token_' . md5 ( $clientId . $clientSecret );
 
         return Cache ::remember ( $cacheKey, 3600, function () use ( $clientId, $clientSecret, $baseUrl ) { // Cache for 1 hour
-            if ( !$clientId || !$clientSecret ) {
-                throw new Exception( 'Zuora credentials not provided. Please set ZUORA_CLIENT_ID and ZUORA_CLIENT_SECRET in your .env file.' );
-            }
 
             $response = Http ::asForm () -> post ( $baseUrl . '/oauth/token', [
                 'grant_type'    => 'client_credentials',
