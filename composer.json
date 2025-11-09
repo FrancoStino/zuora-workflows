@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "zuora/workflows",
+    "name": "FrancoStino/zuora-workflows",
     "version": "0.0.0",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
