@@ -1,6 +1,7 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "zuora/workflows",
+    "version": "0.0.0",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
     "keywords": [
@@ -9,7 +10,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
         "bezhansalleh/filament-shield": "^4.0",
         "dutchcodingcompany/filament-socialite": "^3.0",
         "filament/filament": "^4.2",
