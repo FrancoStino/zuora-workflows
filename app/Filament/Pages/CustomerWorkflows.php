@@ -132,7 +132,6 @@ class CustomerWorkflows extends Page implements HasTable
         return Workflow ::query () -> whereRaw ( '1 = 0' );
     }
 
-
     public function getTableRecords () : Collection
     {
         return $this -> workflowsData ?? collect ( [] );
