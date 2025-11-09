@@ -89,12 +89,12 @@ class CustomerWorkflows extends Page implements HasTable
             -> columns ( [
                 TextColumn ::make ( 'id' )
                            -> label ( 'ID' )
-                           -> searchable ()
-                           -> sortable (),
+                           -> searchable ( false )
+                           -> sortable ( false ),
                 TextColumn ::make ( 'name' )
                            -> label ( 'Name' )
-                           -> searchable ()
-                           -> sortable (),
+                           -> searchable ( false )
+                           -> sortable ( false ),
                 TextColumn ::make ( 'state' )
                            -> label ( 'State' )
                            -> badge ()
@@ -103,15 +103,15 @@ class CustomerWorkflows extends Page implements HasTable
                                'Inactive' => 'gray',
                                default => 'danger',
                            } )
-                           -> sortable (),
+                           -> sortable ( false ),
                 TextColumn ::make ( 'created_on' )
                            -> label ( 'Created' )
                            -> dateTime ()
-                           -> sortable (),
+                           -> sortable ( false ),
                 TextColumn ::make ( 'updated_on' )
                            -> label ( 'Updated' )
                            -> dateTime ()
-                           -> sortable (),
+                           -> sortable ( false ),
             ] )
             -> recordActions ( [
                 Action ::make ( 'download' )
@@ -156,6 +156,7 @@ class CustomerWorkflows extends Page implements HasTable
                          -> body ( "Error downloading workflow: " . $e -> getMessage () )
                          -> send ();
         }
+        return null;
     }
 
     public function getTableRecords () : Collection

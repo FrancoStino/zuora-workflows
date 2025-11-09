@@ -36,7 +36,7 @@ class WorkflowDashboard extends Page implements HasTable
                            -> sortable (),
                 TextColumn ::make ( 'base_url' )
                            -> label ( 'Base URL' )
-                           -> searchable ()
+//                           -> searchable ()
                            -> sortable (),
                 TextColumn ::make ( 'created_at' )
                            -> label ( 'Created At' )
