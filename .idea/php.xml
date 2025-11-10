@@ -5,9 +5,6 @@
       <LaravelPintConfiguration tool_path="$PROJECT_DIR$/vendor/bin/pint" />
     </laravel_pint_settings>
   </component>
-  <component name="LaravelPintOptionsConfiguration">
-    <option name="pintJsonPath" value="$USER_HOME$/Scrivania/Work/biora/pint.json" />
-  </component>
   <component name="PhpIncludePathManager">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/league/config" />
