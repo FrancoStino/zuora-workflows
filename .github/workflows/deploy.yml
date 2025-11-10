@@ -19,31 +19,6 @@ jobs:
     environment: production
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick
-          ini-values: post_max_size=256M, upload_max_filesize=256M
-          coverage: none
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '23'
-
-      - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --optimize-autoloader
-
-      - name: Install Yarn dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Build assets
-        run: yarn run build
-
       - name: Deploy with SSH
         uses: appleboy/ssh-action@master
         with:
@@ -72,6 +47,15 @@ jobs:
               rm -rf * .[!.]* ..?*
               git clone $REPO_URL .
             fi
+
+            # Install Composer dependencies on the server
+            composer install --no-dev --prefer-dist --optimize-autoloader
+
+            # Install Yarn dependencies on the server
+            yarn install --frozen-lockfile
+
+            # Build assets on the server
+            yarn run build
 
             # Set up .env file
             echo "APP_NAME='Zuora Workflow'" > .env
