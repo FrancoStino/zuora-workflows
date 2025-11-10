@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Listeners\UpdateUserAvatarOnSocialiteLogin;
+use DutchCodingCompany\FilamentSocialite\Events\Login;
+use DutchCodingCompany\FilamentSocialite\Events\Registered;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(Login::class, UpdateUserAvatarOnSocialiteLogin::class);
+        Event::listen(Registered::class, UpdateUserAvatarOnSocialiteLogin::class);
     }
 }
