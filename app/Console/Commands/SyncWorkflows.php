@@ -26,44 +26,45 @@ class SyncWorkflows extends Command
     /**
      * Execute the console command.
      */
-    public function handle ()
+    public function handle()
     {
-        $zuoraService = new ZuoraService();
+        $zuoraService = new ZuoraService;
 
-        $page     = (int) $this -> option ( 'page' );
-        $pageSize = (int) $this -> option ( 'pageSize' );
+        $page = (int) $this->option('page');
+        $pageSize = (int) $this->option('pageSize');
 
-        $this -> info ( "Fetching workflows from Zuora API (page {$page}, size {$pageSize})..." );
+        $this->info("Fetching workflows from Zuora API (page {$page}, size {$pageSize})...");
 
         try {
-            $data = $zuoraService -> listWorkflows ( $page, $pageSize );
+            $data = $zuoraService->listWorkflows($page, $pageSize);
 
-            $workflows = $data[ 'workflows' ] ?? [];
-            $total     = $data[ 'total' ] ?? 0;
+            $workflows = $data['workflows'] ?? [];
+            $total = $data['total'] ?? 0;
 
-            $this -> info ( "Found {$total} workflows, processing page {$page}..." );
+            $this->info("Found {$total} workflows, processing page {$page}...");
 
-            foreach ( $workflows as $wf ) {
-                Workflow ::updateOrCreate (
-                    [ 'id' => $wf[ 'id' ] ],
+            foreach ($workflows as $wf) {
+                Workflow::updateOrCreate(
+                    ['id' => $wf['id']],
                     [
-                        'name'        => $wf[ 'name' ],
-                        'description' => $wf[ 'description' ] ?? null,
-                        'state'       => $wf[ 'state' ],
-                        'created_on'  => $wf[ 'created_on' ],
-                        'updated_on'  => $wf[ 'updated_on' ],
+                        'name' => $wf['name'],
+                        'description' => $wf['description'] ?? null,
+                        'state' => $wf['state'],
+                        'created_on' => $wf['created_on'],
+                        'updated_on' => $wf['updated_on'],
                     ]
                 );
             }
 
-            $this -> info ( 'Workflows synced successfully.' );
+            $this->info('Workflows synced successfully.');
 
-            if ( $data[ 'hasMore' ] ?? false ) {
-                $this -> info ( 'Run again with --page=' . ( $page + 1 ) . ' to fetch more.' );
+            if ($data['hasMore'] ?? false) {
+                $this->info('Run again with --page='.($page + 1).' to fetch more.');
             }
 
-        } catch ( Exception $e ) {
-            $this -> error ( 'Error syncing workflows: ' . $e -> getMessage () );
+        } catch (Exception $e) {
+            $this->error('Error syncing workflows: '.$e->getMessage());
+
             return 1;
         }
 

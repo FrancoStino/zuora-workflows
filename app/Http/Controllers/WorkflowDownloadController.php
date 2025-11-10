@@ -9,24 +9,24 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class WorkflowDownloadController extends Controller
 {
-    public function download ( string $customer, string $workflowId, string $name = '' ) : StreamedResponse
+    public function download(string $customer, string $workflowId, string $name = ''): StreamedResponse
     {
         try {
-            $customerModel = Customer ::where ( 'name', $customer ) -> firstOrFail ();
+            $customerModel = Customer::where('name', $customer)->firstOrFail();
 
-            $service  = new ZuoraService();
-            $workflow = $service -> downloadWorkflow (
-                $customerModel -> client_id,
-                $customerModel -> client_secret,
-                $customerModel -> base_url,
+            $service = new ZuoraService;
+            $workflow = $service->downloadWorkflow(
+                $customerModel->client_id,
+                $customerModel->client_secret,
+                $customerModel->base_url,
                 $workflowId
             );
 
             $fileName = "{$name}.json";
-            $content  = json_encode ( $workflow, JSON_PRETTY_PRINT );
+            $content = json_encode($workflow, JSON_PRETTY_PRINT);
 
-            return response () -> streamDownload (
-                function () use ( $content ) {
+            return response()->streamDownload(
+                function () use ($content) {
                     echo $content;
                 },
                 $fileName,
@@ -34,8 +34,8 @@ class WorkflowDownloadController extends Controller
                     'Content-Type' => 'application/json',
                 ]
             );
-        } catch ( Exception $e ) {
-            abort ( 500, "Error downloading workflow: " . $e -> getMessage () );
+        } catch (Exception $e) {
+            abort(500, 'Error downloading workflow: '.$e->getMessage());
         }
     }
 }

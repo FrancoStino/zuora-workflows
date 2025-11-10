@@ -24,3 +24,15 @@ tooling:
     service: node
   npx:
     service: node
+  pint:
+    service: appserver
+    cmd: ./vendor/bin/pint
+  test:
+    service: appserver
+    cmd: ./vendor/bin/phpunit
+  tinker:
+    service: appserver
+    cmd: php artisan tinker
+  artisan:
+    service: appserver
+    cmd: php artisan

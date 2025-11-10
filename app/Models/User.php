@@ -13,6 +13,7 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory;
+
     use HasRoles;
     use Notifiable;
 
@@ -42,11 +43,11 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts () : array
+    protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            'password' => 'hashed',
         ];
     }
 }

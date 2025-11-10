@@ -71,14 +71,14 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           tag-prefix: "v"
-          output-file: "Changelog.md"
+          output-file: "CHANGELOG.md"
 
       - name: Commit version bump
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore: Bump version to ${{ steps.next_version.outputs.next_version }}"
           branch: master
-          file_pattern: composer.json Changelog.md
+          file_pattern: composer.json CHANGELOG.md
 
       - name: Create Git Tag
         run: |
