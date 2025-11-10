@@ -19,13 +19,19 @@ class CustomerWorkflows extends Page implements HasTable
 {
 	use InteractsWithTable;
 
-	protected static ?string $slug                     = 'workflows/{customer}';
-	protected static bool    $shouldRegisterNavigation = false;
-	public string            $customer;
-	public ?Customer         $customerModel            = null;
-	public ?string           $error                    = null;
-	protected string         $view                     = 'filament.pages.customer-workflows';
-	protected ?Collection    $workflowsData            = null;
+	protected static ?string $slug = 'workflows/{customer}';
+
+	protected static bool $shouldRegisterNavigation = false;
+
+	public string $customer;
+
+	public ?Customer $customerModel = null;
+
+	public ?string $error = null;
+
+	protected string $view = 'filament.pages.customer-workflows';
+
+	protected ?Collection $workflowsData = null;
 
 	public function mount ( string $customer ) : void
 	{
@@ -55,6 +61,7 @@ class CustomerWorkflows extends Page implements HasTable
 
 			$this -> workflowsData = collect ( $workflows ) -> map ( function ( $workflow, $index ) {
 				$id = $workflow[ 'id' ] ?? $index;
+
 				return [
 					'__key'      => $id,
 					'key'        => $id,
@@ -73,12 +80,12 @@ class CustomerWorkflows extends Page implements HasTable
 
 	public function getTitle () : string
 	{
-		return isset( $this -> customer ) ? "Workflows - {$this->customer}" : "Workflows";
+		return isset( $this -> customer ) ? "Workflows - {$this->customer}" : 'Workflows';
 	}
 
 	public function getHeading () : string
 	{
-		return isset( $this -> customer ) ? "Workflows for {$this->customer}" : "Workflows";
+		return isset( $this -> customer ) ? "Workflows for {$this->customer}" : 'Workflows';
 	}
 
 	public function table ( Table $table ) : Table
@@ -141,5 +148,4 @@ class CustomerWorkflows extends Page implements HasTable
 	{
 		return is_array ( $record ) ? ( $record[ '__key' ] ?? $record[ 'key' ] ) : $record -> key;
 	}
-
 }
