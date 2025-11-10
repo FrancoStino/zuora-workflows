@@ -65,6 +65,11 @@ class AdminPanelProvider extends PanelProvider
 			-> authMiddleware ( [
 				Authenticate::class,
 			] )
+//			-> renderHook (
+//			// PanelsRenderHook::BODY_END,
+//				PanelsRenderHook::FOOTER,
+//				fn () => view ( 'footer' )
+//			)
 			-> plugins ( [
 				FilamentAwinTheme ::make ()
 				                  -> primaryColor ( Color::Teal ),
