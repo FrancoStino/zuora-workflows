@@ -9,16 +9,18 @@ Laravel admin panel for managing Zuora workflows with role-based access control.
 ## Setup
 
 ```bash
-# Clone & install
+# Clone repository
 git clone https://github.com/FrancoStino/zuora-laravel.git
 cd "Zuora Workflow"
-composer install
 
 # Copy env
 cp .env.example .env
 
-# Start Lando
+# Start Lando (automatically runs composer install, yarn install, and yarn build)
 lando start
+
+# Generate application key
+lando artisan key:generate
 
 # Run migrations
 lando artisan migrate
@@ -29,8 +31,11 @@ lando artisan shield:generate --all --panel=admin --force
 # Make first user super admin
 lando artisan shield:super-admin --user=1 --panel=admin
 
+# Build assets
+lando yarn build
+
 # Clear cache
-lando artisan cache:clear
+lando artisan optimize:clear
 ```
 
 ## Environment
@@ -79,8 +84,46 @@ exit
 - Public workflow dashboard
 - Filament admin panel
 
+## Development Commands
+
+```bash
+# Install dependencies
+lando composer install
+lando yarn install
+
+# Build assets for production
+lando yarn build
+
+# Watch assets for development
+lando yarn dev
+
+# Clear all caches
+lando artisan optimize:clear
+
+# Clear specific caches
+lando artisan cache:clear
+lando artisan config:clear
+lando artisan view:clear
+lando artisan route:clear
+
+# Run migrations
+lando artisan migrate
+lando artisan migrate:fresh --seed
+
+# Generate permissions
+lando artisan shield:generate --all --panel=admin
+
+# Access database
+lando mariadb
+
+# View logs
+lando artisan pail
+lando logs
+```
+
 ## Docs
 
 - [Filament](https://filamentphp.com/docs)
+- [Filament Awin Theme](https://github.com/resmatech/filament-awin-theme)
 - [Spatie Permission](https://spatie.be/docs/laravel-permission)
 - [Zuora API](https://knowledgecenter.zuora.com/Zuora_API)

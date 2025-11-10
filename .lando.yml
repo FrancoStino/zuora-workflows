@@ -14,6 +14,11 @@ services:
     type: node:23
     build:
       - "npm install -g yarn"
+events:
+  post-start:
+    - appserver: composer install
+    - node: yarn install
+    - node: yarn build
 tooling:
   yarn:
     service: node
