@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
-use Exception;
+use App\Exceptions\ZuoraAuthenticationException;
+use App\Exceptions\ZuoraHttpException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
@@ -43,13 +46,12 @@ class ZuoraService
     public function getAccessToken(?string $clientId = null, ?string $clientSecret = null, ?string $baseUrl = null): string
     {
         if (! $clientId || ! $clientSecret) {
-            throw new Exception('Zuora credentials must be provided.');
+            throw new ZuoraAuthenticationException('Zuora credentials must be provided.');
         }
 
         $cacheKey = 'zuora_access_token_'.md5($clientId.$clientSecret);
 
-        return Cache::remember($cacheKey, 3600, function () use ($clientId, $clientSecret, $baseUrl) { // Cache for 1 hour
-
+        return Cache::remember($cacheKey, 3600, function () use ($clientId, $clientSecret, $baseUrl) {
             $response = Http::asForm()->post($baseUrl.'/oauth/token', [
                 'grant_type' => 'client_credentials',
                 'client_id' => $clientId,
@@ -57,7 +59,7 @@ class ZuoraService
             ]);
 
             if ($response->failed()) {
-                throw new Exception('Failed to authenticate with Zuora: '.$response->body());
+                throw new ZuoraAuthenticationException('Failed to authenticate with Zuora: '.$response->body());
             }
 
             return $response->json()['access_token'];
@@ -114,16 +116,12 @@ class ZuoraService
      */
     private function extractErrorMessage(array $errorJson, string $errorBody): string
     {
-        if (isset($errorJson['message'])) {
-            return $errorJson['message'];
-        }
+        $errorKeys = ['message', 'error', 'error_description'];
 
-        if (isset($errorJson['error'])) {
-            return $errorJson['error'];
-        }
-
-        if (isset($errorJson['error_description'])) {
-            return $errorJson['error_description'];
+        foreach ($errorKeys as $key) {
+            if (isset($errorJson[$key])) {
+                return $errorJson[$key];
+            }
         }
 
         return $errorBody;
@@ -139,8 +137,7 @@ class ZuoraService
         $errorJson = $response->json() ?? [];
 
         $message = $this->extractErrorMessage($errorJson, $errorBody);
-        $errorMessage = "HTTP {$statusCode}: {$message}";
 
-        throw new Exception($errorMessage);
+        throw new ZuoraHttpException($statusCode, $message);
     }
 }
