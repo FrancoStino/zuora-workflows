@@ -18,60 +18,31 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|null|BackedEnum $navigationIcon = Heroicon::OutlinedUser;
 
-    public static function form ( Schema $schema ) : Schema
+    public static function form(Schema $schema): Schema
     {
-        return UserForm ::configure ( $schema );
+        return UserForm::configure($schema);
     }
 
-    public static function table ( Table $table ) : Table
+    public static function table(Table $table): Table
     {
-        return UsersTable ::configure ( $table );
+        return UsersTable::configure($table);
     }
 
-    public static function getRelations () : array
+    public static function getRelations(): array
     {
         return [
             //
         ];
     }
 
-    public static function getNavigationItems () : array
-    {
-        $user = auth () -> user ();
-        if ( !$user || !$user -> hasRole ( 'super_admin' ) ) {
-            return [];
-        }
-        return parent ::getNavigationItems ();
-    }
-
-    public static function canViewAny () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canCreate () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canEdit ( $record ) : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function canDelete ( $record ) : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
-
-    public static function getPages () : array
+    public static function getPages(): array
     {
         return [
-            'index'  => ListUsers ::route ( '/' ),
-            'create' => CreateUser ::route ( '/create' ),
-            'edit'   => EditUser ::route ( '/{record}/edit' ),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'edit' => EditUser::route('/{record}/edit'),
         ];
     }
 }

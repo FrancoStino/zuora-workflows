@@ -16,38 +16,42 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Resma\FilamentAwinTheme\FilamentAwinTheme;
 
 class AdminPanelProvider extends PanelProvider
 {
-    public function panel ( Panel $panel ) : Panel
+    public function panel(Panel $panel): Panel
     {
         return $panel
-            -> default ()
-            -> id ( 'admin' )
-            -> path ( 'admin' )
-            -> login ( Login::class )
-            -> colors ( [
-                'primary' => Color::Amber,
-            ] )
-            -> discoverResources ( in : app_path ( 'Filament/Resources' ), for : 'App\Filament\Resources' )
-            -> discoverPages ( in : app_path ( 'Filament/Pages' ), for : 'App\Filament\Pages' )
-            -> pages ( [
+            ->default()
+            ->id('admin')
+            ->path('')
+            ->login(Login::class)
+            ->colors([
+                'primary' => Color::Teal,
+            ])
+            ->brandName('Zuora Workflows')
+            ->brandLogo(asset('images/logo.svg'))
+            ->darkModeBrandLogo(asset('images/logo-white.svg'))
+            ->brandLogoHeight('2rem')
+            ->discoverResources(in : app_path('Filament/Resources'), for : 'App\Filament\Resources')
+            ->discoverPages(in : app_path('Filament/Pages'), for : 'App\Filament\Pages')
+            ->pages([
                 Dashboard::class,
                 WorkflowDashboard::class,
-            ] )
-            -> discoverWidgets ( in : app_path ( 'Filament/Widgets' ), for : 'App\Filament\Widgets' )
-            -> widgets ( [
+            ])
+            ->discoverWidgets(in : app_path('Filament/Widgets'), for : 'App\Filament\Widgets')
+            ->widgets([
                 AccountWidget::class,
-                FilamentInfoWidget::class,
-            ] )
-            -> middleware ( [
+                // FilamentInfoWidget::class,
+            ])
+            ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
@@ -57,21 +61,28 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-            ] )
-            -> authMiddleware ( [
+            ])
+            ->authMiddleware([
                 Authenticate::class,
-            ] )
-            -> plugins ( [
-                FilamentShieldPlugin ::make (),
-                FilamentSocialitePlugin ::make ()
-                                        -> domainAllowList ( config ( 'services.oauth.allowed_domains', [] ) )
-                                        -> registration ( true )
-                                        -> providers ( [
-                                            Provider ::make ( 'google' )
-                                                     -> label ( 'Google' )
-                                                     -> icon ( 'fab-google' )
-                                                     -> color ( Color::Red ),
-                                        ] )
-            ] );
+            ])
+//			-> renderHook (
+//			// PanelsRenderHook::BODY_END,
+//				PanelsRenderHook::FOOTER,
+//				fn () => view ( 'footer' )
+//			)
+            ->plugins([
+                FilamentAwinTheme::make()
+                    ->primaryColor(Color::Teal),
+                FilamentShieldPlugin::make(),
+                FilamentSocialitePlugin::make()
+                    ->domainAllowList(config('services.oauth.allowed_domains', []))
+                    ->registration(true)
+                    ->providers([
+                        Provider::make('google')
+                            ->label('Google')
+                            ->icon('fab-google')
+                            ->color(Color::Red),
+                    ]),
+            ]);
     }
 }

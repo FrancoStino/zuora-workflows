@@ -3,70 +3,56 @@
 namespace App\Filament\Pages;
 
 use App\Models\Customer;
-use App\Services\ZuoraService;
-use Exception;
-use Filament\Forms\Form;
+use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Pages\Page;
-use Filament\Tables\Actions\Action as TableAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Table;
 
 class WorkflowDashboard extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static ?string $title            = 'Workflow Dashboard';
-    protected static ?string $navigationLabel  = 'Workflows';
-    protected static ?int    $navigationSort   = 2;
-    public ?Customer         $selectedCustomer = null;
+    protected static ?string $slug = 'workflows';
 
-    public static function canAccess () : bool
-    {
-        return auth () -> user () -> hasRole ( 'super_admin' );
-    }
+    protected static string|null|BackedEnum $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    public function getView () : string
-    {
-        return 'filament.pages.workflow-dashboard';
-    }
+    protected static ?string $title = 'Workflows Dashboard';
 
-    public function mount () : void
-    {
-        if ( !auth () -> user () -> hasRole ( 'super_admin' ) ) {
-            abort ( 403, 'Access denied' );
-        }
-    }
+    protected static ?string $navigationLabel = 'Workflows';
 
-    public function getCustomers ()
-    {
-        return Customer ::all ();
-    }
+    protected static ?int $navigationSort = 2;
 
-    public function getWorkflowsForCustomer ( Customer $customer )
-    {
-        try {
-            $service = new ZuoraService();
-            $data    = $service -> listWorkflows ( $customer -> client_id, $customer -> client_secret, $customer -> base_url, 1, 50 );
-            return $data[ 'workflows' ] ?? [];
-        } catch ( Exception $e ) {
-            // For debugging, return error message
-            return [ 'error' => $e -> getMessage () ];
-        }
-    }
+    protected string $view = 'filament.pages.workflow-dashboard';
 
-    protected function getTableQuery () : Builder
+    public function table(Table $table): Table
     {
-        // Not used since we have custom view
-        return Customer ::query ();
-    }
-
-    protected function getTableColumns () : array
-    {
-        return [
-            TextColumn ::make ( 'name' ),
-            // Add more if needed
-        ];
+        return $table
+            ->query(Customer::query())
+            ->columns([
+                TextColumn::make('name')
+                    ->label('Customer Name')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('base_url')
+                    ->label('Base URL')
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label('Created At')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
+            ])
+            ->recordActions([
+                Action::make('view_workflows')
+                    ->label('View Workflows')
+                    ->icon('heroicon-o-eye')
+                    ->url(fn (Customer $record) => route('filament.admin.pages.workflows').'/'.$record->name)
+                    ->openUrlInNewTab(false),
+            ])
+            ->paginated([10, 25, 50]);
     }
 }

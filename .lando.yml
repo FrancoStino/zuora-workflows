@@ -1,7 +1,8 @@
-name: zuora-workflow
+name: zuora-workflows
 recipe: laravel
+
 config:
-  php: 8.4
+  php: '8.4'
   composer_version: '2'
   via: nginx
   webroot: public
@@ -10,13 +11,28 @@ config:
   xdebug: true
 services:
   node:
-    type: node:20
+    type: node:23
     build:
       - "npm install -g yarn"
+events:
+  post-start:
+    - appserver: composer install
+    - node: yarn install
+    - node: yarn build
 tooling:
   yarn:
     service: node
-  npm:
-    service: node
   npx:
     service: node
+  pint:
+    service: appserver
+    cmd: ./vendor/bin/pint
+  test:
+    service: appserver
+    cmd: ./vendor/bin/phpunit
+  tinker:
+    service: appserver
+    cmd: php artisan tinker
+  artisan:
+    service: appserver
+    cmd: php artisan
