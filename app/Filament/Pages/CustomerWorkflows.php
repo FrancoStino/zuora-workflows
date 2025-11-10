@@ -99,8 +99,8 @@ class CustomerWorkflows extends Page implements HasTable
 				           -> badge ()
 				           -> color ( fn ( string $state ) : string => match ( $state ) {
 					           'Active' => 'success',
-					           'Inactive' => 'gray',
-					           default => 'danger',
+					           'Inactive' => 'danger',
+					           default => 'gray',
 				           } )
 				           -> sortable ( false ),
 				TextColumn ::make ( 'created_on' )
