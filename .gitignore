@@ -23,3 +23,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /db/
+
+.gemini/
+gha-creds-*.json
