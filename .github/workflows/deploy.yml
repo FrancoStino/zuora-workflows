@@ -52,8 +52,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Define the deployment path and repository URL
-            DEPLOY_PATH="/domains/zuora.workflows.davideladisa.it/public_html"
-            REPO_URL="https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git" # <<< IMPORTANT: REPLACE WITH YOUR ACTUAL REPO URL
+            DEPLOY_PATH="/home/um5i6722/domains/zuora.workflows.davideladisa.it/public_html"
+            REPO_URL="https://github.com/FrancoStino/zuora-workflows" # <<< IMPORTANT: REPLACE WITH YOUR ACTUAL REPO URL
 
             # Create directory if it doesn't exist
             mkdir -p $DEPLOY_PATH
