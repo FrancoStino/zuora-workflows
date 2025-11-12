@@ -13,12 +13,13 @@ class SetupController extends Controller
     public static function isSetupRequired(): bool
     {
         try {
-            if (!Schema::hasTable('setup_completed')) {
+            if (! Schema::hasTable('setup_completed')) {
                 return true;
             }
 
             $setupRecord = DB::table('setup_completed')->first();
-            return !$setupRecord || !$setupRecord->completed;
+
+            return ! $setupRecord || ! $setupRecord->completed;
         } catch (\Exception $e) {
             return false;
         }
@@ -29,6 +30,6 @@ class SetupController extends Controller
      */
     public static function isSetupCompleted(): bool
     {
-        return !self::isSetupRequired();
+        return ! self::isSetupRequired();
     }
 }

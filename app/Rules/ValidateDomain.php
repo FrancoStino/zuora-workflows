@@ -12,13 +12,14 @@ class ValidateDomain implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return;
         }
 
         foreach ($value as $domain) {
-            if (!$this->isValidDomain($domain)) {
+            if (! $this->isValidDomain($domain)) {
                 $fail("The domain '{$domain}' is not valid. Please use format: example.com");
+
                 return;
             }
         }

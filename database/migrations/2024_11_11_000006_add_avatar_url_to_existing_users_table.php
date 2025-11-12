@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Only add avatar_url if table exists and column doesn't
-        if (Schema::hasTable('users') && !Schema::hasColumn('users', 'avatar_url')) {
+        if (Schema::hasTable('users') && ! Schema::hasColumn('users', 'avatar_url')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->string('avatar_url')->nullable()->after('password');
             });

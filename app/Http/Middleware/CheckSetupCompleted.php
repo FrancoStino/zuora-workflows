@@ -22,14 +22,14 @@ class CheckSetupCompleted
 
         try {
             // Check if setup_completed table exists
-            if (!Schema::hasTable('setup_completed')) {
+            if (! Schema::hasTable('setup_completed')) {
                 return $next($request);
             }
 
             // Check if setup is completed
             $setupCompleted = DB::table('setup_completed')->first();
-            
-            if (!$setupCompleted || !$setupCompleted->completed) {
+
+            if (! $setupCompleted || ! $setupCompleted->completed) {
                 return redirect('/setup');
             }
         } catch (\Exception $e) {
