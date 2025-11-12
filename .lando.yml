@@ -9,21 +9,12 @@ config:
   database: mariadb:11.4
   cache: redis
   xdebug: true
-services:
-  node:
-    type: node:23
-    build:
-      - "npm install -g yarn"
+
 events:
   post-start:
     - appserver: composer install
-    - node: yarn install
-    - node: yarn build
+
 tooling:
-  yarn:
-    service: node
-  npx:
-    service: node
   pint:
     service: appserver
     cmd: ./vendor/bin/pint
