@@ -3,11 +3,14 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use App\Filament\Pages\Setup;
 use App\Filament\Pages\WorkflowDashboard;
+use App\Http\Middleware\CheckSetupCompleted;
+use App\Models\AppSetting;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use DutchCodingCompany\FilamentSocialite\FilamentSocialitePlugin;
 use DutchCodingCompany\FilamentSocialite\Provider;
-use Filament\Http\Middleware\Authenticate;
+use Exception;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -21,6 +24,7 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Resma\FilamentAwinTheme\FilamentAwinTheme;
 
@@ -45,6 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
                 WorkflowDashboard::class,
+                Setup::class,
             ])
             ->discoverWidgets(in : app_path('Filament/Widgets'), for : 'App\Filament\Widgets')
             ->widgets([
@@ -61,10 +66,9 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                CheckSetupCompleted::class,
             ])
-            ->authMiddleware([
-                Authenticate::class,
-            ])
+            ->authGuard('web')
 //			-> renderHook (
 //			// PanelsRenderHook::BODY_END,
 //				PanelsRenderHook::FOOTER,
@@ -75,7 +79,7 @@ class AdminPanelProvider extends PanelProvider
                     ->primaryColor(Color::Teal),
                 FilamentShieldPlugin::make(),
                 FilamentSocialitePlugin::make()
-                    ->domainAllowList(config('services.oauth.allowed_domains', []))
+                    ->domainAllowList($this->getOAuthAllowedDomains())
                     ->registration(true)
                     ->providers([
                         Provider::make('google')
@@ -84,5 +88,24 @@ class AdminPanelProvider extends PanelProvider
                             ->color(Color::Red),
                     ]),
             ]);
+    }
+
+    /**
+     * Get OAuth allowed domains from database or fallback to config
+     */
+    private function getOAuthAllowedDomains(): array
+    {
+        try {
+            if (Schema::hasTable('app_settings')) {
+                $domains = AppSetting::getOAuthDomains();
+                if (! empty($domains)) {
+                    return $domains;
+                }
+            }
+        } catch (Exception $e) {
+            // Silently fail and use fallback
+        }
+
+        return config('services.oauth.allowed_domains', []);
     }
 }
