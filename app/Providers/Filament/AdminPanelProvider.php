@@ -22,8 +22,6 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Resma\FilamentAwinTheme\FilamentAwinTheme;
 
 class AdminPanelProvider extends PanelProvider
@@ -84,15 +82,7 @@ class AdminPanelProvider extends PanelProvider
                             ->label('Google')
                             ->icon('fab-google')
                             ->color(Color::Red),
-                    ])
-                    ->createUserUsing(function ($oauthUser, $provider) {
-                        return \App\Models\User::create([
-                            'name' => $oauthUser->getName(),
-                            'email' => $oauthUser->getEmail(),
-                            'password' => Hash::make(Str::random(32)),
-                            'avatar_url' => $oauthUser->getAvatar(),
-                        ]);
-                    }),
+                    ]),
             ]);
     }
 }
