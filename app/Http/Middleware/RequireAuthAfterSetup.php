@@ -14,8 +14,8 @@ class RequireAuthAfterSetup
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Allow unauthenticated access to setup and login
-        if ($request->is('setup') || $request->is('setup/*') || $request->is('login') || $request->is('login/*')) {
+        // Allow unauthenticated access to setup, login, and OAuth callback
+        if ($request->is('setup') || $request->is('setup/*') || $request->is('login') || $request->is('login/*') || $request->is('oauth/*')) {
             return $next($request);
         }
 
