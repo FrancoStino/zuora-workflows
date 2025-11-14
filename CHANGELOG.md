@@ -1,4 +1,4 @@
-# [1.6.0](https://github.com/FrancoStino/zuora-workflows/compare/v1.5.0...v1.6.0) (2025-11-12)
+# [0.6.0](https://github.com/FrancoStino/zuora-workflows/compare/v0.5.0...v0.6.0) (2025-11-12)
 
 
 ### Bug Fixes
@@ -16,7 +16,7 @@
 
 
 
-# [1.5.0](https://github.com/FrancoStino/zuora-workflows/compare/v1.4.5...v1.5.0) (2025-11-12)
+# [0.5.0](https://github.com/FrancoStino/zuora-workflows/compare/v0.4.5...v0.5.0) (2025-11-12)
 
 
 ### Features
@@ -30,7 +30,7 @@
 
 
 
-## [1.4.5](https://github.com/FrancoStino/zuora-workflows/compare/v0.4.4...v1.4.5) (2025-11-11)
+## [0.4.5](https://github.com/FrancoStino/zuora-workflows/compare/v0.4.4...v0.4.5) (2025-11-11)
 
 
 ### Bug Fixes
