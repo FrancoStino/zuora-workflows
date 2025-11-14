@@ -11,11 +11,11 @@ class EditUser extends EditRecord
 {
 	protected static string $resource = UserResource::class;
 
-	protected function getHeaderActions () : array
+	protected function getHeaderActions(): array
 	{
 		return [
-			DeleteAction ::make (),
-			PreviousAction ::make ()
+			DeleteAction::make(),
+			PreviousAction::make(),
 		];
 	}
 }

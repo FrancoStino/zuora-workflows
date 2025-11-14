@@ -3,7 +3,6 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\Actions\PreviousAction;
-use App\Filament\Resources\Pages\Concerns\CanPaginateViewRecord;
 use App\Jobs\SyncCustomerWorkflows;
 use App\Models\Customer;
 use App\Models\Workflow;
@@ -20,7 +19,6 @@ use Illuminate\Database\Eloquent\Builder;
 class CustomerWorkflows extends Page implements HasTable
 {
 	use InteractsWithTable;
-	use CanPaginateViewRecord;
 
 	protected static ?string $slug                     = 'workflows/{customer}';
 	protected static bool    $shouldRegisterNavigation = false;
