@@ -20,6 +20,7 @@
     "resma/filament-awin-theme": "^1.0"
   },
   "require-dev": {
+    "roave/security-advisories": "dev-latest",
     "fakerphp/faker": "^1.23",
     "laravel/pail": "^1.2.2",
     "laravel/pint": "^1.24",
