@@ -13,6 +13,7 @@ config:
 events:
   post-start:
     - appserver: composer install
+    - appserver: composer update
 
 tooling:
   pint:
