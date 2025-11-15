@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Filament\Resources\Actions\PreviousAction;
 use App\Filament\Resources\Users\UserResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -14,6 +15,7 @@ class EditUser extends EditRecord
     {
         return [
             DeleteAction::make(),
+            PreviousAction::make(),
         ];
     }
 }

@@ -33,6 +33,7 @@ class CustomerForm
 
                 Select::make('base_url')
                     ->label('Base URL')
+                    ->required()
                     ->options([
                         'https://rest.zuora.com' => 'https://rest.zuora.com',
                         'https://rest.test.zuora.com' => 'https://rest.test.zuora.com',

@@ -6,8 +6,8 @@ updates:
     target-branch: "develop"
     schedule:
       interval: 'daily'
-  # Maintain dependencies for npm
-  - package-ecosystem: 'npm'
+  # Maintain dependencies for yarn
+  - package-ecosystem: 'yarn'
     directory: '/'
     target-branch: "develop"
     schedule:

@@ -20,6 +20,7 @@
     "resma/filament-awin-theme": "^1.0"
   },
   "require-dev": {
+    "roave/security-advisories": "dev-latest",
     "fakerphp/faker": "^1.23",
     "laravel/pail": "^1.2.2",
     "laravel/pint": "^1.24",
@@ -46,12 +47,12 @@
       "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
       "@php artisan key:generate",
       "@php artisan migrate --force",
-      "npm install",
-      "npm run build"
+      "yarn install",
+      "yarn run build"
     ],
     "dev": [
       "Composer\\Config::disableProcessTimeout",
-      "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"npm run dev\" --names=server,queue,logs,vite --kill-others"
+      "yarn dlx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"yarn run dev\" --names=server,queue,logs,vite --kill-others"
     ],
     "test": [
       "@php artisan config:clear --ansi",

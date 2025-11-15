@@ -2,22 +2,25 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\Actions\PreviousAction;
+use App\Jobs\SyncCustomerWorkflows;
 use App\Models\Customer;
 use App\Models\Workflow;
-use App\Services\ZuoraService;
-use Exception;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 
 class CustomerWorkflows extends Page implements HasTable
 {
     use InteractsWithTable;
+
+    private const DATE_TIME_FORMAT = 'Y-m-d H:i';
 
     protected static ?string $slug = 'workflows/{customer}';
 
@@ -27,11 +30,7 @@ class CustomerWorkflows extends Page implements HasTable
 
     public ?Customer $customerModel = null;
 
-    public ?string $error = null;
-
     protected string $view = 'filament.pages.customer-workflows';
-
-    protected ?Collection $workflowsData = null;
 
     public function mount(string $customer): void
     {
@@ -41,51 +40,16 @@ class CustomerWorkflows extends Page implements HasTable
         if (! $this->customerModel) {
             abort(404, 'Customer not found');
         }
-
-        $this->loadWorkflows();
-    }
-
-    protected function loadWorkflows(): void
-    {
-        try {
-            $service = new ZuoraService;
-            $data = $service->listWorkflows(
-                $this->customerModel->client_id,
-                $this->customerModel->client_secret,
-                $this->customerModel->base_url,
-                1,
-                100
-            );
-
-            $workflows = $data['data'] ?? $data['workflows'] ?? [];
-
-            $this->workflowsData = collect($workflows)->map(function ($workflow, $index) {
-                $id = $workflow['id'] ?? $index;
-
-                return [
-                    '__key' => $id,
-                    'key' => $id,
-                    'id' => $id,
-                    'name' => $workflow['name'] ?? 'N/A',
-                    'state' => $workflow['state'] ?? $workflow['status'] ?? 'Unknown',
-                    'created_on' => $workflow['created_on'] ?? null,
-                    'updated_on' => $workflow['updated_on'] ?? null,
-                ];
-            });
-        } catch (Exception $e) {
-            $this->error = $e->getMessage();
-            $this->workflowsData = collect([]);
-        }
     }
 
     public function getTitle(): string
     {
-        return isset($this->customer) ? "Workflows - {$this->customer}" : 'Workflows';
+        return "Workflows - {$this->customer}";
     }
 
     public function getHeading(): string
     {
-        return isset($this->customer) ? "Workflows for {$this->customer}" : 'Workflows';
+        return "Workflows for {$this->customer}";
     }
 
     public function table(Table $table): Table
@@ -93,14 +57,14 @@ class CustomerWorkflows extends Page implements HasTable
         return $table
             ->query($this->getTableQuery())
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->searchable(false)
-                    ->sortable(false),
+                TextColumn::make('zuora_id')
+                    ->label('Workflow ID')
+                    ->searchable(true)
+                    ->sortable(true),
                 TextColumn::make('name')
                     ->label('Name')
-                    ->searchable(false)
-                    ->sortable(false),
+                    ->searchable(true)
+                    ->sortable(true),
                 TextColumn::make('state')
                     ->label('State')
                     ->badge()
@@ -109,43 +73,70 @@ class CustomerWorkflows extends Page implements HasTable
                         'Inactive' => 'danger',
                         default => 'gray',
                     })
-                    ->sortable(false),
+                    ->sortable(true),
                 TextColumn::make('created_on')
                     ->label('Created')
-                    ->dateTime()
-                    ->sortable(false),
+                    ->dateTime(self::DATE_TIME_FORMAT)
+                    ->sortable(true),
                 TextColumn::make('updated_on')
                     ->label('Updated')
-                    ->dateTime()
-                    ->sortable(false),
+                    ->dateTime(self::DATE_TIME_FORMAT)
+                    ->sortable(true),
+                TextColumn::make('last_synced_at')
+                    ->label('Last Synced')
+                    ->dateTime(self::DATE_TIME_FORMAT)
+                    ->sortable(true)
+                    ->placeholder('Never'),
+            ])
+            ->filters([
+                SelectFilter::make('state')
+                    ->label('Workflow State')
+                    ->options([
+                        'Active' => 'Active',
+                        'Inactive' => 'Inactive',
+                    ])
+                    ->multiple(),
             ])
             ->recordActions([
                 Action::make('download')
                     ->label('Download')
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->visible(fn ($record) => $record !== null)
-                    ->url(fn ($record) => route('workflow.download', [
+                    ->url(fn (Workflow $record) => route('workflow.download', [
                         'customer' => $this->customer,
-                        'workflowId' => is_array($record) ? $record['id'] : $record->id,
-                        'name' => is_array($record) ? $record['name'] : $record->name,
+                        'workflowId' => $record->zuora_id,
+                        'name' => $record->name,
                     ])),
-
             ])
+            ->defaultSort('name', 'asc')
             ->paginated([10, 25, 50, 100]);
     }
 
     protected function getTableQuery(): Builder
     {
-        return Workflow::query()->whereRaw('1 = 0');
+        return $this->customerModel->workflows()
+            ->getQuery()
+            ->select('id', 'zuora_id', 'name', 'state', 'created_on', 'updated_on', 'last_synced_at');
     }
 
-    public function getTableRecords(): Collection
+    protected function getHeaderActions(): array
     {
-        return $this->workflowsData ?? collect([]);
+        return [
+            Action::make('sync')
+                ->label('Sync Workflows')
+                ->icon('heroicon-o-arrow-path')
+                ->action(fn () => $this->syncWorkflows()),
+            PreviousAction::make(),
+        ];
     }
 
-    public function getTableRecordKey($record): string
+    public function syncWorkflows(): void
     {
-        return is_array($record) ? ($record['__key'] ?? $record['key']) : $record->key;
+        SyncCustomerWorkflows::dispatch($this->customerModel);
+
+        Notification::make()
+            ->title('Workflows syncing')
+            ->body('Sync job has been queued.')
+            ->success()
+            ->send();
     }
 }
