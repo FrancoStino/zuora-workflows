@@ -15,8 +15,8 @@ _[![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badg
 [![Redis](https://img.shields.io/badge/Redis-7.0-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org/)
 [![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
-[![Latest Release](https://img.shields.io/badge/v0.6.0-2196F3?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-laravel/releases)
-[![Status](https://img.shields.io/badge/Status-Active-00BCD4?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-laravel)_
+[![Latest Release](https://img.shields.io/badge/v0.6.0-2196F3?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-workflows/releases)
+[![Status](https://img.shields.io/badge/Status-Active-00BCD4?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-workflows)_
 
 </div>
 
@@ -72,8 +72,8 @@ using [Docker](https://www.docker.com/) containers.
 **Step 1: Clone the Repository**
 
 ```bash
-git clone https://github.com/FrancoStino/zuora-laravel.git
-cd zuora-laravel
+git clone https://github.com/FrancoStino/zuora-workflows.git
+cd zuora-workflows
 ```
 
 **Step 2: Start Lando**
@@ -459,8 +459,8 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) file for 
 
 ## Support & Community
 
-- **Issues**: [GitHub Issues](https://github.com/FrancoStino/zuora-laravel/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/FrancoStino/zuora-laravel/discussions)
+- **Issues**: [GitHub Issues](https://github.com/FrancoStino/zuora-workflows/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/FrancoStino/zuora-workflows/discussions)
 - **Security**: See [SECURITY.md](SECURITY.md)
 
 ---
