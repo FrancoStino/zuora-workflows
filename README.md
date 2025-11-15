@@ -2,18 +2,21 @@
 
 # Zuora Workflow Manager
 
-![Zuora Workflows Logo](public/images/logo.svg)
+<figure>
+  <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="50%">
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+</figure>
+
+_[![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
-[![Filament](https://img.shields.io/badge/Filament-4.2-F03A5F?style=for-the-badge&logo=laravel&logoColor=white)](https://filamentphp.com/)
-[![Lando](https://img.shields.io/badge/Lando-Dev%20Environment-000000?style=for-the-badge&logo=docker&logoColor=white)](https://lando.dev/)
+[![Filament](https://custom-icon-badges.demolab.com/badge/Filament-4.2-df4090?style=for-the-badge&logo=filament&logoColor=white)](https://filamentphp.com/)
+[![Lando](https://custom-icon-badges.demolab.com/badge/Lando-DEV_Environment-df4090?style=for-the-badge&logo=lando&logoColor=white)](https://lando.dev/)
 [![MariaDB](https://img.shields.io/badge/MariaDB-11.4-003545?style=for-the-badge&logo=mariadb&logoColor=white)](https://mariadb.org/)
 [![Redis](https://img.shields.io/badge/Redis-7.0-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
 [![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org/)
 [![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
 [![Latest Release](https://img.shields.io/badge/v0.6.0-2196F3?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-laravel/releases)
-[![Status](https://img.shields.io/badge/Status-Active-00BCD4?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-laravel)
+[![Status](https://img.shields.io/badge/Status-Active-00BCD4?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-laravel)_
 
 </div>
 
@@ -72,29 +75,30 @@ workflow management.
 - **OAuth 2.0 Token Management**: Secure authentication with 1-hour token caching
 - **Error Handling**: Robust exception handling with detailed logging
 - **Data Consistency**: ACID-compliant synchronization with [MariaDB](https://mariadb.org/) foreign key constraints
-- **[Filament Shield](https://github.com/BezhansallehCMS/filament-shield) Integration**: Role-based access control (RBAC) for admin operations
+- **[Filament Shield](https://github.com/BezhansallehCMS/filament-shield) Integration**: Role-based access control (
+  RBAC) for admin operations
 
 ---
 
 ## Requirements
 
-| Requirement | Version | Link |
-|-------------|---------|------|
-| [PHP](https://www.php.net/) | 8.4+ | [php.net](https://www.php.net/) |
-| [Laravel](https://laravel.com) | 12.0+ | [laravel.com](https://laravel.com) |
-| [Lando](https://lando.dev) | Latest | [lando.dev](https://lando.dev) |
-| [Docker](https://www.docker.com/) | 20.0+ | [docker.com](https://www.docker.com/) |
-| [Node.js](https://nodejs.org/) | 18.0+ | [nodejs.org](https://nodejs.org/) |
+| Requirement                       | Version | Link                                  |
+|-----------------------------------|---------|---------------------------------------|
+| [PHP](https://www.php.net/)       | 8.4+    | [php.net](https://www.php.net/)       |
+| [Laravel](https://laravel.com)    | 12.0+   | [laravel.com](https://laravel.com)    |
+| [Lando](https://lando.dev)        | Latest  | [lando.dev](https://lando.dev)        |
+| [Docker](https://www.docker.com/) | 20.0+   | [docker.com](https://www.docker.com/) |
+| [Node.js](https://nodejs.org/)    | 18.0+   | [nodejs.org](https://nodejs.org/)     |
 
 ### Containerized Stack (via Lando)
 
-| Component | Version | Link |
-|-----------|---------|------|
-| [Nginx](https://nginx.org/) | Latest | [nginx.org](https://nginx.org/) |
-| [MariaDB](https://mariadb.org/) | 11.4 | [mariadb.org](https://mariadb.org/) |
-| [Redis](https://redis.io/) | 7.0 | [redis.io](https://redis.io/) |
-| [PHP-FPM](https://www.php.net/manual/en/install.fpm.php) | 8.4 | [php.net/fpm](https://www.php.net/manual/en/install.fpm.php) |
-| [Xdebug](https://xdebug.org/) | Latest | [xdebug.org](https://xdebug.org/) |
+| Component                                                | Version | Link                                                         |
+|----------------------------------------------------------|---------|--------------------------------------------------------------|
+| [Nginx](https://nginx.org/)                              | Latest  | [nginx.org](https://nginx.org/)                              |
+| [MariaDB](https://mariadb.org/)                          | 11.4    | [mariadb.org](https://mariadb.org/)                          |
+| [Redis](https://redis.io/)                               | 7.0     | [redis.io](https://redis.io/)                                |
+| [PHP-FPM](https://www.php.net/manual/en/install.fpm.php) | 8.4     | [php.net/fpm](https://www.php.net/manual/en/install.fpm.php) |
+| [Xdebug](https://xdebug.org/)                            | Latest  | [xdebug.org](https://xdebug.org/)                            |
 
 ### PHP Dependencies
 
@@ -102,8 +106,10 @@ workflow management.
 
 - [`filament/filament`](https://filamentphp.com/) (4.2+) - Modern admin dashboard
 - [`laravel/framework`](https://laravel.com) (12.0+) - Core framework
-- [`bezhansalleh/filament-shield`](https://github.com/BezhansallehCMS/filament-shield) (4.0+) - Role-based access control
-- [`dutchcodingcompany/filament-socialite`](https://github.com/DutchCodingCompany/filament-socialite) (3.0+) - OAuth integration
+- [`bezhansalleh/filament-shield`](https://github.com/BezhansallehCMS/filament-shield) (4.0+) - Role-based access
+  control
+- [`dutchcodingcompany/filament-socialite`](https://github.com/DutchCodingCompany/filament-socialite) (3.0+) - OAuth
+  integration
 
 **Frontend**:
 
@@ -117,7 +123,10 @@ workflow management.
 
 ### Option A: Using [Lando](https://lando.dev) (Recommended)
 
-[Lando](https://lando.dev) provides a containerized development environment with [PHP 8.4](https://www.php.net/), [MariaDB 11.4](https://mariadb.org/), [Nginx](https://nginx.org/), and [Redis](https://redis.io/) pre-configured. It eliminates "works on my machine" problems by using [Docker](https://www.docker.com/) containers.
+[Lando](https://lando.dev) provides a containerized development environment
+with [PHP 8.4](https://www.php.net/), [MariaDB 11.4](https://mariadb.org/), [Nginx](https://nginx.org/),
+and [Redis](https://redis.io/) pre-configured. It eliminates "works on my machine" problems by
+using [Docker](https://www.docker.com/) containers.
 
 **Step 1: Clone the Repository**
 
@@ -358,14 +367,18 @@ support.
 1. Login to the admin dashboard
 2. Navigate to **Customers**
 3. Create/Edit a customer and enter:
-     - **Client ID**: [Zuora OAuth 2.0 Client ID](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Client_Authentication)
-     - **Client Secret**: [Zuora OAuth 2.0 Client Secret](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Client_Authentication)
-     - **Base URL**: `https://api.zuora.com/v1` (see [Zuora API Endpoints](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API#API_Endpoints))
+    - **Client ID
+      **: [Zuora OAuth 2.0 Client ID](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Client_Authentication)
+    - **Client Secret
+      **: [Zuora OAuth 2.0 Client Secret](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Client_Authentication)
+    - **Base URL**: `https://api.zuora.com/v1` (
+      see [Zuora API Endpoints](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API#API_Endpoints))
 
 The application automatically handles:
 
 - [OAuth 2.0](https://tools.ietf.org/html/rfc6749) token generation and caching (1-hour TTL)
-- [Paginated requests](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API#Pagination) (max 50 items per page)
+- [Paginated requests](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API#Pagination) (max 50
+  items per page)
 - Error handling and retry logic for failed syncs
 
 ---
@@ -524,7 +537,8 @@ composer run dev
 **WorkflowSyncService** (`app/Services/WorkflowSyncService.php`):
 
 - Orchestrates the synchronization process
-- Handles [pagination](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API#Pagination) through Zuora workflows
+- Handles [pagination](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API#Pagination) through
+  Zuora workflows
 - Creates, updates, and deletes workflow records
 - Maintains data consistency with [MariaDB](https://mariadb.org/) database
 
@@ -541,7 +555,9 @@ composer run dev
 
 ## Database Schema
 
-Built on [MariaDB 11.4](https://mariadb.org/) with support for [foreign key constraints](https://mariadb.com/kb/en/foreign-keys/) and [indexes](https://mariadb.com/kb/en/create-index/) for optimal query performance.
+Built on [MariaDB 11.4](https://mariadb.org/) with support
+for [foreign key constraints](https://mariadb.com/kb/en/foreign-keys/)
+and [indexes](https://mariadb.com/kb/en/create-index/) for optimal query performance.
 
 ### Workflows Table
 
@@ -609,7 +625,8 @@ For [Redis](https://redis.io/) queue support, configure `QUEUE_CONNECTION=redis`
 
 ### [Zuora REST API](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API) Workflow Endpoints
 
-See [Zuora API Documentation](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API) for complete API reference.
+See [Zuora API Documentation](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API) for complete
+API reference.
 
 **List Workflows**
 
