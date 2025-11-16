@@ -4,9 +4,7 @@
 
 <figure>
   <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="50%">
-</figure>
-
-<br>
+</figure><br /><br />
 
 [![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
