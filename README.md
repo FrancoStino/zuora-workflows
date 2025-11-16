@@ -3,7 +3,7 @@
 # Zuora Workflow Manager
 
 <figure>
-  <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="50%">
+  <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="60%">
 </figure><br /><br />
 
 [![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
