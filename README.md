@@ -3,11 +3,10 @@
 # Zuora Workflow Manager
 
 <figure>
-  <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="50%">
+  <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="60%">
+</figure><br /><br />
 
-</figure>
-
-_[![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
 [![Filament](https://custom-icon-badges.demolab.com/badge/Filament-4.2-df4090?style=for-the-badge&logo=filament&logoColor=white)](https://filamentphp.com/)
 [![Lando](https://custom-icon-badges.demolab.com/badge/Lando-DEV_Environment-df4090?style=for-the-badge&logo=lando&logoColor=white)](https://lando.dev/)
@@ -16,7 +15,7 @@ _[![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badg
 [![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org/)
 [![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
 [![Latest Release](https://img.shields.io/badge/v0.6.0-2196F3?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-workflows/releases)
-[![Status](https://img.shields.io/badge/Status-Active-00BCD4?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-workflows)_
+[![Status](https://img.shields.io/badge/Status-Active-00BCD4?style=for-the-badge&logoColor=white)](https://github.com/FrancoStino/zuora-workflows)
 
 </div>
 
@@ -448,6 +447,25 @@ on:
 For security vulnerabilities, please see [SECURITY.md](SECURITY.md) for responsible disclosure guidelines.
 
 **Supported Versions**: 0.x and above receive security updates.
+
+---
+
+## Deployment
+
+For production deployment instructions, including queue worker setup for shared hosting environments, see the [Deployment Guide](docs/DEPLOYMENT.md).
+
+### Quick Setup Options:
+
+**Option A - Sync Queue (Simplest for Shared Hosting):**
+1. Deploy using GitHub Actions workflow
+2. Set `QUEUE_CONNECTION=sync` in your `.env` file
+3. Jobs execute immediately - no additional configuration needed!
+
+**Option B - Database Queue with Cron (For Background Processing):**
+1. Deploy using GitHub Actions workflow
+2. Set `QUEUE_CONNECTION=database` in your `.env` file
+3. Set up a cron job: `* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1`
+4. The scheduler will handle background job processing automatically
 
 ---
 

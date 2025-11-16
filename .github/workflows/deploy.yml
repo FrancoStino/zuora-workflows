@@ -66,7 +66,7 @@ jobs:
           echo "BROADCAST_DRIVER=log" >> .env
           echo "CACHE_DRIVER=file" >> .env
           echo "FILESYSTEM_DISK=local" >> .env
-          echo "QUEUE_CONNECTION=database" >> .env
+          echo "QUEUE_CONNECTION=sync" >> .env
           echo "SESSION_DRIVER=file" >> .env
           echo "SESSION_LIFETIME=120" >> .env
           
@@ -163,31 +163,20 @@ jobs:
             echo "Optimizing application..."
             php artisan optimize
             
-            # Setup Supervisor for queue worker
-            echo "Setting up queue worker with Supervisor..."
-            
-            # Create Supervisor config for queue worker
-            sudo tee /etc/supervisor/conf.d/zuora-workflow-queue.conf > /dev/null <<EOF
-            [program:zuora-workflow-queue]
-            process_name=%(program_name)s_%(process_num)02d
-            command=php /home/${{ secrets.SSH_USERNAME }}/domains/zuora.workflows.davideladisa.it/public_html/artisan queue:work database --sleep=3 --tries=3 --timeout=90 --memory=256
-            autostart=true
-            autorestart=true
-            stderr_logfile=/var/log/supervisor/zuora-workflow-queue-error.log
-            stdout_logfile=/var/log/supervisor/zuora-workflow-queue.log
-            numprocs=1
-            user=${{ secrets.SSH_USERNAME }}
-            startsecs=0
-            stopwait=10
-            EOF
-            
-            # Reload supervisor
-            sudo supervisorctl reread
-            sudo supervisorctl update
-            sudo supervisorctl start zuora-workflow-queue:*
-            
             # Show final status
             echo "Deployment completed successfully!"
             php artisan about --only=environment
-            echo "Queue worker status:"
-            sudo supervisorctl status zuora-workflow-queue:*
+            
+            # Note about queue configuration
+            echo ""
+            echo "=========================================="
+            echo "Queue Configuration: SYNC"
+            echo "=========================================="
+            echo "Jobs are processed immediately (synchronously)."
+            echo "No additional queue worker setup required."
+            echo ""
+            echo "If you need background processing, consider:"
+            echo "1. Change QUEUE_CONNECTION=database in .env"
+            echo "2. Set up a cron job:"
+            echo "   * * * * * cd /home/${{ secrets.SSH_USERNAME }}/domains/zuora.workflows.davideladisa.it/public_html && php artisan schedule:run >> /dev/null 2>&1"
+            echo "=========================================="
