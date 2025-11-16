@@ -450,6 +450,25 @@ For security vulnerabilities, please see [SECURITY.md](SECURITY.md) for responsi
 
 ---
 
+## Deployment
+
+For production deployment instructions, including queue worker setup for shared hosting environments, see the [Deployment Guide](docs/DEPLOYMENT.md).
+
+### Quick Setup Options:
+
+**Option A - Sync Queue (Simplest for Shared Hosting):**
+1. Deploy using GitHub Actions workflow
+2. Set `QUEUE_CONNECTION=sync` in your `.env` file
+3. Jobs execute immediately - no additional configuration needed!
+
+**Option B - Database Queue with Cron (For Background Processing):**
+1. Deploy using GitHub Actions workflow
+2. Set `QUEUE_CONNECTION=database` in your `.env` file
+3. Set up a cron job: `* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1`
+4. The scheduler will handle background job processing automatically
+
+---
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.

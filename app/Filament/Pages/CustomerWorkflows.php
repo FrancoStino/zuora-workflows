@@ -134,8 +134,8 @@ class CustomerWorkflows extends Page implements HasTable
         SyncCustomerWorkflows::dispatch($this->customerModel);
 
         Notification::make()
-            ->title('Workflows syncing')
-            ->body('Sync job has been queued.')
+            ->title('Workflows synchronized')
+            ->body('Workflows have been synchronized successfully.')
             ->success()
             ->send();
     }
