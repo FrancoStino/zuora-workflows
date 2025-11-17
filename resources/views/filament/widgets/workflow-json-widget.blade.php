@@ -7,16 +7,7 @@
     >
         @if($json)
             <div class="space-y-4">
-                <div class="flex justify-end"
-                     x-data
-                     @copy-to-clipboard.window="
-                        navigator.clipboard.writeText($event.detail.json);
-                        $wire.dispatch('notify', {
-                            message: 'JSON copied to clipboard!',
-                            type: 'success'
-                        });
-                     "
-                >
+                <div class="flex justify-end">
                     <x-filament::button
                             icon="heroicon-o-clipboard"
                             outlined
