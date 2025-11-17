@@ -15,8 +15,8 @@ class CustomersTable
         return $table
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('client_id')->searchable()->label('Client ID'),
-                TextColumn::make('base_url')->label('Base URL'),
+                TextColumn::make('zuora_client_id')->searchable()->label('Client ID'),
+                TextColumn::make('zuora_base_url')->label('Base URL'),
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([

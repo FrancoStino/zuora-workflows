@@ -16,9 +16,9 @@ class WorkflowDownloadController extends Controller
 
             $service = new ZuoraService;
             $workflow = $service->downloadWorkflow(
-                $customerModel->client_id,
-                $customerModel->client_secret,
-                $customerModel->base_url,
+                $customerModel->zuora_client_id,
+                $customerModel->zuora_client_secret,
+                $customerModel->zuora_base_url,
                 $workflowId
             );
 

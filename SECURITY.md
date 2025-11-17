@@ -34,7 +34,8 @@ When reporting a vulnerability, please include:
 
 | Version | Supported          |
 |---------|--------------------|
-| 0.x+    | ✅ Fully supported |
+| 1.0+    | ✅ Fully supported |
+| 0.x     | ❌ Not supported   |
 
 ## Security Headers
 Ensure the following headers are configured in your web server:

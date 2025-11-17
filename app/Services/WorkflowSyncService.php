@@ -35,9 +35,9 @@ class WorkflowSyncService
 
             while ($hasMore) {
                 $data = $this->zuoraService->listWorkflows(
-                    $customer->client_id,
-                    $customer->client_secret,
-                    $customer->base_url,
+                    $customer->zuora_client_id,
+                    $customer->zuora_client_secret,
+                    $customer->zuora_base_url,
                     $page,
                     self::PAGE_SIZE
                 );

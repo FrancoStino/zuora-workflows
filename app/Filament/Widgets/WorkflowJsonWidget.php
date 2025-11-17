@@ -10,7 +10,7 @@ use Filament\Widgets\Widget;
 
 class WorkflowJsonWidget extends Widget
 {
-    protected static bool $isLazy = true;
+    protected static bool $isDiscovered = false;
 
     public ?Workflow $workflow = null;
 

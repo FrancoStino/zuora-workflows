@@ -58,17 +58,23 @@ class ViewWorkflow extends Page
 
     public function getTitle(): string
     {
-        return "Workflow - {$this->workflowModel->name}";
+        return $this->workflowModel
+            ? "Workflow - {$this->workflowModel->name}"
+            : 'Workflow';
     }
 
     public function getHeading(): string
     {
-        return $this->workflowModel->name;
+        return $this->workflowModel
+            ? $this->workflowModel->name
+            : 'Workflow';
     }
 
     public function getSubheading(): ?string
     {
-        return "Customer: {$this->customer}";
+        return $this->customer
+            ? "Customer: {$this->customer}"
+            : null;
     }
 
     public function workflowInfolist(Schema $schema): Schema
@@ -174,6 +180,10 @@ class ViewWorkflow extends Page
 
     protected function getHeaderActions(): array
     {
+        if (! $this->workflowModel) {
+            return [];
+        }
+
         return [
             Action::make('download')
                 ->label('Download Workflow')
@@ -191,6 +201,10 @@ class ViewWorkflow extends Page
 
     protected function getFooterWidgets(): array
     {
+        if (! $this->workflowModel) {
+            return [];
+        }
+
         return [
             WorkflowJsonWidget::make([
                 'workflow' => $this->workflowModel,
