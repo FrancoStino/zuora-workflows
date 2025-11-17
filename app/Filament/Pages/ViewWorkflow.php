@@ -12,183 +12,189 @@ use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
-use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 
-class ViewWorkflow extends Page implements HasSchemas
+class ViewWorkflow extends Page
 {
-	use InteractsWithSchemas;
+    use InteractsWithSchemas;
 
-	private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+    private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
 
-	protected static ?string $slug = 'workflows/{customer}/{workflow}';
+    protected static ?string $slug = 'workflows/{customer}/{workflow}';
 
-	protected static bool $shouldRegisterNavigation = false;
+    protected static bool $shouldRegisterNavigation = false;
 
-	public string $customer;
+    public string $customer;
 
-	public string $workflow;
+    public string $workflow;
 
-	public ?Customer $customerModel = null;
+    public ?Customer $customerModel = null;
 
-	public ?Workflow $workflowModel = null;
+    public ?Workflow $workflowModel = null;
 
-	protected string $view = 'filament.pages.view-workflow';
+    protected string $view = 'filament.pages.view-workflow';
 
-	public function mount ( string $customer, string $workflow ) : void
-	{
-		$this -> customer = $customer;
-		$this -> workflow = $workflow;
+    public function mount(string $customer, string $workflow): void
+    {
+        $this->customer = $customer;
+        $this->workflow = $workflow;
 
-		$this -> customerModel = Customer ::where ( 'name', $customer ) -> first ();
+        $this->customerModel = Customer::where('name', $customer)->first();
 
-		if ( !$this -> customerModel ) {
-			abort ( 404, 'Customer not found' );
-		}
+        if (! $this->customerModel) {
+            abort(404, 'Customer not found');
+        }
 
-		$this -> workflowModel = Workflow ::with ( 'customer' )
-		                                  -> where ( 'customer_id', $this -> customerModel -> id )
-		                                  -> where ( 'zuora_id', $workflow )
-		                                  -> first ();
+        $this->workflowModel = Workflow::with('customer')
+            ->where('customer_id', $this->customerModel->id)
+            ->where('zuora_id', $workflow)
+            ->first();
 
-		if ( !$this -> workflowModel ) {
-			abort ( 404, 'Workflow not found' );
-		}
-	}
+        if (! $this->workflowModel) {
+            abort(404, 'Workflow not found');
+        }
+    }
 
-	public function getTitle () : string
-	{
-		return "Workflow - {$this->workflowModel->name}";
-	}
+    public function getTitle(): string
+    {
+        return "Workflow - {$this->workflowModel->name}";
+    }
 
-	public function getHeading () : string
-	{
-		return $this -> workflowModel -> name;
-	}
+    public function getHeading(): string
+    {
+        return $this->workflowModel->name;
+    }
 
-	public function getSubheading () : ?string
-	{
-		return "Customer: {$this->customer}";
-	}
+    public function getSubheading(): ?string
+    {
+        return "Customer: {$this->customer}";
+    }
 
-	public function workflowInfolist ( Schema $schema ) : Schema
-	{
-		return $schema
-			-> record ( $this -> workflowModel )
-			-> components ( [
-				Section ::make ( 'General Information' )
-				        -> description ( 'Basic details about the workflow' )
-				        -> icon ( 'heroicon-o-information-circle' )
-				        -> collapsible ()
-				        -> schema ( [
-					        Grid ::make ( [
-						        'sm' => 1,
-						        'md' => 2,
-						        'xl' => 3,
-					        ] )
-					             -> schema ( [
-						             TextEntry ::make ( 'zuora_id' )
-						                       -> label ( 'Workflow ID' )
-						                       -> icon ( 'heroicon-o-hashtag' )
-						                       -> copyable (),
+    public function workflowInfolist(Schema $schema): Schema
+    {
+        return $schema
+            ->record($this->workflowModel)
+            ->components([
+                Section::make('General Information')
+                    ->description('Basic details about the workflow')
+                    ->icon('heroicon-o-information-circle')
+                    ->collapsible()
+                    ->schema([
+                        Grid::make([
+                            'sm' => 1,
+                            'md' => 2,
+                            'xl' => 3,
+                        ])
+                            ->schema([
+                                TextEntry::make('zuora_id')
+                                    ->label('Workflow ID')
+                                    ->icon('heroicon-o-hashtag')
+                                    ->copyable(),
 
-						             TextEntry ::make ( 'name' )
-						                       -> label ( 'Workflow Name' )
-						                       -> icon ( 'heroicon-o-document-text' )
-						                       -> copyable (),
+                                TextEntry::make('name')
+                                    ->label('Workflow Name')
+                                    ->icon('heroicon-o-document-text')
+                                    ->copyable(),
 
-						             TextEntry ::make ( 'state' )
-						                       -> label ( 'Status' )
-						                       -> icon ( fn ( string $state ) : string => match ( $state ) {
-							                       'Active' => 'heroicon-o-check-circle',
-							                       'Inactive' => 'heroicon-o-x-circle',
-							                       default => 'heroicon-o-question-mark-circle',
-						                       } )
-						                       -> color ( fn ( string $state ) : string => match ( $state ) {
-							                       'Active' => 'success',
-							                       'Inactive' => 'danger',
-							                       default => 'gray',
-						                       } )
-						                       -> badge (),
-						             TextEntry ::make ( 'created_on' )
-						                       -> label ( 'Created On' )
-						                       -> icon ( 'heroicon-o-calendar' )
-						                       -> date ( 'M d, Y' ),
+                                TextEntry::make('state')
+                                    ->label('Status')
+                                    ->icon(fn (string $state): string => match ($state) {
+                                        'Active' => 'heroicon-o-check-circle',
+                                        'Inactive' => 'heroicon-o-x-circle',
+                                        default => 'heroicon-o-question-mark-circle',
+                                    })
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'Active' => 'success',
+                                        'Inactive' => 'danger',
+                                        default => 'gray',
+                                    })
+                                    ->badge(),
+                                TextEntry::make('created_on')
+                                    ->label('Created On')
+                                    ->icon('heroicon-o-calendar')
+                                    ->date('M d, Y'),
 
-						             TextEntry ::make ( 'updated_on' )
-						                       -> label ( 'Last Updated' )
-						                       -> icon ( 'heroicon-o-clock' )
-						                       -> date ( 'M d, Y' ),
+                                TextEntry::make('updated_on')
+                                    ->label('Last Updated')
+                                    ->icon('heroicon-o-clock')
+                                    ->date('M d, Y'),
 
-						             TextEntry ::make ( 'last_synced_at' )
-						                       -> label ( 'Last Sync' )
-						                       -> icon ( 'heroicon-o-arrow-path' )
-						                       -> formatStateUsing ( fn ( $state ) => $state ? ( $this -> calculateDaysSinceSync ( $state ) === 0 ? 'Today' : $this -> calculateDaysSinceSync ( $state ) . ' days ago' ) : 'Never' ),
-					             ] ),
-				        ] ),
+                                TextEntry::make('last_synced_at')
+                                    ->label('Last Sync')
+                                    ->icon('heroicon-o-arrow-path')
+                                    ->formatStateUsing(function ($state) {
+                                        if (! $state) {
+                                            return 'Never';
+                                        }
 
-				Grid ::make ( [
-					'sm' => 1,
-					'md' => 2,
-				] )
-				     -> schema ( [
+                                        $daysSince = $this->calculateDaysSinceSync($state);
 
-					     Section ::make ( 'Customer Information' )
-					             -> description ( 'Associated customer details' )
-					             -> icon ( 'heroicon-o-user-circle' )
-					             -> schema ( [
-						             TextEntry ::make ( 'customer.name' )
-						                       -> label ( 'Customer Name' )
-						                       -> icon ( 'heroicon-o-building-office' )
-						                       -> weight ( FontWeight::Bold )
-						                       -> color ( 'primary' ),
-					             ] ),
+                                        return $daysSince === 0 ? 'Today' : "$daysSince days ago";
+                                    }),
+                            ]),
+                    ]),
 
-					     Section ::make ( 'Technical Details' )
-					             -> description ( 'System-level information' )
-					             -> icon ( 'heroicon-o-code-bracket' )
-					             -> schema ( [
-						             TextEntry ::make ( 'id' )
-						                       -> label ( 'Internal ID' )
-						                       -> icon ( 'heroicon-o-key' )
-						                       -> copyable (),
+                Grid::make([
+                    'sm' => 1,
+                    'md' => 2,
+                ])
+                    ->schema([
 
-					             ] ),
-				     ] ),
+                        Section::make('Customer Information')
+                            ->description('Associated customer details')
+                            ->icon('heroicon-o-user-circle')
+                            ->schema([
+                                TextEntry::make('customer.name')
+                                    ->label('Customer Name')
+                                    ->icon('heroicon-o-building-office')
+                                    ->weight(FontWeight::Bold)
+                                    ->color('primary'),
+                            ]),
 
-			] );
-	}
+                        Section::make('Technical Details')
+                            ->description('System-level information')
+                            ->icon('heroicon-o-code-bracket')
+                            ->schema([
+                                TextEntry::make('id')
+                                    ->label('Internal ID')
+                                    ->icon('heroicon-o-key')
+                                    ->copyable(),
 
-	private function calculateDaysSinceSync ( $lastSyncedAt ) : int
-	{
-		return intval ( abs ( now () -> diffInDays ( $lastSyncedAt ) ) );
-	}
+                            ]),
+                    ]),
 
-	protected function getHeaderActions () : array
-	{
-		return [
-			Action ::make ( 'download' )
-			       -> label ( 'Download Workflow' )
-			       -> icon ( 'heroicon-o-arrow-down-tray' )
-			       -> color ( 'primary' )
-			       -> url ( route ( 'workflow.download', [
-				       'customer'   => $this -> customer,
-				       'workflowId' => $this -> workflowModel -> zuora_id,
-				       'name'       => $this -> workflowModel -> name,
-			       ] ) ),
+            ]);
+    }
 
-			PreviousAction ::make (),
-		];
-	}
+    private function calculateDaysSinceSync($lastSyncedAt): int
+    {
+        return (int) abs(now()->diffInDays($lastSyncedAt));
+    }
 
-	protected function getFooterWidgets () : array
-	{
-		return [
-			WorkflowJsonWidget ::make ( [
-				'workflow' => $this -> workflowModel,
-			] ),
-		];
-	}
-	
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('download')
+                ->label('Download Workflow')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->color('primary')
+                ->url(route('workflow.download', [
+                    'customer' => $this->customer,
+                    'workflowId' => $this->workflowModel->zuora_id,
+                    'name' => $this->workflowModel->name,
+                ])),
+
+            PreviousAction::make(),
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            WorkflowJsonWidget::make([
+                'workflow' => $this->workflowModel,
+            ]),
+        ];
+    }
 }

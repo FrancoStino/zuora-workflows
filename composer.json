@@ -12,12 +12,12 @@
   "require": {
     "php": "^8.4",
     "bezhansalleh/filament-shield": "^4.0",
+    "charrafimed/global-search-modal": "^4.2",
     "dutchcodingcompany/filament-socialite": "^3.0",
     "filament/filament": "^4.2",
     "laravel/framework": "^12.0",
     "laravel/tinker": "^2.10.1",
     "owenvoke/blade-fontawesome": "^3.0",
-    "phiki/phiki": "^2.0",
     "resma/filament-awin-theme": "^1.0"
   },
   "require-dev": {
