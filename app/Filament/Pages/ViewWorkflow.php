@@ -3,10 +3,10 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\Actions\PreviousAction;
+use App\Filament\Widgets\WorkflowJsonWidget;
 use App\Models\Customer;
 use App\Models\Workflow;
 use Filament\Actions\Action;
-use Filament\Infolists\Components\CodeEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Grid;
@@ -15,7 +15,6 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
-use Phiki\Grammar\Grammar;
 
 class ViewWorkflow extends Page implements HasSchemas
 {
@@ -48,7 +47,8 @@ class ViewWorkflow extends Page implements HasSchemas
 			abort ( 404, 'Customer not found' );
 		}
 
-		$this -> workflowModel = Workflow ::where ( 'customer_id', $this -> customerModel -> id )
+		$this -> workflowModel = Workflow ::with ( 'customer' )
+		                                  -> where ( 'customer_id', $this -> customerModel -> id )
 		                                  -> where ( 'zuora_id', $workflow )
 		                                  -> first ();
 
@@ -128,17 +128,6 @@ class ViewWorkflow extends Page implements HasSchemas
 					             ] ),
 				        ] ),
 
-				// Json preview
-				Section ::make ( 'Workflow JSON' )
-				        -> description ( 'Workflow definition in JSON format' )
-				        -> icon ( 'heroicon-o-code-bracket' )
-				        -> schema ( [
-					        CodeEntry ::make ( 'json' )
-					                  -> copyable ()
-					                  -> grammar ( Grammar::Json )
-					        
-				        ] ),
-
 				Grid ::make ( [
 					'sm' => 1,
 					'md' => 2,
@@ -193,8 +182,13 @@ class ViewWorkflow extends Page implements HasSchemas
 		];
 	}
 
-	private function calculateDaysSinceUpdate () : int
+	protected function getFooterWidgets () : array
 	{
-		return intval ( abs ( now () -> diffInDays ( $this -> workflowModel -> updated_on ) ) );
+		return [
+			WorkflowJsonWidget ::make ( [
+				'workflow' => $this -> workflowModel,
+			] ),
+		];
 	}
+	
 }
