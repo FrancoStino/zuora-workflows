@@ -9,6 +9,7 @@ use App\Http\Middleware\CheckSetupCompleted;
 use App\Http\Middleware\RequireAuthAfterSetup;
 use App\Models\AppSetting;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
+use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use DutchCodingCompany\FilamentSocialite\FilamentSocialitePlugin;
 use DutchCodingCompany\FilamentSocialite\Provider;
 use Exception;
@@ -77,6 +78,12 @@ class AdminPanelProvider extends PanelProvider
 //				fn () => view ( 'footer' )
 //			)
             ->plugins([
+                GlobalSearchModalPlugin::make()
+                    ->highlightQueryStyles([
+                        'background-color' => 'teal',
+                        'font-weight' => 'bold',
+                    ])
+                    ->showGroupSearchCounts(),   // Enable per-category count display
                 FilamentAwinTheme::make()
                     ->primaryColor(Color::Teal),
                 FilamentShieldPlugin::make(),
