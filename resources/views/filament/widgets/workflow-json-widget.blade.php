@@ -7,8 +7,8 @@
     >
         @if($json)
             <div class="space-y-4">
-                <div class="flex justify-end" 
-                     x-data 
+                <div class="flex justify-end"
+                     x-data
                      @copy-to-clipboard.window="
                         navigator.clipboard.writeText($event.detail.json);
                         $wire.dispatch('notify', {
