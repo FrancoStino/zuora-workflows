@@ -37,7 +37,7 @@ class WorkflowDashboard extends Page implements HasTable
                     ->label('Customer Name')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('base_url')
+                TextColumn::make('zuora_base_url')
                     ->label('Base URL')
                     ->sortable(),
                 TextColumn::make('created_at')

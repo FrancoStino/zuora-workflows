@@ -164,7 +164,7 @@ class Setup extends Page implements HasForms
             DB::beginTransaction();
 
             $user = $this->createAdminUser($data);
-            $this->generateShieldRolesIfNeeded();
+            $this->generateShieldRolesIfNeeded($user);
             $this->saveOAuthConfiguration($data);
             $this->markSetupAsCompleted();
 
@@ -199,9 +199,11 @@ class Setup extends Page implements HasForms
     /**
      * Generate Shield roles and permissions if they don't exist.
      *
+     * @param  User  $user  The admin user to assign super-admin role
+     *
      * @throws SetupException
      */
-    private function generateShieldRolesIfNeeded(): void
+    private function generateShieldRolesIfNeeded(User $user): void
     {
         if (Role::count() > 0) {
             return;
@@ -219,7 +221,7 @@ class Setup extends Page implements HasForms
 
             // Generate roles and permissions for both panels
             Artisan::call('shield:super-admin', [
-                '--user' => 1,
+                '--user' => $user->id,
                 '--panel' => 'admin',
             ]);
 
