@@ -35,7 +35,7 @@ class SocialiteWorkflowRoleTest extends TestCase
         );
 
         // Call the listener
-        $listener = new AssignWorkflowRoleOnSocialiteRegistration();
+        $listener = new AssignWorkflowRoleOnSocialiteRegistration;
         $listener->handle($event);
 
         // Verify the role was created
@@ -69,7 +69,7 @@ class SocialiteWorkflowRoleTest extends TestCase
             'google'
         );
 
-        $listener = new AssignWorkflowRoleOnSocialiteRegistration();
+        $listener = new AssignWorkflowRoleOnSocialiteRegistration;
         $listener->handle($event);
 
         // Verify all permissions exist
@@ -108,7 +108,7 @@ class SocialiteWorkflowRoleTest extends TestCase
 
         $event1 = new Registered($mockOauthUser1, $socialiteUser1, 'google');
 
-        $listener = new AssignWorkflowRoleOnSocialiteRegistration();
+        $listener = new AssignWorkflowRoleOnSocialiteRegistration;
         $listener->handle($event1);
 
         $mockOauthUser2 = \Mockery::mock();
