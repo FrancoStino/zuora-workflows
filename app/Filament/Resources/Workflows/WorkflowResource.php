@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Workflows;
 
-use App\Filament\Resources\WorkflowResource\Pages;
 use App\Models\Workflow;
 use BackedEnum;
 use Filament\Resources\Resource;
