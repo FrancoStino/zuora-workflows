@@ -30,11 +30,6 @@ class WorkflowResource extends Resource
 		return $record -> name;
 	}
 
-	//	public static function getGloballySearchableAttributes () : array
-	//	{
-	//		return [ 'name', 'zuora_id', 'customer.name' ];
-	//	}
-
 	public static function getGlobalSearchResultDetails ( Model $record ) : array
 	{
 		return [
