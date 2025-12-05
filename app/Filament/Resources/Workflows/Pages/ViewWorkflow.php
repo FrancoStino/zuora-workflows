@@ -138,8 +138,7 @@ class ViewWorkflow extends ViewRecord
 						                   -> grammar ( Grammar::Json )
 						                   -> copyable ()
 						                   -> copyMessage ( 'Copied!' )
-						                   -> copyMessageDuration ( 1500 )
-						                   -> lazy (),
+						                   -> copyMessageDuration ( 1500 ),
 
 					         ] ),
 
