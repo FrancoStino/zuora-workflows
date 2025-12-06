@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\Workflows\Pages;
 
 use App\Filament\Concerns\HasWorkflowDownloadAction;
+use App\Filament\Infolists\Components\JsonEntry;
 use App\Filament\Resources\Workflows\WorkflowResource;
 use Filament\Actions\Action;
-use Filament\Infolists\Components\CodeEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Grid;
@@ -17,7 +17,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
-use Phiki\Grammar\Grammar;
 
 class ViewWorkflow extends ViewRecord
 {
@@ -131,18 +130,20 @@ class ViewWorkflow extends ViewRecord
 					     Tab ::make ( 'Tasks' )
 					         -> icon ( Heroicon::OutlinedRectangleStack )
 					         -> schema ( [
-						         // ...
+						         TextEntry ::make ( 'title' )
+						                   -> label ( 'Under Development' )
 					         ] ),
 					     Tab ::make ( 'Workflow Json' )
-					         -> icon ( Heroicon::Bars3CenterLeft )
+					         -> icon ( Heroicon::CodeBracket )
 					         -> schema ( [
-						         CodeEntry ::make ( 'json_export' )
-						                   -> hiddenLabel ()
-						                   -> grammar ( Grammar::Json )
-						                   -> copyable ()
-						                   -> copyMessage ( 'Copied!' )
-						                   -> copyMessageDuration ( 1500 ),
-
+//						         CodeEntry ::make ( 'json_export' )
+//						                   -> hiddenLabel ()
+////						                   -> grammar ( Grammar::Php )
+//                                           -> copyable ()
+//						                   -> copyMessage ( 'Copied!' )
+//						                   -> copyMessageDuration ( 1500 ),
+JsonEntry ::make ( 'json_export' )
+          -> hiddenLabel (),
 					         ] ),
 
 				     ] )
