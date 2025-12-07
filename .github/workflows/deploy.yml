@@ -117,7 +117,7 @@ jobs:
             
             # Remove old application files (keep storage and .env)
             echo "Cleaning old application files..."
-            rm -rf app bootstrap/cache/* config database resources routes vendor
+            rm -rf app bootstrap/cache/* config database public/build public/css public/js public/fonts resources routes vendor
             echo "Cleanup completed."
 
       - name: Deploy files via SCP
