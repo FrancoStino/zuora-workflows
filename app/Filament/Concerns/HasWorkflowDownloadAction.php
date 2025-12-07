@@ -21,8 +21,8 @@ trait HasWorkflowDownloadAction
                 return $this->downloadWorkflowJson($workflow);
             },
             'disabled' => empty($workflow->json_export),
-            'tooltip' => empty($workflow->json_export) 
-                ? 'No JSON export available for this workflow' 
+            'tooltip' => empty($workflow->json_export)
+                ? 'No JSON export available for this workflow'
                 : 'Download workflow JSON from database',
         ];
     }
@@ -38,15 +38,15 @@ trait HasWorkflowDownloadAction
         }
 
         $fileName = "{$workflow->name}.json";
-        
+
         // Pre-calculate JSON per evitare ricalcoli
         static $jsonCache = [];
         $cacheKey = $workflow->id;
-        
-        if (!isset($jsonCache[$cacheKey])) {
+
+        if (! isset($jsonCache[$cacheKey])) {
             $jsonCache[$cacheKey] = json_encode($workflow->json_export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
-        
+
         $content = $jsonCache[$cacheKey];
 
         return Response::streamDownload(
