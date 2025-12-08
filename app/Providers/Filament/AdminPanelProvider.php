@@ -20,6 +20,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Vite;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -75,6 +76,15 @@ class AdminPanelProvider extends PanelProvider
                 RequireAuthAfterSetup::class,
             ])
             ->authGuard('web')
+            ->viteTheme('resources/css/app.css')
+            ->renderHook(
+                PanelsRenderHook::SCRIPTS_AFTER,
+                function () {
+                    $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+                    $appJs = $manifest['resources/js/app.js']['file'] ?? 'assets/app.js';
+                    return '<script type="module" src="' . asset('build/' . $appJs) . '"></script>';
+                }
+            )
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_NAV_START,
                 fn () => view('filament.components.navigation-filter'))

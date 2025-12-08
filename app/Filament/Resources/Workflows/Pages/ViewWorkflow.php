@@ -157,8 +157,11 @@ class ViewWorkflow extends ViewRecord
                         Tab::make('Graphical View')
                             ->icon(Heroicon::OutlinedChartBar)
                             ->schema([
-                                TextEntry::make('title')
-                                    ->label('Under Development'),
+                                \Filament\Infolists\Components\ViewEntry::make('workflow_graph')
+                                    ->hiddenLabel()
+                                    ->view('filament.components.workflow-graph', [
+                                        'workflowData' => $this->record->json_export,
+                                    ]),
                             ]),
                     ]),
             ]);
