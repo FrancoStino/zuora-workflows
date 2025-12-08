@@ -4,9 +4,8 @@
 	$uniqueId = 'workflow-graph-' . uniqid();
 @endphp
 
-<div data-graph-container="{{ $uniqueId }}" data-workflow='@json($workflowData)'>
-	<div id="{{ $uniqueId }}" class="border border-gray-200 rounded-lg bg-white overflow-hidden"
-		 style="min-height: 600px;">
+<div data-graph-container="{{ $uniqueId }}" data-workflow='@json($workflowData)' class="w-full" style="overflow-x: hidden;">
+	<div id="{{ $uniqueId }}" class="border border-gray-200 rounded-lg bg-white overflow-hidden w-full" style="min-height: 400px; max-width: 100%; overflow-x: hidden;">
 		<div class="flex items-center justify-center h-full p-8">
 			<div class="text-center">
 				<svg class="animate-spin h-8 w-8 text-gray-400 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg"
@@ -69,6 +68,36 @@
 							}
 						}
 					};
+
+					// Cleanup function when component is destroyed
+					const cleanup = () => {
+						const container = document.getElementById( containerId );
+						if ( container && typeof container.cleanup === 'function' ) {
+							container.cleanup();
+						}
+					};
+
+					// Setup cleanup on page unload and when tab changes
+					window.addEventListener( 'beforeunload', cleanup );
+					
+					// Also cleanup when the wrapper element is removed from DOM
+					const observer = new MutationObserver( ( mutations ) => {
+						mutations.forEach( ( mutation ) => {
+							if ( mutation.type === 'childList' ) {
+								mutation.removedNodes.forEach( ( node ) => {
+									if ( node === wrapper || node.contains?.( wrapper ) ) {
+										cleanup();
+										observer.disconnect();
+									}
+								} );
+							}
+						} );
+					} );
+					
+					observer.observe( document.body, {
+						childList: true,
+						subtree: true
+					} );
 
 					// Delay to ensure all scripts are loaded
 					setTimeout( initGraph, 200 );

@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import 'jointjs/dist/joint.css';
+/*@import 'jointjs/dist/joint.css';*/
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -11,15 +11,15 @@
     'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* JointJS Custom Styles */
-.joint-paper {
-    border-radius: 0.5rem;
-}
+/*!* JointJS Custom Styles *!*/
+/*.joint-paper {*/
+/*    border-radius: 0.5rem;*/
+/*}*/
 
-.joint-element {
-    cursor: move;
-}
+/*.joint-element {*/
+/*    cursor: move;*/
+/*}*/
 
-.joint-link {
-    cursor: pointer;
-}
+/*.joint-link {*/
+/*    cursor: pointer;*/
+/*}*/
