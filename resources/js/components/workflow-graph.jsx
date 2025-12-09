@@ -12,6 +12,45 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
+// Custom styles for ReactFlow
+const customStyles = `
+  .react-flow__node {
+    border-radius: 8px;
+  }
+
+  .react-flow__node.selected {
+    box-shadow: 0 0 0 2px #3b82f6;
+  }
+
+  .react-flow__edge.selected {
+    z-index: 10;
+  }
+
+  .react-flow__controls {
+    bottom: 20px;
+    left: 20px;
+  }
+
+  .react-flow__minimap {
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .react-flow__panel {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+  }
+`;
+
+// Inject custom styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.type = 'text/css';
+  styleSheet.innerText = customStyles;
+  document.head.appendChild(styleSheet);
+}
+
 // Import icons from react-icons
 import { FaPlay, FaStop, FaCog, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
@@ -82,6 +121,8 @@ const nodeTypes = {
 };
 
 const WorkflowGraph = ({ workflowData, options = {} }) => {
+  const [layoutDirection, setLayoutDirection] = React.useState('vertical'); // 'vertical' or 'horizontal'
+
   const defaultOptions = {
     layout: 'layered',
     interactive: true,
@@ -94,10 +135,10 @@ const WorkflowGraph = ({ workflowData, options = {} }) => {
   // Parse Zuora workflow data
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     console.log('Parsing workflow data:', workflowData);
-    const result = parseZuoraWorkflow(workflowData);
+    const result = parseZuoraWorkflow(workflowData, layoutDirection);
     console.log('Parsed nodes:', result.nodes.length, 'edges:', result.edges.length);
     return result;
-  }, [workflowData]);
+  }, [workflowData, layoutDirection]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -121,7 +162,7 @@ const WorkflowGraph = ({ workflowData, options = {} }) => {
   }
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full" style={{ width: '100%', height: '700px', position: 'relative' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -130,36 +171,51 @@ const WorkflowGraph = ({ workflowData, options = {} }) => {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
+        fitViewOptions={{ padding: 0.2 }}
         className="bg-gray-50"
         minZoom={0.1}
         maxZoom={2}
+        style={{ width: '100%', height: '100%' }}
       >
         <Background color="#aaa" gap={16} />
         {defaultOptions.showControls && <Controls />}
         {defaultOptions.showMiniMap && <MiniMap />}
 
         <Panel position="top-right">
-          <div className="bg-white p-2 rounded shadow-md">
-            <div className="text-sm font-medium mb-2">Workflow Controls</div>
-            <div className="flex gap-2">
-              <button
-                className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-                onClick={() => {
-                  // Fit to view - this needs to be handled differently in ReactFlow
-                  console.log('Fit view clicked');
-                }}
-              >
-                Fit View
-              </button>
-              <button
-                className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
-                onClick={() => {
-                  // Reset zoom - this needs to be handled differently in ReactFlow
-                  console.log('Reset zoom clicked');
-                }}
-              >
-                Reset Zoom
-              </button>
+          <div className="bg-white p-3 rounded shadow-md min-w-48">
+            <div className="text-sm font-medium mb-3">Workflow Controls</div>
+            <div className="space-y-2">
+              <div>
+                <label className="text-xs font-medium text-gray-700 mb-1 block">Layout</label>
+                <select
+                  value={layoutDirection}
+                  onChange={(e) => setLayoutDirection(e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="vertical">Vertical</option>
+                  <option value="horizontal">Horizontal</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors"
+                  onClick={() => {
+                    // Fit to view - this needs to be handled differently in ReactFlow
+                    console.log('Fit view clicked');
+                  }}
+                >
+                  Fit View
+                </button>
+                <button
+                  className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600 transition-colors"
+                  onClick={() => {
+                    // Reset zoom - this needs to be handled differently in ReactFlow
+                    console.log('Reset zoom clicked');
+                  }}
+                >
+                  Reset Zoom
+                </button>
+              </div>
             </div>
           </div>
         </Panel>
@@ -169,7 +225,7 @@ const WorkflowGraph = ({ workflowData, options = {} }) => {
 };
 
 // Parse Zuora workflow data into ReactFlow format
-function parseZuoraWorkflow(workflowData) {
+function parseZuoraWorkflow(workflowData, layoutDirection = 'vertical') {
   const nodes = [];
   const edges = [];
 
@@ -179,11 +235,16 @@ function parseZuoraWorkflow(workflowData) {
 
   const workflow = typeof workflowData === 'string' ? JSON.parse(workflowData) : workflowData;
 
+  const isVertical = layoutDirection === 'vertical';
+  const spacing = 120;
+  const baseX = 200;
+  const baseY = 0;
+
   // Start node
   nodes.push({
     id: 'start',
     type: 'start',
-    position: { x: 0, y: 0 },
+    position: { x: baseX, y: baseY },
     data: { label: 'Start' },
   });
 
@@ -191,10 +252,14 @@ function parseZuoraWorkflow(workflowData) {
   if (workflow.tasks && Array.isArray(workflow.tasks)) {
     workflow.tasks.forEach((task, index) => {
       const actionType = task.action_type || task.type || 'task';
+      const position = isVertical
+        ? { x: baseX, y: (index + 1) * spacing }
+        : { x: (index + 1) * spacing, y: baseY };
+
       nodes.push({
         id: task.id.toString(),
         type: 'task',
-        position: { x: (index + 1) * 200, y: 0 },
+        position: position,
         data: {
           label: task.name || `Task ${task.id}`,
           actionType: actionType,
@@ -205,11 +270,15 @@ function parseZuoraWorkflow(workflowData) {
   }
 
   // End node
-  const endNodeX = (workflow.tasks?.length || 0) * 200 + 200;
+  const taskCount = workflow.tasks?.length || 0;
+  const endPosition = isVertical
+    ? { x: baseX, y: (taskCount + 1) * spacing }
+    : { x: (taskCount + 1) * spacing, y: baseY };
+
   nodes.push({
     id: 'end',
     type: 'end',
-    position: { x: endNodeX, y: 0 },
+    position: endPosition,
     data: { label: 'End' },
   });
 
@@ -332,8 +401,10 @@ export function initWorkflowGraph(containerId, workflowData) {
 
         // Ensure container has proper styling for ReactFlow
         container.style.width = '100%';
-        container.style.height = '100%';
+        container.style.height = '700px'; // Fixed height to match container
+        container.style.minHeight = '700px';
         container.style.position = 'relative';
+        container.style.overflow = 'auto';
 
         console.log('Creating React root...');
         // Create React root and render component

@@ -5,7 +5,7 @@
 @endphp
 
 <div data-graph-container="{{ $uniqueId }}" data-workflow='@json($workflowData)' class="w-full" style="overflow-x: hidden;">
-	<div id="{{ $uniqueId }}" class="border border-gray-200 rounded-lg bg-white overflow-hidden w-full" style="height: 600px; max-width: 100%; overflow-x: hidden;">
+	<div id="{{ $uniqueId }}" class="border border-gray-200 rounded-lg bg-white overflow-hidden w-full" style="height: 700px; min-height: 700px; max-width: 100%; overflow-x: auto; overflow-y: auto; position: relative;">
 		<div class="flex items-center justify-center h-full p-8">
 			<div class="text-center">
 				<svg class="animate-spin h-8 w-8 text-gray-400 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg"
