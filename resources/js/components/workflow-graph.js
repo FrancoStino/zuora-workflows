@@ -8,7 +8,7 @@ import {DirectedGraph} from '@joint/layout-directed-graph';
 const jointStyles = `
   :root {
     /* JointJS Professional Palette */
-    --jj-color1: #ed2637;
+    --jj-color1: var(--primary-400, #ed2637);
     --jj-color2: #131e29;
     --jj-color3: #dde6ed;
     --jj-color4: #f6f740;
@@ -96,6 +96,8 @@ const jointStyles = `
     fill: var(--step-fill-color);
     stroke: var(--step-stroke-color);
     stroke-width: 2;
+    rx: 8;
+    ry: 8;
   }
 
   .jj-step-text {
@@ -137,7 +139,7 @@ const jointStyles = `
   }
 
   .jj-flow-label-text {
-    fill: var(--flow-label-text-color);
+    fill: #000000;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-style: normal;
     font-size: 13px;
@@ -670,14 +672,15 @@ function createEnd( x, y, text ) {
 }
 
 function createStep( x, y, text ) {
-	return new shapes.standard.Path( {
+	return new shapes.standard.Rectangle( {
 		position: {x, y},
 		size: {width: 120, height: 60},
 		z: 1,
 		attrs: {
 			body: {
 				class: "jj-step-body",
-				d: 'M 0 ' + bevel + ' L ' + bevel + ' 0 L calc(w-' + bevel + ') 0 L calc(w) ' + bevel + ' L calc(w) calc(h-' + bevel + ') L calc(w-' + bevel + ') calc(h) L ' + bevel + ' calc(h) L 0 calc(h-' + bevel + ') Z'
+				rx: 8,
+				ry: 8
 			},
 			label: {
 				class: "jj-step-text",

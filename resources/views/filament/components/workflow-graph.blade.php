@@ -1,11 +1,13 @@
 @props(['workflowData'])
 
 @php
-	$uniqueId = 'workflow-graph-' . uniqid();
+	$uniqueId = 'workflow-graph-' . uniqid('', true);
 @endphp
 
-<div data-graph-container="{{ $uniqueId }}" data-workflow='@json($workflowData)' class="w-full" style="overflow-x: hidden;">
-	<div id="{{ $uniqueId }}" class="border border-gray-200 rounded-lg bg-white overflow-hidden w-full" style="height: 700px; min-height: 700px; max-width: 100%; overflow-x: auto; overflow-y: auto; position: relative;">
+<div data-graph-container="{{ $uniqueId }}" data-workflow='@json($workflowData)' class="w-full"
+	 style="overflow-x: hidden;">
+	<div id="{{ $uniqueId }}" class="border rounded-2xl"
+		 style="height: 700px; min-height: 700px; max-width: 100%; overflow-x: auto; overflow-y: auto; position: relative;">
 		<div class="flex items-center justify-center h-full p-8">
 			<div class="text-center">
 				<svg class="animate-spin h-8 w-8 text-gray-400 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +81,7 @@
 
 					// Setup cleanup on page unload and when tab changes
 					window.addEventListener( 'beforeunload', cleanup );
-					
+
 					// Also cleanup when the wrapper element is removed from DOM
 					const observer = new MutationObserver( ( mutations ) => {
 						mutations.forEach( ( mutation ) => {
@@ -93,7 +95,7 @@
 							}
 						} );
 					} );
-					
+
 					observer.observe( document.body, {
 						childList: true,
 						subtree: true
