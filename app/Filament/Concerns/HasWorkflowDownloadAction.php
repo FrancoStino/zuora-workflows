@@ -6,6 +6,7 @@ namespace App\Filament\Concerns;
 
 use App\Models\Workflow;
 use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 trait HasWorkflowDownloadAction
 {
@@ -30,7 +31,7 @@ trait HasWorkflowDownloadAction
     /**
      * Esegue il download del JSON del workflow
      */
-    private function downloadWorkflowJson(Workflow $workflow): \Symfony\Component\HttpFoundation\StreamedResponse
+    private function downloadWorkflowJson(Workflow $workflow): StreamedResponse
     {
         // Early return se non c'è JSON export
         if (empty($workflow->json_export)) {
@@ -43,7 +44,7 @@ trait HasWorkflowDownloadAction
         static $jsonCache = [];
         $cacheKey = $workflow->id;
 
-        if (! isset($jsonCache[$cacheKey])) {
+        if (!isset($jsonCache[$cacheKey])) {
             $jsonCache[$cacheKey] = json_encode($workflow->json_export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
 
