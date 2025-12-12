@@ -44,7 +44,7 @@ trait HasWorkflowDownloadAction
         static $jsonCache = [];
         $cacheKey = $workflow->id;
 
-        if (!isset($jsonCache[$cacheKey])) {
+        if (! isset($jsonCache[$cacheKey])) {
             $jsonCache[$cacheKey] = json_encode($workflow->json_export, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
 
