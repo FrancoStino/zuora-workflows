@@ -106,8 +106,6 @@ class AdminPanelProvider extends PanelProvider
                         'font-weight' => 'bold',
                     ])
                     ->showGroupSearchCounts(),   // Enable per-category count display
-//                FilamentAwinTheme::make()
-//                    ->primaryColor(Color::Teal),
                 FilamentShieldPlugin::make(),
                 FilamentSocialitePlugin::make()
                     ->domainAllowList(app(OAuthService::class)->getAllowedDomains())
