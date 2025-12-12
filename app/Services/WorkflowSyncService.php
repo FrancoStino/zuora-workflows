@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Customer;
+use App\Models\Task;
 use App\Models\Workflow;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -113,6 +114,9 @@ class WorkflowSyncService
             'json_export' => $jsonExport,
         ])->save();
 
+        // Sincronizza i tasks dal JSON export
+        $this->syncWorkflowTasks($workflow, $jsonExport);
+
         return [
             'created' => $isNew,
             'updated' => ! $isNew,
@@ -141,6 +145,70 @@ class WorkflowSyncService
 
             return null;
         }
+    }
+
+    /**
+     * Sincronizza i tasks di un workflow dal JSON export
+     */
+    private function syncWorkflowTasks(Workflow $workflow, ?array $jsonExport): void
+    {
+        if (! $jsonExport || ! isset($jsonExport['tasks'])) {
+            Log::info('No tasks in JSON export for workflow', ['workflow_id' => $workflow->id]);
+
+            return;
+        }
+
+        Log::info('Syncing tasks for workflow', [
+            'workflow_id' => $workflow->id,
+            'tasks_count' => count($jsonExport['tasks']),
+        ]);
+
+        $taskIds = [];
+
+        foreach ($jsonExport['tasks'] as $taskData) {
+            $zuoraTaskId = $taskData['id'] ?? $taskData['task_id'] ?? null;
+            if (! $zuoraTaskId) {
+                Log::warning('Task without ID found', ['task_data' => $taskData]);
+
+                continue;
+            }
+
+            $taskIds[] = $zuoraTaskId;
+
+            Log::info('Processing task', ['zuora_task_id' => $zuoraTaskId, 'name' => $taskData['name'] ?? 'Unnamed']);
+
+            try {
+                $task = Task::updateOrCreate(
+                    ['zuora_id' => $zuoraTaskId, 'workflow_id' => $workflow->id],
+                    [
+                        'name' => $taskData['name'] ?? 'Unnamed Task',
+                        'description' => $taskData['description'] ?? null,
+                        'state' => $taskData['state'] ?? null,
+                        'created_on' => $taskData['created_on'] ?? $taskData['createdAt'] ?? null,
+                        'updated_on' => $taskData['updated_on'] ?? $taskData['updatedAt'] ?? null,
+                    ]
+                );
+
+                Log::info('Task saved', ['zuora_task_id' => $zuoraTaskId, 'saved' => true, 'is_new' => $task->wasRecentlyCreated]);
+            } catch (\Exception $e) {
+                Log::error('Error saving task', [
+                    'zuora_task_id' => $zuoraTaskId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+        }
+
+        // Elimina i tasks che non sono più nel JSON
+        $deletedCount = $workflow->tasks()
+            ->whereNotIn('zuora_id', $taskIds)
+            ->delete();
+
+        Log::info('Task sync completed', [
+            'workflow_id' => $workflow->id,
+            'processed' => count($taskIds),
+            'deleted' => $deletedCount,
+        ]);
     }
 
     /**

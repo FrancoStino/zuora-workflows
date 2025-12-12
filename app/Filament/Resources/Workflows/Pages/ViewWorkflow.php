@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Workflows\Pages;
 
 use App\Filament\Concerns\HasWorkflowDownloadAction;
+use App\Filament\Resources\Workflows\RelationManagers\TasksRelationManager;
 use App\Filament\Resources\Workflows\WorkflowResource;
 use CodebarAg\FilamentJsonField\Infolists\Components\JsonEntry;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Grid;
@@ -18,6 +20,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Enums\FontWeight;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
+use Njxqlus\Filament\Components\Infolists\RelationManager;
 
 class ViewWorkflow extends ViewRecord
 {
@@ -26,9 +29,7 @@ class ViewWorkflow extends ViewRecord
 
     protected static string $resource = WorkflowResource::class;
 
-    protected string $view = 'filament.resources.workflow-resource.pages.view-workflow';
-
-    public function workflowInfolist(Schema $schema): Schema
+    public function infolist(Schema $schema): Schema
     {
         // Carica solo le relazioni necessarie, evitando query extra
         $this->record->loadMissing(['customer']);
@@ -40,6 +41,7 @@ class ViewWorkflow extends ViewRecord
                     ->description('Basic details about the workflow')
                     ->icon(Heroicon::InformationCircle)
                     ->collapsible()
+                    ->columnSpanFull()
                     ->schema([
                         Grid::make([
                             'sm' => 1,
@@ -59,12 +61,12 @@ class ViewWorkflow extends ViewRecord
 
                                 TextEntry::make('state')
                                     ->label('Status')
-                                    ->icon(fn (string $state) => match ($state) {
+                                    ->icon(fn(string $state) => match ($state) {
                                         'Active' => Heroicon::CheckCircle,
                                         'Inactive' => Heroicon::XCircle,
                                         default => Heroicon::QuestionMarkCircle,
                                     })
-                                    ->color(fn (string $state): string => match ($state) {
+                                    ->color(fn(string $state): string => match ($state) {
                                         'Active' => 'success',
                                         'Inactive' => 'danger',
                                         default => 'gray',
@@ -84,7 +86,7 @@ class ViewWorkflow extends ViewRecord
                                     ->label('Last Sync')
                                     ->icon(Heroicon::ArrowPath)
                                     ->formatStateUsing(function ($state) {
-                                        if (! $state) {
+                                        if (!$state) {
                                             return 'Never';
                                         }
 
@@ -99,6 +101,7 @@ class ViewWorkflow extends ViewRecord
                     'sm' => 1,
                     'md' => 2,
                 ])
+                    ->columnSpanFull()
                     ->schema([
 
                         Section::make('Customer Information')
@@ -124,14 +127,15 @@ class ViewWorkflow extends ViewRecord
                             ]),
                     ]),
                 Tabs::make('Tabs')
-                    ->lazy()
+                    ->columnSpanFull()
                     ->contained(false)
                     ->tabs([
                         Tab::make('Tasks')
                             ->icon(Heroicon::OutlinedRectangleStack)
                             ->schema([
-                                TextEntry::make('title')
-                                    ->label('Under Development'),
+                                RelationManager::make()
+                                    ->manager(TasksRelationManager::class)
+                                    ->lazy(),
                             ]),
                         Tab::make('Workflow Json')
                             ->icon(Heroicon::CodeBracket)
@@ -141,7 +145,7 @@ class ViewWorkflow extends ViewRecord
                                     ->icon(Heroicon::OutlinedClipboardDocument)
                                     ->action(function ($livewire, $record) {
                                         $jsonData = is_string($record->json_export) ? $record->json_export : json_encode($record->json_export);
-                                        $livewire->js('navigator.clipboard.writeText('.json_encode($jsonData).');');
+                                        $livewire->js('navigator.clipboard.writeText(' . json_encode($jsonData) . ');');
                                         Notification::make()
                                             ->success()
                                             ->title('Success')
@@ -157,7 +161,7 @@ class ViewWorkflow extends ViewRecord
                         Tab::make('Graphical View')
                             ->icon(Heroicon::OutlinedChartBar)
                             ->schema([
-                                \Filament\Infolists\Components\ViewEntry::make('workflow_graph')
+                                ViewEntry::make('workflow_graph')
                                     ->hiddenLabel()
                                     ->view('filament.components.workflow-graph', [
                                         'workflowData' => $this->record->json_export,
@@ -169,7 +173,7 @@ class ViewWorkflow extends ViewRecord
 
     private function calculateDaysSinceSync($lastSyncedAt): int
     {
-        return (int) abs(now()->diffInDays($lastSyncedAt));
+        return (int)abs(now()->diffInDays($lastSyncedAt));
     }
 
     public function getSubheading(): ?string
@@ -187,6 +191,24 @@ class ViewWorkflow extends ViewRecord
         $actionConfig = $this->createDownloadAction($this->record);
 
         return [
+            Action::make('syncTasks')
+                ->label('Sync Tasks')
+                ->icon('heroicon-o-arrow-path')
+                ->requiresConfirmation()
+                ->modalHeading('Sync Tasks JSON')
+                ->modalDescription('This action will populate/update tasks in the table from the workflow JSON. Existing tasks with the same Zuora ID will be updated.')
+                ->modalSubmitActionLabel('Sync')
+                ->action(function () {
+                    $count = $this->record->syncTasksFromJson();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Tasks Synced!')
+                        ->body("{$count} tasks have been synced from the workflow JSON.")
+                        ->send();
+                })
+                ->visible(fn() => !empty($this->record->json_export)),
+
             Action::make('download')
                 ->label($actionConfig['label'])
                 ->icon($actionConfig['icon'])
