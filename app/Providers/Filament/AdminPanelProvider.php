@@ -12,6 +12,8 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use DutchCodingCompany\FilamentSocialite\FilamentSocialitePlugin;
 use DutchCodingCompany\FilamentSocialite\Provider;
+use Filament\Enums\GlobalSearchPosition;
+use Filament\Enums\UserMenuPosition;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -41,9 +43,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('')
             ->login(Login::class)
             ->maxContentWidth(Width::Full)
+            ->spa(hasPrefetching: true)
             ->colors([
                 'primary' => Color::Teal,
             ])
+            ->topbar(false)
+            ->userMenu(position: UserMenuPosition::Sidebar)
+            ->globalSearch(position: GlobalSearchPosition::Sidebar)
             ->brandName('Zuora Workflows')
             ->brandLogo(asset('images/logo.svg'))
             ->darkModeBrandLogo(asset('images/logo-white.svg'))
@@ -83,7 +89,7 @@ class AdminPanelProvider extends PanelProvider
                 function () {
                     $cssFile = self::getManifest()['resources/css/workflow-graph.css']['file'] ?? 'assets/workflow-graph.css';
 
-                    return '<link rel="stylesheet" href="'.asset('build/'.$cssFile).'">';
+                    return '<link rel="stylesheet" href="' . asset('build/' . $cssFile) . '">';
                 },
                 scopes: [ViewWorkflow::class]
             )
@@ -92,13 +98,13 @@ class AdminPanelProvider extends PanelProvider
                 function () {
                     $appJs = self::getManifest()['resources/js/app.js']['file'] ?? 'assets/app.js';
 
-                    return '<script type="module" src="'.asset('build/'.$appJs).'"></script>';
+                    return '<script type="module" src="' . asset('build/' . $appJs) . '"></script>';
                 },
                 scopes: [ViewWorkflow::class]
             )
             ->renderHook(
                 PanelsRenderHook::FOOTER,
-                fn () => view('footer'))
+                fn() => view('footer'))
             ->plugins([
                 GlobalSearchModalPlugin::make()
                     ->highlightQueryStyles([
