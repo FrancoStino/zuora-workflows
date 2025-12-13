@@ -66,9 +66,9 @@ class Workflow extends Model
         ]);
 
         foreach ($tasksData as $taskData) {
-            $zuoraTaskId = $taskData['id'] ?? null;
+            $taskId = $taskData['id'] ?? null;
 
-            if (! $zuoraTaskId) {
+            if (! $taskId) {
                 \Log::warning('Task without ID found in workflow', [
                     'workflow_id' => $this->id,
                     'task_name' => $taskData['name'] ?? 'Unknown',
@@ -77,20 +77,20 @@ class Workflow extends Model
                 continue;
             }
 
-            $syncedTaskIds[] = $zuoraTaskId;
+            $syncedTaskIds[] = $taskId;
 
             try {
                 $this->tasks()->updateOrCreate(
                     [
                         'workflow_id' => $this->id,
-                        'zuora_id' => $zuoraTaskId,
+                        'task_id' => $taskId,
                     ],
                     $this->buildTaskAttributes($taskData)
                 );
             } catch (\Exception $e) {
                 \Log::error('Error syncing task', [
                     'workflow_id' => $this->id,
-                    'zuora_task_id' => $zuoraTaskId,
+                    'task_id' => $taskId,
                     'error' => $e->getMessage(),
                 ]);
             }
@@ -98,7 +98,7 @@ class Workflow extends Model
 
         // Elimina i task che non sono più nel JSON export (pulizia automatica)
         $deletedCount = $this->tasks()
-            ->whereNotIn('zuora_id', $syncedTaskIds)
+            ->whereNotIn('task_id', $syncedTaskIds)
             ->delete();
 
         if ($deletedCount > 0) {
@@ -130,7 +130,7 @@ class Workflow extends Model
             'object' => $taskData['object'] ?? null,
             'object_id' => $taskData['object_id'] ?? null,
             'call_type' => $taskData['call_type'] ?? null,
-            'task_id' => $taskData['task_id'] ?? null,
+            'next_task_id' => $taskData['task_id'] ?? null,
             'priority' => $taskData['priority'] ?? 'Medium',
             'concurrent_limit' => $taskData['concurrent_limit'] ?? 9999999,
             'parameters' => $taskData['parameters'] ?? null,

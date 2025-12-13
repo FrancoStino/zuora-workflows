@@ -9,7 +9,7 @@ class Task extends Model
 {
     protected $fillable = [
         'workflow_id',
-        'zuora_id',
+        'task_id',
         'name',
         'description',
         'state',
@@ -17,7 +17,7 @@ class Task extends Model
         'object',
         'object_id',
         'call_type',
-        'task_id',
+        'next_task_id',
         'priority',
         'concurrent_limit',
         'parameters',

@@ -21,12 +21,12 @@ class TasksRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('name')
             ->columns([
-                TextColumn::make('zuora_id')
-                    ->label('Zuora ID')
+                TextColumn::make('task_id')
+                    ->label('Task ID')
                     ->sortable()
                     ->searchable()
                     ->copyable()
-                    ->tooltip('Task ID in Zuora'),
+                    ->tooltip('Unique task identifier from Zuora'),
 
                 TextColumn::make('name')
                     ->label('Name')
@@ -37,7 +37,7 @@ class TasksRelationManager extends RelationManager
                 TextColumn::make('action_type')
                     ->label('Action Type')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'Email' => 'info',
                         'Export' => 'success',
                         'Iterate' => 'warning',
@@ -50,12 +50,12 @@ class TasksRelationManager extends RelationManager
                     ->label('Object')
                     ->searchable()
                     ->limit(30)
-                    ->tooltip(fn($record) => $record->object),
+                    ->tooltip(fn ($record) => $record->object),
 
                 TextColumn::make('priority')
                     ->label('Priority')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'High' => 'danger',
                         'Medium' => 'warning',
                         'Low' => 'success',
@@ -77,7 +77,7 @@ class TasksRelationManager extends RelationManager
                 TextColumn::make('state')
                     ->label('State')
                     ->badge()
-                    ->color(fn(?string $state): string => match ($state) {
+                    ->color(fn (?string $state): string => match ($state) {
                         'completed' => 'success',
                         'in_progress' => 'warning',
                         'pending' => 'gray',
@@ -95,14 +95,14 @@ class TasksRelationManager extends RelationManager
                     ->icon('heroicon-o-eye')
                     ->slideOver()
                     ->modalWidth(Width::FiveExtraLarge)
-                    ->modalHeading(fn($record) => 'Task: ' . $record->name)
-                    ->modalDescription(fn($record) => 'Zuora ID: ' . $record->zuora_id)
+                    ->modalHeading(fn ($record) => 'Task: '.$record->name)
+                    ->modalDescription(fn ($record) => 'Task ID: '.$record->task_id)
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
-                    ->schema(fn(): array => $this->getTaskInfolistSchema()),
+                    ->schema(fn (): array => $this->getTaskInfolistSchema()),
             ])
             ->recordAction('viewDetails')
-            ->defaultSort('zuora_id', 'asc');
+            ->defaultSort('task_id', 'asc');
     }
 
     protected function getTaskInfolistSchema(): array
@@ -114,8 +114,8 @@ class TasksRelationManager extends RelationManager
                 ->schema([
                     Grid::make(2)
                         ->schema([
-                            TextEntry::make('zuora_id')
-                                ->label('Zuora ID')
+                            TextEntry::make('task_id')
+                                ->label('Task ID')
                                 ->icon('heroicon-o-hashtag')
                                 ->copyable()
                                 ->badge()
@@ -131,7 +131,7 @@ class TasksRelationManager extends RelationManager
                                 ->label('Action Type')
                                 ->icon('heroicon-o-bolt')
                                 ->badge()
-                                ->color(fn(string $state): string => match ($state) {
+                                ->color(fn (string $state): string => match ($state) {
                                     'Email' => 'info',
                                     'Export' => 'success',
                                     'Iterate' => 'warning',
@@ -146,7 +146,7 @@ class TasksRelationManager extends RelationManager
                                 ->label('Priority')
                                 ->icon('heroicon-o-flag')
                                 ->badge()
-                                ->color(fn(string $state): string => match ($state) {
+                                ->color(fn (string $state): string => match ($state) {
                                     'High' => 'danger',
                                     'Medium' => 'warning',
                                     'Low' => 'success',
@@ -170,8 +170,8 @@ class TasksRelationManager extends RelationManager
                                 ->badge()
                                 ->placeholder('N/A'),
 
-                            TextEntry::make('task_id')
-                                ->label('Parent Task ID')
+                            TextEntry::make('next_task_id')
+                                ->label('Next Task ID')
                                 ->icon('heroicon-o-link')
                                 ->placeholder('N/A'),
 
@@ -185,7 +185,7 @@ class TasksRelationManager extends RelationManager
                                 ->label('State')
                                 ->icon('heroicon-o-signal')
                                 ->badge()
-                                ->color(fn(?string $state): string => match ($state) {
+                                ->color(fn (?string $state): string => match ($state) {
                                     'completed' => 'success',
                                     'in_progress' => 'warning',
                                     'pending' => 'gray',
@@ -198,7 +198,7 @@ class TasksRelationManager extends RelationManager
             Section::make('Parameters')
                 ->icon('heroicon-o-cog-6-tooth')
                 ->description('Complete task configuration')
-                ->visible(fn($record) => !empty($record->parameters))
+                ->visible(fn ($record) => ! empty($record->parameters))
                 ->collapsible()
                 ->schema([
                     JsonEntry::make('parameters')
@@ -211,7 +211,7 @@ class TasksRelationManager extends RelationManager
                 ->description('Task coordinates in workflow graph')
                 ->collapsible()
                 ->collapsed()
-                ->visible(fn($record) => !empty($record->css))
+                ->visible(fn ($record) => ! empty($record->css))
                 ->schema([
                     Grid::make(2)
                         ->schema([
@@ -229,19 +229,19 @@ class TasksRelationManager extends RelationManager
                 ->icon('heroicon-o-tag')
                 ->collapsible()
                 ->collapsed()
-                ->visible(fn($record) => !empty($record->tags) || !empty($record->assignment))
+                ->visible(fn ($record) => ! empty($record->tags) || ! empty($record->assignment))
                 ->schema([
                     TextEntry::make('tags')
                         ->label('Tags')
                         ->badge()
                         ->separator(',')
-                        ->visible(fn($record) => !empty($record->tags))
+                        ->visible(fn ($record) => ! empty($record->tags))
                         ->placeholder('No tags'),
 
                     JsonEntry::make('assignment')
                         ->label('Assignments')
                         ->darkTheme()
-                        ->visible(fn($record) => !empty($record->assignment))
+                        ->visible(fn ($record) => ! empty($record->assignment))
                         ->columnSpanFull(),
                 ]),
 
@@ -267,7 +267,7 @@ class TasksRelationManager extends RelationManager
                                 ->label('Zuora Org IDs')
                                 ->badge()
                                 ->separator(',')
-                                ->visible(fn($record) => !empty($record->zuora_org_ids))
+                                ->visible(fn ($record) => ! empty($record->zuora_org_ids))
                                 ->placeholder('N/A')
                                 ->columnSpanFull(),
                         ]),
