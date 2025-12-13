@@ -6,6 +6,7 @@ use CodebarAg\FilamentJsonField\Infolists\Components\JsonEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Support\Icons\Heroicon;
 
 trait HasTaskInfolist
 {
@@ -14,21 +15,21 @@ trait HasTaskInfolist
         return [
             Section::make('General Information')
                 ->columnSpanFull()
-                ->icon('heroicon-o-information-circle')
+                ->icon(Heroicon::OutlinedInformationCircle)
                 ->collapsible()
                 ->schema([
                     Grid::make(3)
                         ->schema([
                             TextEntry::make('task_id')
                                 ->label('Task ID')
-                                ->icon('heroicon-o-hashtag')
+                                ->icon(Heroicon::OutlinedHashtag)
                                 ->copyable()
                                 ->badge()
                                 ->color('primary'),
 
                             TextEntry::make('action_type')
                                 ->label('Action Type')
-                                ->icon('heroicon-o-bolt')
+                                ->icon(Heroicon::OutlinedBolt)
                                 ->badge()
                                 ->color(fn (string $state): string => match ($state) {
                                     'Email', 'Query' => 'info',
@@ -41,7 +42,7 @@ trait HasTaskInfolist
 
                             TextEntry::make('priority')
                                 ->label('Priority')
-                                ->icon('heroicon-o-flag')
+                                ->icon(Heroicon::OutlinedFlag)
                                 ->badge()
                                 ->color(fn (string $state): string => match ($state) {
                                     'High' => 'danger',
@@ -52,35 +53,35 @@ trait HasTaskInfolist
 
                             TextEntry::make('object')
                                 ->label('Object')
-                                ->icon('heroicon-o-cube')
+                                ->icon(Heroicon::OutlinedCube)
                                 ->placeholder('N/A'),
 
                             TextEntry::make('object_id')
                                 ->label('Object ID')
-                                ->icon('heroicon-o-key')
+                                ->icon(Heroicon::OutlinedKey)
                                 ->copyable()
                                 ->placeholder('N/A'),
 
                             TextEntry::make('call_type')
                                 ->label('Call Type')
-                                ->icon('heroicon-o-arrow-path')
+                                ->icon(Heroicon::OutlinedArrowPath)
                                 ->badge()
                                 ->placeholder('N/A'),
 
                             TextEntry::make('next_task_id')
                                 ->label('Next Task ID')
-                                ->icon('heroicon-o-link')
+                                ->icon(Heroicon::OutlinedLink)
                                 ->placeholder('N/A'),
 
                             TextEntry::make('concurrent_limit')
                                 ->label('Concurrent Limit')
-                                ->icon('heroicon-o-server')
+                                ->icon(Heroicon::OutlinedServer)
                                 ->numeric()
                                 ->default(9999999),
 
                             TextEntry::make('state')
                                 ->label('State')
-                                ->icon('heroicon-o-signal')
+                                ->icon(Heroicon::OutlinedSignal)
                                 ->badge()
                                 ->color(fn (?string $state): string => match ($state) {
                                     'completed' => 'success',
@@ -93,7 +94,7 @@ trait HasTaskInfolist
 
             Section::make('Parameters')
                 ->columnSpanFull()
-                ->icon('heroicon-o-cog-6-tooth')
+                ->icon(Heroicon::OutlinedCog6Tooth)
                 ->description('Complete task configuration')
                 ->visible(fn ($record) => ! empty($record->parameters))
                 ->collapsible()
@@ -105,7 +106,7 @@ trait HasTaskInfolist
                 ]),
 
             Section::make('CSS Position')
-                ->icon('heroicon-o-map-pin')
+                ->icon(Heroicon::OutlinedMapPin)
                 ->description('Task coordinates in workflow graph')
                 ->collapsible()
                 ->collapsed()
@@ -115,16 +116,16 @@ trait HasTaskInfolist
                         ->schema([
                             TextEntry::make('css.top')
                                 ->label('Top')
-                                ->icon('heroicon-o-arrow-up'),
+                                ->icon(Heroicon::OutlinedArrowUp),
 
                             TextEntry::make('css.left')
                                 ->label('Left')
-                                ->icon('heroicon-o-arrow-left'),
+                                ->icon(Heroicon::OutlinedArrowLeft),
                         ]),
                 ]),
 
             Section::make('Tags & Assignments')
-                ->icon('heroicon-o-tag')
+                ->icon(Heroicon::OutlinedTag)
                 ->collapsible()
                 ->collapsed()
                 ->visible(fn ($record) => ! empty($record->tags) || ! empty($record->assignment))
@@ -144,7 +145,7 @@ trait HasTaskInfolist
 
             Section::make('Timestamps')
                 ->description('Task creation and update timestamps')
-                ->icon('heroicon-o-clock')
+                ->icon(Heroicon::OutlinedClock)
                 ->collapsible()
                 ->collapsed()
                 ->schema([
@@ -152,24 +153,24 @@ trait HasTaskInfolist
                         ->schema([
                             TextEntry::make('created_on')
                                 ->label('Created On')
-                                ->icon('heroicon-o-calendar')
+                                ->icon(Heroicon::OutlinedCalendar)
                                 ->dateTime('d/m/Y H:i')
                                 ->placeholder('N/A'),
 
                             TextEntry::make('updated_on')
                                 ->label('Updated On')
-                                ->icon('heroicon-o-calendar')
+                                ->icon(Heroicon::OutlinedCalendar)
                                 ->dateTime('d/m/Y H:i')
                                 ->placeholder('N/A'),
 
                             TextEntry::make('created_at')
                                 ->label('Created in DB')
-                                ->icon('heroicon-o-calendar-days')
+                                ->icon(Heroicon::OutlinedCalendarDays)
                                 ->dateTime('d/m/Y H:i'),
 
                             TextEntry::make('updated_at')
                                 ->label('Updated in DB')
-                                ->icon('heroicon-o-calendar-days')
+                                ->icon(Heroicon::OutlinedCalendarDays)
                                 ->dateTime('d/m/Y H:i'),
                         ]),
                 ]),

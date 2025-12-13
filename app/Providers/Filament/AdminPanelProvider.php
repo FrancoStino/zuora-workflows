@@ -12,8 +12,6 @@ use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
 use DutchCodingCompany\FilamentSocialite\FilamentSocialitePlugin;
 use DutchCodingCompany\FilamentSocialite\Provider;
-use Filament\Enums\GlobalSearchPosition;
-use Filament\Enums\UserMenuPosition;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -48,8 +46,6 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Teal,
             ])
             ->topbar(false)
-            ->userMenu(position: UserMenuPosition::Sidebar)
-            ->globalSearch(position: GlobalSearchPosition::Sidebar)
             ->brandName('Zuora Workflows')
             ->brandLogo(asset('images/logo.svg'))
             ->darkModeBrandLogo(asset('images/logo-white.svg'))

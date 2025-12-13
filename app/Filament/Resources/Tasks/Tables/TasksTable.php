@@ -1,46 +1,18 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\Tasks\Tables;
 
-use App\Filament\Resources\TaskResource\Pages;
-use App\Models\Task;
-use BackedEnum;
-use Filament\Resources\Resource;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
-use UnitEnum;
 
-class TaskResource extends Resource
+class TasksTable
 {
-    protected static ?string $model = Task::class;
-
-    protected static ?string $recordTitleAttribute = 'name';
-
-    protected static string|null|BackedEnum $navigationIcon = 'heroicon-o-queue-list';
-
-    protected static string|null|UnitEnum $navigationGroup = 'Zuora Management';
-
-    protected static ?int $navigationSort = 3;
-
-    public static function getGlobalSearchResultTitle(Model $record): string
-    {
-        return $record->name;
-    }
-
-    public static function getGlobalSearchResultDetails(Model $record): array
-    {
-        return [
-            'Workflow Name' => $record->workflow->name ?? 'N/A',
-        ];
-    }
-
-    public static function table(Table $table): Table
+    public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-
                 TextColumn::make('task_id')
                     ->label('Task ID')
                     ->sortable()
@@ -146,21 +118,9 @@ class TaskResource extends Resource
                         'completed' => 'Completed',
                     ]),
             ])
+            ->recordActions([
+                ViewAction::make(),
+            ])
             ->defaultSort('created_at', 'desc');
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListTasks::route('/'),
-            'view' => Pages\ViewTask::route('/{record}'),
-        ];
     }
 }

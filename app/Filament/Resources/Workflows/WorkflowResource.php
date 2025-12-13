@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Workflows;
 
+use App\Filament\Resources\Workflows\Tables\WorkflowsTable;
 use App\Models\Workflow;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
@@ -55,5 +57,10 @@ class WorkflowResource extends Resource
     public static function getNavigationBadgeTooltip(): ?string
     {
         return 'The total number of workflows';
+    }
+
+    public static function table(Table $table): Table
+    {
+        return WorkflowsTable::configure($table);
     }
 }

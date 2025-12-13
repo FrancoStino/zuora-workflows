@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Filament\Resources\TaskResource\Pages;
+namespace App\Filament\Resources\Tasks\Pages;
 
 use App\Filament\Concerns\HasTaskInfolist;
-use App\Filament\Resources\TaskResource;
+use App\Filament\Resources\Tasks\TaskResource;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Schema;
 use Illuminate\Contracts\Support\Htmlable;

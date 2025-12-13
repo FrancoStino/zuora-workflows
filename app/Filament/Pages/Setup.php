@@ -262,6 +262,8 @@ class Setup extends Page implements HasForms
         $permissions = [
             'ViewAny:Workflow',
             'View:Workflow',
+            'ViewAny:Task',
+            'View:Task',
         ];
 
         foreach ($permissions as $permissionName) {
