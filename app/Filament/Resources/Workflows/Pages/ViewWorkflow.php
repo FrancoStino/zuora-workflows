@@ -193,24 +193,6 @@ class ViewWorkflow extends ViewRecord
         $actionConfig = $this->createDownloadAction($workflow);
 
         return [
-            Action::make('syncTasks')
-                ->label('Sync Tasks')
-                ->icon('heroicon-o-arrow-path')
-                ->requiresConfirmation()
-                ->modalHeading('Sync Tasks JSON')
-                ->modalDescription('This action will populate/update tasks in the table from the workflow JSON. Existing tasks with the same Zuora ID will be updated.')
-                ->modalSubmitActionLabel('Sync')
-                ->action(function () {
-                    $count = $this->record->syncTasksFromJson();
-
-                    Notification::make()
-                        ->success()
-                        ->title('Tasks Synced!')
-                        ->body("{$count} tasks have been synced from the workflow JSON.")
-                        ->send();
-                })
-                ->visible(fn () => ! empty($this->record->json_export)),
-
             Action::make('download')
                 ->label($actionConfig['label'])
                 ->icon($actionConfig['icon'])
