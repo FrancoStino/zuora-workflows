@@ -18,6 +18,7 @@
         "charrafimed/global-search-modal": "^4.2",
         "codebar-ag/laravel-filament-json-field": "^13.0",
         "dutchcodingcompany/filament-socialite": "^3.0",
+        "filafly/filament-hugeicons-icons": "^1.0",
         "filament/filament": "^4.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
