@@ -15,7 +15,7 @@ class WorkflowResource extends Resource
 {
     protected static ?string $model = Workflow::class;
 
-    protected static string|null|BackedEnum $navigationIcon = Heroicon::OutlinedWindow;
+    protected static string|null|BackedEnum $navigationIcon = Heroicon::OutlinedRectangleGroup;
 
     protected static ?string $navigationLabel = 'Workflows';
 

@@ -14,4 +14,21 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    // Split JointJS libraries into a separate chunk
+                    'jointjs': ['@joint/core', '@joint/layout-directed-graph'],
+
+                    // Split vendor libraries
+                    'vendor': ['axios'],
+
+                    // Keep workflow graph components separate
+                    'workflow-graph': ['./resources/js/components/workflow-graph.js'],
+                }
+            }
+        },
+        chunkSizeWarningLimit: 1000 // Increase warning limit to 1000kB
+    }
 });

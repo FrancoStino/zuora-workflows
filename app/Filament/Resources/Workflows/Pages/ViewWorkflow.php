@@ -60,12 +60,12 @@ class ViewWorkflow extends ViewRecord
 
                                 TextEntry::make('state')
                                     ->label('Status')
-                                    ->icon(fn (string $state) => match ($state) {
+                                    ->icon(fn(string $state) => match ($state) {
                                         'Active' => Heroicon::CheckCircle,
                                         'Inactive' => Heroicon::XCircle,
                                         default => Heroicon::QuestionMarkCircle,
                                     })
-                                    ->color(fn (string $state): string => match ($state) {
+                                    ->color(fn(string $state): string => match ($state) {
                                         'Active' => 'success',
                                         'Inactive' => 'danger',
                                         default => 'gray',
@@ -85,7 +85,7 @@ class ViewWorkflow extends ViewRecord
                                     ->label('Last Sync')
                                     ->icon(Heroicon::ArrowPath)
                                     ->formatStateUsing(function ($state) {
-                                        if (! $state) {
+                                        if (!$state) {
                                             return 'Never';
                                         }
 
@@ -117,14 +117,14 @@ class ViewWorkflow extends ViewRecord
                     ->contained(false)
                     ->tabs([
                         Tab::make('Workflow Json')
-                            ->icon(Heroicon::CodeBracket)
+                            ->icon('json')
                             ->schema([
                                 Action::make('Copy Json')
                                     ->label('Copy JSON')
                                     ->icon(Heroicon::OutlinedClipboardDocument)
                                     ->action(function ($livewire, $record) {
                                         $jsonData = is_string($record->json_export) ? $record->json_export : json_encode($record->json_export);
-                                        $livewire->js('navigator.clipboard.writeText('.json_encode($jsonData).');');
+                                        $livewire->js('navigator.clipboard.writeText(' . json_encode($jsonData) . ');');
                                         Notification::make()
                                             ->success()
                                             ->title('Success')
@@ -138,7 +138,7 @@ class ViewWorkflow extends ViewRecord
 
                             ]),
                         Tab::make('Graphical View')
-                            ->icon(Heroicon::OutlinedChartBar)
+                            ->icon('workflow-square')
                             ->schema([
                                 ViewEntry::make('workflow_graph')
                                     ->hiddenLabel()
@@ -152,7 +152,7 @@ class ViewWorkflow extends ViewRecord
 
     private function calculateDaysSinceSync($lastSyncedAt): int
     {
-        return (int) abs(now()->diffInDays($lastSyncedAt));
+        return (int)abs(now()->diffInDays($lastSyncedAt));
     }
 
     public function getSubheading(): ?string

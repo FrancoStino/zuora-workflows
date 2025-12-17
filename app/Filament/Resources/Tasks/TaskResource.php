@@ -17,7 +17,7 @@ class TaskResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static string|null|BackedEnum $navigationIcon = Heroicon::OutlinedQueueList;
+    protected static string|null|BackedEnum $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static string|null|UnitEnum $navigationGroup = 'Zuora Management';
 
