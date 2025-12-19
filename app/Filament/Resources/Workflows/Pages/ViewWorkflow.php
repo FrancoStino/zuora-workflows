@@ -108,8 +108,7 @@ class ViewWorkflow extends ViewRecord
 
                 RelationManager::make()
                     ->columnSpanFull()
-                    ->manager(TasksRelationManager::class)
-                    ->lazy(),
+                    ->manager(TasksRelationManager::class),
 
                 Tabs::make('Tabs')
                     ->columnSpanFull()

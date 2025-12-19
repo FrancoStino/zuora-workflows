@@ -28,6 +28,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use WatheqAlshowaiter\FilamentStickyTableHeader\StickyTableHeaderPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -118,6 +119,7 @@ class AdminPanelProvider extends PanelProvider
                             ->icon('fab-google')
                             ->color(Color::Red),
                     ]),
+                StickyTableHeaderPlugin::make(),
             ]);
     }
 
