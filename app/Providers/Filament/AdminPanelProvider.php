@@ -29,6 +29,10 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use JsonException;
+use Moox\Jobs\JobsBatchesPlugin;
+use Moox\Jobs\JobsFailedPlugin;
+use Moox\Jobs\JobsPlugin;
+use Moox\Jobs\JobsWaitingPlugin;
 use WatheqAlshowaiter\FilamentStickyTableHeader\StickyTableHeaderPlugin;
 
 class AdminPanelProvider extends PanelProvider
@@ -121,6 +125,11 @@ class AdminPanelProvider extends PanelProvider
                             ->color(Color::Red),
                     ]),
                 StickyTableHeaderPlugin::make(),
+                JobsPlugin::make(),
+                JobsWaitingPlugin::make(),
+                JobsFailedPlugin::make(),
+                JobsBatchesPlugin::make(),
+
             ]);
     }
 

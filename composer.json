@@ -21,6 +21,7 @@
         "filament/filament": "^4.2",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "moox/jobs": "^4.0.0-dev",
         "njxqlus/filament-relation-manager-component": "^2.1",
         "owenvoke/blade-fontawesome": "^3.0",
         "watheqalshowaiter/filament-sticky-table-header": "^1.3"
@@ -99,6 +100,6 @@
             "php-http/discovery": true
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "beta",
     "prefer-stable": true
 }
