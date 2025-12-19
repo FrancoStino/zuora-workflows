@@ -118,9 +118,9 @@ class AdminPanelProvider extends PanelProvider
                             ->label('Google')
                             ->icon('fab-google')
                             ->color(Color::Red),
-                    ]),
-                StickyTableHeaderPlugin::make(),
-            ]);
+                     ]),
+                 StickyTableHeaderPlugin::make(),
+             ]);
     }
 
     public static function getManifest(): array
