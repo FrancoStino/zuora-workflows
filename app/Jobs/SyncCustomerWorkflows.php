@@ -11,11 +11,13 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Moox\Jobs\Traits\JobProgress;
 
 class SyncCustomerWorkflows implements ShouldQueue
 {
     use Dispatchable;
     use InteractsWithQueue;
+    use JobProgress;
     use Queueable;
     use SerializesModels;
 
@@ -33,6 +35,9 @@ class SyncCustomerWorkflows implements ShouldQueue
 
     public function handle(WorkflowSyncService $syncService): void
     {
+        // Initialize progress
+        $this->setProgress(20);
+
         // Validate customer exists (might have been deleted after job was queued)
         try {
             $customer = Customer::findOrFail($this->customer->id);
@@ -47,6 +52,8 @@ class SyncCustomerWorkflows implements ShouldQueue
             return;
         }
 
+        $this->setProgress(40);
+
         // Validate customer has required Zuora credentials
         if (! $this->hasValidCredentials($customer)) {
             Log::error('Cannot sync workflows: Invalid or missing Zuora credentials', [
@@ -60,7 +67,12 @@ class SyncCustomerWorkflows implements ShouldQueue
             return;
         }
 
+        $this->setProgress(60);
+
+        // Sync workflows with progress tracking
         $syncService->syncCustomerWorkflows($customer);
+
+        $this->setProgress(100);
     }
 
     /**
