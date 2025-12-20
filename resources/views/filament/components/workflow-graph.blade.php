@@ -11,7 +11,7 @@
         to determine the correct dimensions for rendering the workflow graph.
         Removing the border class entirely will cause the graph to not render.
     --}}
-    <div id="{{ $uniqueId }}" 
+    <div id="{{ $uniqueId }}"
          class="border border-white/0 rounded-xl"
          style="height: 700px; min-height: 700px; max-width: 100%; overflow-x: auto; overflow-y: auto; position: relative;"
          data-workflow-container="{{ $uniqueId }}"
@@ -34,13 +34,20 @@
     @push('scripts')
         <script>
             /**
-             * Simple DOMContentLoaded initialization for workflow graphs
+             * Simple initialization for workflow graphs
              * wire:ignore on the container ensures the graph persists across Livewire updates
              */
-            document.addEventListener('livewire:navigated', function () {
+
+            // Shared initialization function for workflow graphs
+            function initializeWorkflowGraphs() {
                 const containers = document.querySelectorAll('[data-workflow-container]');
 
                 containers.forEach(function (container) {
+                    // Skip if already initialized
+                    if (container.hasAttribute('data-workflow-initialized')) {
+                        return;
+                    }
+
                     const containerId = container.getAttribute('data-workflow-container');
                     const workflowData = JSON.parse(container.getAttribute('data-workflow-data'));
 
@@ -58,10 +65,13 @@
                     }
 
                     try {
+                        // Mark as initialized to prevent duplicate initialization
+                        container.setAttribute('data-workflow-initialized', 'true');
+
                         // Small delay to ensure all assets are loaded
                         setTimeout(() => {
                             const result = window.initWorkflowGraph(containerId, workflowData);
-                            
+
                             if (result && !result.success) {
                                 console.error('Failed to initialize workflow graph:', result.error);
                                 container.innerHTML = `
@@ -82,6 +92,18 @@
                         `;
                     }
                 });
+            }
+
+            // Initialize on DOMContentLoaded (for standard page loads)
+            document.addEventListener('DOMContentLoaded', function () {
+                console.log('DOMContentLoaded: Initializing workflow graphs');
+                initializeWorkflowGraphs();
+            });
+
+            // Initialize on Livewire navigated (for Livewire-powered pages)
+            document.addEventListener('livewire:navigated', function () {
+                console.log('Livewire navigated: Initializing workflow graphs');
+                initializeWorkflowGraphs();
             });
         </script>
     @endpush
