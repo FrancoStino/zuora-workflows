@@ -33,10 +33,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '23'
+          node-version: '24'
 
       - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --optimize-autoloader
+        run: composer install --no-dev --prefer-dist --optimize-autoloader -W
 
       - name: Install Yarn dependencies
         run: yarn install --frozen-lockfile
