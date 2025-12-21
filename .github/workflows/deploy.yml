@@ -204,7 +204,7 @@ jobs:
             echo ""
             echo "✅ IMPORTANT: Set up cron job for Laravel Scheduler:"
             echo ""
-            php artisan schedule:work > /dev/null 2>&1 &
+            echo "  * * * * * cd /home/${{ secrets.SSH_USERNAME }}/domains/zuora.workflows.davideladisa.it/public_html && php artisan schedule:work > /dev/null 2>&1"
             echo ""
             echo "This single cron job handles:"
             echo "  - Processing queued jobs (every minute)"
