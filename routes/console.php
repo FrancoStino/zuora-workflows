@@ -26,5 +26,6 @@ Schedule::command('app:sync-workflows --all')
     ->name('sync-customer-workflows');
 
 // Process the queue
-Schedule::command('queue:work')
+Schedule::command('queue:work --stop-when-empty --tries=3')
+    ->everyFiveMinutes()
     ->name('process-queue');
