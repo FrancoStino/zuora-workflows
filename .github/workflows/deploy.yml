@@ -10,7 +10,7 @@ on:
       app_debug:
         description: 'Enable Debug Mode (true/false)'
         required: true
-        default: 'false'
+        default: false
         type: boolean
 
 jobs:
@@ -150,11 +150,21 @@ jobs:
 
             # Run migrations (apply new migrations only, keeps existing data)
             echo "Running migrations..."
-            php artisan migrate --force --verbose || {
-              echo "Migration failed! Checking migration status..."
-              php artisan migrate:status
-              exit 1
-            }
+            for i in {1..5}; do
+              echo "Attempt $i to run migrations..."
+              if php artisan migrate --force --verbose; then
+                echo "Migrations completed successfully on attempt $i"
+                break
+              else
+                echo "Migration attempt $i failed, retrying in 10 seconds..."
+                sleep 10
+                if [ $i -eq 5 ]; then
+                  echo "Migration failed after 5 attempts! Checking migration status..."
+                  php artisan migrate:status || echo "Could not check migration status due to connection issues"
+                  exit 1
+                fi
+              fi
+            done
 
             # Clear all caches before recaching
             echo "Clearing caches..."
