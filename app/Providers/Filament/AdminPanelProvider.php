@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Setup;
 use App\Filament\Resources\Workflows\Pages\ViewWorkflow;
 use App\Http\Middleware\CheckSetupCompleted;
 use App\Services\OAuthService;
@@ -61,12 +60,11 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
-                Setup::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 //                AccountWidget::class,
-                // FilamentInfoWidget::class,
+                //                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
