@@ -268,18 +268,7 @@ function parseZuoraWorkflow(workflowData) {
             throw new Error('Workflow data must contain a tasks array');
         }
 
-        // Create End node (position will be set by DirectedGraph layout)
-        const taskCount = workflow.tasks?.length || 0;
-        if (taskCount === 0) {
-            throw new Error('No valid tasks found in workflow');
-        }
 
-        const endX = 0;
-        const endY = 0;
-
-        const endNode = createEnd(endX, endY, "End");
-        endNode.taskId = 'end'; // Store identifier for linking
-        elements.push(endNode);
 
     } catch (error) {
         console.error('Error parsing workflow data:', error);
@@ -323,9 +312,6 @@ function createWorkflowLinks(workflowData, elements) {
                     if (linkage.target_task_id !== null) {
                         // Link to a task
                         toElement = findElementByTaskId(linkage.target_task_id.toString());
-                    } else if (linkage.target_workflow_id !== null) {
-                        // Link to end (target_workflow_id present)
-                        toElement = findElementByTaskId('end');
                     }
 
                     if (fromElement && toElement) {
@@ -339,31 +325,6 @@ function createWorkflowLinks(workflowData, elements) {
                     }
                 } catch (linkError) {
                     console.warn('Skipping invalid linkage at index ' + index + ':', linkage, linkError);
-                }
-            });
-
-            // Find terminal tasks (tasks with no outgoing links) and connect to end
-            const tasksWithOutgoing = new Set();
-            workflow.linkages.forEach(linkage => {
-                if (linkage.source_task_id !== null) {
-                    tasksWithOutgoing.add(linkage.source_task_id);
-                }
-            });
-
-            workflow.tasks?.forEach(task => {
-                try {
-                    const taskId = task.id;
-                    if (!tasksWithOutgoing.has(taskId)) {
-                        const fromElement = findElementByTaskId(taskId.toString());
-                        const toElement = findElementByTaskId('end');
-
-                        if (fromElement && toElement) {
-                            const link = createFlow(fromElement, toElement, "right", "left", "Complete");
-                            links.push(link);
-                        }
-                    }
-                } catch (taskLinkError) {
-                    console.warn('Error creating terminal link for task ' + task.id + ':', taskLinkError);
                 }
             });
         } else {
@@ -385,13 +346,6 @@ function createWorkflowLinks(workflowData, elements) {
                         if (currentTaskEl && nextTaskEl) {
                             links.push(createFlow(currentTaskEl, nextTaskEl));
                         }
-                    }
-
-                    // Last task to end
-                    const lastTaskEl = findElementByTaskId(taskIds[taskIds.length - 1]);
-                    const endEl = findElementByTaskId('end');
-                    if (lastTaskEl && endEl) {
-                        links.push(createFlow(lastTaskEl, endEl));
                     }
                 } catch (fallbackError) {
                     console.error('Error creating fallback links:', fallbackError);
@@ -764,8 +718,6 @@ function initWorkflowGraph(containerId, workflowData) {
                 }
             } else if (element.taskId === 'start') {
                 console.log('Start node clicked');
-            } else if (element.taskId === 'end') {
-                console.log('End node clicked');
             }
         });
 
