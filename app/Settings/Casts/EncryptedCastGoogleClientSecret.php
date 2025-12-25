@@ -2,11 +2,10 @@
 
 namespace App\Settings\Casts;
 
-use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Support\Facades\Crypt;
+use App\Support\EncryptionHelper;
 use Spatie\LaravelSettings\SettingsCasts\SettingsCast;
 
-class EncryptedCast implements SettingsCast
+class EncryptedCastGoogleClientSecret implements SettingsCast
 {
     /**
      * Get the value from the payload (decrypt from database)
@@ -20,14 +19,8 @@ class EncryptedCast implements SettingsCast
             return '';
         }
 
-        try {
-            // Decrypt the value
-            return Crypt::decryptString($payload);
-        } catch (DecryptException $e) {
-            // If decryption fails (e.g., data was not encrypted), return as is
-            // This handles migration from plain text to encrypted
-            return $payload;
-        }
+        // Decrypt using shared helper
+        return EncryptionHelper::decrypt($payload) ?? '';
     }
 
     /**
@@ -42,7 +35,7 @@ class EncryptedCast implements SettingsCast
             return '';
         }
 
-        // Encrypt the value before storing
-        return Crypt::encryptString($payload);
+        // Encrypt using shared helper
+        return EncryptionHelper::encrypt($payload) ?? '';
     }
 }

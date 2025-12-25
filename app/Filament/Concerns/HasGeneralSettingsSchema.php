@@ -89,7 +89,9 @@ trait HasGeneralSettingsSchema
             TextInput::make('oauth_google_client_secret')
                 ->label('Google Client Secret')
                 ->password()
-                ->placeholder('Enter Google OAuth Client Secret or set GOOGLE_CLIENT_SECRET in .env')
+                ->revealable()
+                ->dehydrateStateUsing(fn ($state, $record) => $state ?: ($record ? $record->oauth_google_client_secret : null))
+                ->placeholder(fn ($record) => $record ? '***** (già impostato)' : null)
                 ->helperText('Get this from Google Cloud Console. Leave empty to use .env GOOGLE_CLIENT_SECRET')
                 // Convert null to empty string on save
                 ->dehydrateStateUsing(fn ($state) => $state ?? '')
