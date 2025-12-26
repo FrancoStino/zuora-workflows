@@ -20,38 +20,35 @@
   ],
   "topbarCtaButton": {
     "name": "Get Started",
-    "url": "/installation"
+    "url": "/docs/installation"
   },
   "navigation": {
     "groups": [
       {
         "group": "Getting started",
         "pages": [
-          "introduction",
-          "installation",
-          "configuration"
+          "docs/introduction",
+          "docs/installation",
+          "docs/configuration"
         ]
       },
       {
         "group": "Guides",
         "pages": [
-          "usage",
-          "architecture",
-          "deployment"
+          "docs/usage",
+          "docs/architecture",
+          "docs/deployment"
         ]
       },
       {
         "group": "Community",
         "pages": [
-          "contributing"
+          "docs/contributing"
         ]
       }
     ]
   },
-  "favicon": "/images/favicon.ico",
-  "api": {
-    "playground": {
-      "display": "interactive"
-    }
+  "footerSocials": {
+    "github": "https://github.com/FrancoStino/zuora-workflows"
   }
 }
