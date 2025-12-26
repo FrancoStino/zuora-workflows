@@ -3,10 +3,10 @@
   "theme": "mint",
   "name": "Zuora Workflow Manager",
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/images/logo.svg",
+    "dark": "/images/logo-white.svg"
   },
-  "favicon": "/favicon.png",
+  "favicon": "/images/favicon.ico",
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",
@@ -50,5 +50,14 @@
   },
   "footerSocials": {
     "github": "https://github.com/FrancoStino/zuora-workflows"
+  },
+  "background": {
+    "decoration": "gradient"
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "navbar": {
+    "links": []
   }
 }
