@@ -48,7 +48,10 @@
       }
     ]
   },
-  "footerSocials": {
-    "github": "https://github.com/FrancoStino/zuora-workflows"
+  "favicon": "/images/favicon.ico",
+  "api": {
+    "playground": {
+      "display": "interactive"
+    }
   }
 }
