@@ -27,23 +27,23 @@
       {
         "group": "Getting started",
         "pages": [
-          "docs/introduction",
-          "docs/installation",
-          "docs/configuration"
+          "introduction",
+          "installation",
+          "configuration"
         ]
       },
       {
         "group": "Guides",
         "pages": [
-          "docs/usage",
-          "docs/architecture",
-          "docs/deployment"
+          "usage",
+          "architecture",
+          "deployment"
         ]
       },
       {
         "group": "Community",
         "pages": [
-          "docs/contributing"
+          "contributing"
         ]
       }
     ]
