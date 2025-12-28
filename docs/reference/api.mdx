@@ -1,0 +1,702 @@
+---
+title: API Reference
+description: REST API endpoints and Zuora integration details
+---
+
+# API Reference
+
+This document describes the REST API endpoints and Zuora integration details.
+
+## Internal API Endpoints
+
+### Authentication
+
+All API endpoints require authentication via Laravel Sanctum.
+
+**Authentication Header:**
+```http
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+### Endpoints
+
+#### Get Authenticated User
+
+Retrieve information about the currently authenticated user.
+
+**Endpoint:**
+```http
+GET /api/user
+```
+
+**Authentication:** Required (`auth:sanctum` middleware)
+
+**Response:**
+```json
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "role": {
+    "id": 1,
+    "name": "super_admin"
+  }
+}
+```
+
+---
+
+#### Get Zuora Access Token
+
+Generate a new Zuora OAuth 2.0 access token.
+
+**Endpoint:**
+```http
+GET /api/zuora/token
+```
+
+**Authentication:** Required (`auth:sanctum` middleware)
+
+**Response:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "Failed to authenticate with Zuora: invalid_client"
+}
+```
+
+**HTTP Status Codes:**
+- `200 OK` - Token generated successfully
+- `500 Internal Server Error` - Authentication failed
+
+**Note:** Tokens are cached for 1 hour on the server side.
+
+---
+
+#### Download Workflow JSON
+
+Download the complete JSON export of a specific workflow from Zuora.
+
+**Endpoint:**
+```http
+GET /api/zuora/download/{workflowId}
+```
+
+**Authentication:** Required (`auth:sanctum` middleware)
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|-------|-----------|-------------|
+| `client_id` | string | Yes | Zuora OAuth client ID |
+| `client_secret` | string | Yes | Zuora OAuth client secret |
+| `base_url` | string | No | Zuora API base URL (default: `https://rest.zuora.com`) |
+
+**Example Request:**
+```http
+GET /api/zuora/download/2c92c0f9567d5b5c01567df6a2a6002c
+  ?client_id=abc123
+  &client_secret=xyz789
+  &base_url=https://rest.zuora.com
+```
+
+**Response:**
+```json
+{
+  "id": "2c92c0f9567d5b5c01567df6a2a6002c",
+  "name": "Invoice Processing",
+  "description": "Process invoices automatically",
+  "status": "Active",
+  "tasks": [
+    {
+      "id": "2c92c0f9567d5b5c01567df6a2c8002d",
+      "name": "Query Invoices",
+      "action_type": "Query",
+      "object": "Invoice",
+      "call_type": "query",
+      "priority": "High",
+      "parameters": {
+        "where_clause": "Status = 'Posted'"
+      }
+    },
+    {
+      "id": "2c92c0f9567d5b5c01567df6a2d1002e",
+      "name": "Send Email",
+      "action_type": "Email",
+      "object": null,
+      "call_type": "email",
+      "priority": "Medium",
+      "parameters": {
+        "email": {
+          "to": "billing@example.com",
+          "subject": "Invoice Ready"
+        }
+      }
+    }
+  ],
+  "linkages": [
+    {
+      "source_task_id": "2c92c0f9567d5b5c01567df6a2c8002d",
+      "target_task_id": "2c92c0f9567d5b5c01567df6a2d1002e",
+      "linkage_type": "Success"
+    }
+  ]
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "Workflow not found"
+}
+```
+
+**HTTP Status Codes:**
+- `200 OK` - Workflow JSON retrieved
+- `401 Unauthorized` - Invalid credentials
+- `404 Not Found` - Workflow does not exist
+- `500 Internal Server Error` - API error
+
+---
+
+## Zuora REST API Integration
+
+### Authentication Flow
+
+The application uses OAuth 2.0 client credentials grant type:
+
+```php
+// Request access token
+POST {base_url}/oauth/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials
+&client_id={client_id}
+&client_secret={client_secret}
+```
+
+**Response:**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": null
+}
+```
+
+**Token Caching:**
+- Tokens are cached for 3600 seconds (1 hour)
+- Cache key: `zuora_access_token_{md5(client_id + client_secret)}`
+- Tokens are automatically refreshed on expiration
+
+### Workflows Endpoint
+
+Retrieve workflows from Zuora.
+
+**Endpoint:**
+```http
+GET {base_url}/workflows
+```
+
+**Headers:**
+```http
+Authorization: Bearer {access_token}
+Accept: application/json
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|-------|---------|-------------|
+| `page` | integer | 1 | Page number (starts at 1) |
+| `page_length` | integer | 50 | Items per page (max: 50) |
+
+**Example Request:**
+```http
+GET https://rest.zuora.com/workflows
+  ?page=1
+  &page_length=50
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Response Structure:**
+```json
+{
+  "data": [
+    {
+      "id": "2c92c0f9567d5b5c01567df6a2a6002c",
+      "name": "Invoice Processing",
+      "description": "Process invoices automatically",
+      "status": "Active",
+      "type": "Workflow::Setup",
+      "timezone": "America/Los_Angeles",
+      "createdAt": "2024-11-01T00:00:00Z",
+      "updatedAt": "2024-12-01T00:00:00Z",
+      "calloutTrigger": false,
+      "ondemandTrigger": true,
+      "scheduledTrigger": false,
+      "active_version": {
+        "version": "1.0",
+        "type": "Workflow::Setup",
+        "priority": "Medium",
+        "status": "Active"
+      },
+      "latest_inactive_verisons": []
+    }
+  ],
+  "pagination": {
+    "next_page": 2,
+    "total_count": 150,
+    "page": 1,
+    "page_length": 50
+  }
+}
+```
+
+**Service Method:**
+```php
+// In ZuoraService
+public function listWorkflows(
+    string $clientId,
+    string $clientSecret,
+    string $baseUrl = 'https://rest.zuora.com',
+    int $page = 1,
+    int $pageSize = 50
+): array
+```
+
+### Workflow Export Endpoint
+
+Download complete workflow definition including tasks and connections.
+
+**Endpoint:**
+```http
+GET {base_url}/workflows/{workflowId}/export
+```
+
+**Headers:**
+```http
+Authorization: Bearer {access_token}
+Accept: application/json
+```
+
+**Path Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|-------|-----------|-------------|
+| `workflowId` | string | Yes | Zuora workflow ID |
+
+**Example Request:**
+```http
+GET https://rest.zuora.com/workflows/2c92c0f9567d5b5c01567df6a2a6002c/export
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+**Response:**
+See [Download Workflow JSON](#download-workflow-json) section above.
+
+**Service Method:**
+```php
+// In ZuoraService
+public function downloadWorkflow(
+    string $clientId,
+    string $clientSecret,
+    string $baseUrl,
+    string|int $workflowId
+): array
+```
+
+## Service Layer API
+
+### ZuoraService
+
+#### `getAccessToken()`
+
+Generate OAuth 2.0 access token for Zuora API.
+
+```php
+public function getAccessToken(
+    ?string $clientId = null,
+    ?string $clientSecret = null,
+    ?string $baseUrl = null
+): string
+```
+
+**Parameters:**
+- `$clientId` - Zuora OAuth client ID
+- `$clientSecret` - Zuora OAuth client secret
+- `$baseUrl` - Zuora API base URL
+
+**Returns:** Access token string
+
+**Throws:**
+- `ZuoraAuthenticationException` - If credentials are invalid
+
+**Example:**
+```php
+$service = new ZuoraService();
+$token = $service->getAccessToken(
+    'client_123',
+    'secret_456',
+    'https://rest.zuora.com'
+);
+// $token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+---
+
+#### `listWorkflows()`
+
+Retrieve paginated list of workflows from Zuora.
+
+```php
+public function listWorkflows(
+    string $clientId,
+    string $clientSecret,
+    string $baseUrl = 'https://rest.zuora.com',
+    int $page = 1,
+    int $pageSize = 12
+): array
+```
+
+**Parameters:**
+- `$clientId` - Zuora OAuth client ID
+- `$clientSecret` - Zuora OAuth client secret
+- `$baseUrl` - Zuora API base URL
+- `$page` - Page number (default: 1)
+- `$pageSize` - Items per page (default: 12, max: 50)
+
+**Returns:**
+```php
+[
+    'data' => [
+        [
+            'id' => '2c92c0f9567d5b5c01567df6a2a6002c',
+            'name' => 'Invoice Processing',
+            'state' => 'Active',
+            'type' => 'Workflow::Setup',
+            'version' => '1.0',
+            'created_on' => '2024-11-01T00:00:00Z',
+            'updated_on' => '2024-12-01T00:00:00Z',
+            // ... other fields
+        ],
+        // ... more workflows
+    ],
+    'pagination' => [
+        'next_page' => 2,
+        'total_count' => 150,
+    ]
+]
+```
+
+**Throws:**
+- `ZuoraHttpException` - If API request fails
+
+**Example:**
+```php
+$service = new ZuoraService();
+$workflows = $service->listWorkflows(
+    'client_123',
+    'secret_456',
+    'https://rest.zuora.com',
+    1,
+    50
+);
+```
+
+---
+
+#### `downloadWorkflow()`
+
+Download complete workflow JSON export.
+
+```php
+public function downloadWorkflow(
+    string $clientId,
+    string $clientSecret,
+    string $baseUrl,
+    string|int $workflowId
+): array
+```
+
+**Parameters:**
+- `$clientId` - Zuora OAuth client ID
+- `$clientSecret` - Zuora OAuth client secret
+- `$baseUrl` - Zuora API base URL
+- `$workflowId` - Zuora workflow ID
+
+**Returns:** Complete workflow array with tasks and linkages
+
+**Throws:**
+- `ZuoraHttpException` - If API request fails
+
+**Example:**
+```php
+$service = new ZuoraService();
+$workflow = $service->downloadWorkflow(
+    'client_123',
+    'secret_456',
+    'https://rest.zuora.com',
+    '2c92c0f9567d5b5c01567df6a2a6002c'
+);
+```
+
+---
+
+### WorkflowSyncService
+
+#### `syncCustomerWorkflows()`
+
+Synchronize all workflows for a customer from Zuora.
+
+```php
+public function syncCustomerWorkflows(Customer $customer): array
+```
+
+**Parameters:**
+- `$customer` - Customer model instance
+
+**Returns:**
+```php
+[
+    'created' => 5,    // Number of workflows created
+    'updated' => 10,   // Number of workflows updated
+    'deleted' => 2,    // Number of workflows deleted
+    'total' => 15,      // Total workflows processed
+    'errors' => []      // Array of error messages
+]
+```
+
+**Process:**
+1. Validates customer credentials
+2. Fetches workflows from Zuora (paginated)
+3. Creates/updates workflow records
+4. Downloads workflow JSON
+5. Extracts tasks from JSON
+6. Deletes stale workflows
+7. Returns statistics
+
+**Example:**
+```php
+$service = new WorkflowSyncService(new ZuoraService());
+$customer = Customer::find(1);
+$stats = $service->syncCustomerWorkflows($customer);
+```
+
+---
+
+## Artisan Commands
+
+### Sync Workflows
+
+Queue workflow synchronization from CLI.
+
+**Command:**
+```bash
+php artisan app:sync-workflows
+```
+
+**Options:**
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `--customer={name}` | No | Sync workflows for specific customer by name |
+| `--all` | No | Sync workflows for all customers |
+| `--sync` | No | Run synchronously (bypass queue) |
+
+**Examples:**
+```bash
+# Sync specific customer
+php artisan app:sync-workflows --customer="Acme Corp"
+
+# Sync all customers
+php artisan app:sync-workflows --all
+
+# Sync synchronously (immediate processing)
+php artisan app:sync-workflows --all --sync
+```
+
+---
+
+### Sync Workflow Tasks
+
+Re-extract tasks from workflow JSON.
+
+**Command:**
+```bash
+php artisan workflows:sync-tasks
+```
+
+**Options:**
+
+| Option | Required | Description |
+|--------|----------|-------------|
+| `--all` | No | Re-extract tasks for all workflows |
+| `--workflow-id={id}` | No | Re-extract tasks for specific workflow ID |
+
+**Examples:**
+```bash
+# Re-extract tasks for all workflows
+php artisan workflows:sync-tasks --all
+
+# Re-extract tasks for specific workflow
+php artisan workflows:sync-tasks --workflow-id=123
+```
+
+---
+
+## Error Handling
+
+### Exception Types
+
+#### ZuoraAuthenticationException
+
+Thrown when Zuora OAuth authentication fails.
+
+**Message:** "Failed to authenticate with Zuora: {error}"
+
+**HTTP Status:** 401
+
+**Handling:**
+```php
+try {
+    $token = $service->getAccessToken(...);
+} catch (ZuoraAuthenticationException $e) {
+    // Handle invalid credentials
+    Log::error('Auth failed: ' . $e->getMessage());
+}
+```
+
+---
+
+#### ZuoraHttpException
+
+Thrown when Zuora API HTTP request fails.
+
+**Message:** "Zuora API error ({code}): {message}"
+
+**HTTP Status:** 4xx or 5xx
+
+**Handling:**
+```php
+try {
+    $workflows = $service->listWorkflows(...);
+} catch (ZuoraHttpException $e) {
+    // Handle API errors
+    Log::error('API failed: ' . $e->getMessage());
+}
+```
+
+---
+
+#### SetupException
+
+Thrown when application setup is incomplete.
+
+**Message:** "Application setup not completed"
+
+**HTTP Status:** 302 (redirect to setup wizard)
+
+---
+
+## Pagination
+
+### Workflow List Pagination
+
+Zuora API uses offset-based pagination:
+
+**Parameters:**
+- `page` - Page number (1-based)
+- `page_length` - Items per page (max: 50)
+
+**Response:**
+```json
+{
+  "data": [...],
+  "pagination": {
+    "next_page": 2,
+    "previous_page": null,
+    "total_count": 150
+  }
+}
+```
+
+**Service Implementation:**
+```php
+// Paginated loop
+$page = 1;
+$hasMore = true;
+
+while ($hasMore) {
+    $data = $zuoraService->listWorkflows(..., $page, 50);
+
+    // Process workflows
+    foreach ($data['data'] as $workflow) {
+        // ...
+    }
+
+    // Check for more pages
+    $pagination = $data['pagination'] ?? [];
+    $hasMore = isset($pagination['next_page']);
+    $page++;
+}
+```
+
+---
+
+## Rate Limiting
+
+### Zuora API Limits
+
+Zuora API enforces rate limits:
+
+**Default Limits:**
+- 1000 requests per hour per tenant
+- 200 concurrent connections
+
+**Handling:**
+- Application caches access tokens (reduces auth requests)
+- Implement exponential backoff for failed requests
+- Queue jobs with 60-second retry delay
+
+---
+
+## Best Practices
+
+### Token Management
+
+1. **Cache Tokens**: Always cache access tokens to reduce API calls
+2. **Handle Expiration**: Check token expiration and refresh gracefully
+3. **Secure Storage**: Store client secrets encrypted at rest
+
+### Error Handling
+
+1. **Catch Exceptions**: Always wrap API calls in try-catch blocks
+2. **Log Errors**: Log full error messages for debugging
+3. **User Feedback**: Display user-friendly error messages
+
+### Performance
+
+1. **Batch Operations**: Use pagination for large datasets
+2. **Queue Processing**: Use background jobs for sync operations
+3. **Cache Responses**: Cache expensive API responses
+
+## Next Steps
+
+- [Configuration Reference](../reference/configuration) - Configure API settings
+- [Features Guide](./features) - Learn about available features
+- [Development Guide](./development) - Development workflow
+
+## Related Resources
+
+- [Zuora REST API Documentation](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API)
+- [Zuora OAuth Guide](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Client_Authentication)
+- [Laravel HTTP Client](https://laravel.com/docs/12.x/http-client)

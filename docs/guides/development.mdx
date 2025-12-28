@@ -1,0 +1,923 @@
+---
+title: Development Guide
+description: Local development setup, testing, and contribution workflow
+---
+
+# Development Guide
+
+This guide covers local development setup, testing, and contributing to Zuora Workflow Manager.
+
+## Local Development Setup
+
+### Prerequisites
+
+Before starting development, ensure you have:
+
+- [x] [Lando](https://lando.dev) installed
+- [x] [Docker](https://docker.com/) installed and running
+- [x] [Node.js](https://nodejs.org/) 24.0+
+- [x] [Yarn](https://yarnpkg.com/) installed
+- [x] [Git](https://git-scm.com/) installed
+
+### Initial Setup
+
+#### 1. Clone Repository
+
+```bash
+git clone https://github.com/FrancoStino/zuora-workflows.git
+cd zuora-workflows
+```
+
+#### 2. Install Dependencies
+
+```bash
+# Start Lando (auto-runs composer install)
+lando start
+
+# Install PHP dependencies (if needed)
+lando composer install
+
+# Install Node.js dependencies
+yarn install
+```
+
+#### 3. Configure Environment
+
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Generate application key
+lando artisan key:generate
+
+# Run migrations
+lando artisan migrate
+
+# Create admin user (optional)
+lando artisan tinker
+>>> \App\Models\User::create(['name' => 'Admin', 'email' => 'admin@example.com', 'password' => bcrypt('password')])
+```
+
+#### 4. Build Assets
+
+```bash
+# Development build with hot reload
+yarn run dev
+
+# Production build
+yarn run build
+```
+
+#### 5. Start Development Services
+
+```bash
+# Terminal 1: Queue worker
+lando queue
+
+# Terminal 2: Scheduler
+lando schedule
+
+# Terminal 3: Asset watcher
+yarn run dev
+```
+
+---
+
+## Development Workflow
+
+### Daily Development Flow
+
+#### 1. Pull Latest Changes
+
+```bash
+git pull origin main
+
+# Install new dependencies
+lando composer install
+yarn install
+
+# Run migrations
+lando artisan migrate
+```
+
+#### 2. Create Feature Branch
+
+```bash
+git checkout -b feature/your-feature-name
+```
+
+#### 3. Make Changes
+
+- Edit code in appropriate directories
+- Test changes locally
+- Rebuild assets if needed
+
+#### 4. Test Changes
+
+```bash
+# Run tests
+lando test
+
+# Run specific test
+lando artisan test tests/Feature/YourTest.php
+```
+
+#### 5. Commit Changes
+
+```bash
+git add .
+git commit -m "feat: add new feature"
+```
+
+#### 6. Push and Create PR
+
+```bash
+git push origin feature/your-feature-name
+# Then create Pull Request on GitHub
+```
+
+---
+
+## Code Structure
+
+### Adding New Filament Resources
+
+#### Step 1: Create Resource
+
+```bash
+lando artisan make:filament-resource YourResource
+```
+
+This creates:
+```
+app/Filament/Resources/YourResource.php
+```
+
+#### Step 2: Define Resource
+
+```php
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\YourResource\Pages;
+use App\Models\YourModel;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables\Table;
+
+class YourResource extends Resource
+{
+    protected static ?string $model = YourModel::class;
+    protected static ?string $navigationIcon = 'heroicon-o-cube';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                // Define form fields
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                // Define table columns
+            ])
+            ->filters([
+                // Define filters
+            ])
+            ->actions([
+                // Define actions
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            // Define relations
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListYours::route('/'),
+            'create' => Pages\CreateYour::route('/create'),
+            'edit' => Pages\EditYour::route('/{record}/edit'),
+            'view' => Pages\ViewYour::route('/{record}'),
+        ];
+    }
+}
+```
+
+#### Step 3: Create Pages
+
+```bash
+lando artisan make:filament-page YourResource/ViewYour --resource=YourResource
+```
+
+#### Step 4: Add Permissions
+
+Add to `config/filament-shield.php`:
+
+```php
+'resources' => [
+    'App\\Filament\\Resources\\YourResource',
+],
+```
+
+---
+
+### Adding New Services
+
+#### Step 1: Create Service Class
+
+```bash
+mkdir -p app/Services
+touch app/Services/YourService.php
+```
+
+#### Step 2: Implement Service
+
+```php
+<?php
+
+namespace App\Services;
+
+use Exception;
+use Illuminate\Support\Facades\Log;
+
+class YourService
+{
+    /**
+     * Perform business logic operation
+     */
+    public function doSomething(array $data): array
+    {
+        try {
+            // Your business logic here
+            return [
+                'success' => true,
+                'data' => $data,
+            ];
+        } catch (Exception $e) {
+            Log::error('Service error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            throw $e;
+        }
+    }
+}
+```
+
+#### Step 3: Use in Controller/Job
+
+```php
+use App\Services\YourService;
+
+public function __construct(
+    private YourService $yourService
+) {}
+
+public function handle()
+{
+    $result = $this->yourService->doSomething([
+        'key' => 'value',
+    ]);
+
+    // Process result
+}
+```
+
+---
+
+### Adding New Queue Jobs
+
+#### Step 1: Create Job
+
+```bash
+lando artisan make:job YourJob
+```
+
+This creates `app/Jobs/YourJob.php`
+
+#### Step 2: Implement Job
+
+```php
+<?php
+
+namespace App\Jobs;
+
+use App\Services\YourService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+
+class YourJob implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    /**
+     * Number of times the job may be attempted
+     */
+    public $tries = 3;
+
+    /**
+     * Number of seconds to wait before retrying
+     */
+    public $backoff = [60, 120, 180];
+
+    /**
+     * The queue the job belongs to
+     */
+    public $queue = 'default';
+
+    /**
+     * Create a new job instance
+     */
+    public function __construct(
+        public array $data
+    ) {}
+
+    /**
+     * Execute the job
+     */
+    public function handle(YourService $service): void
+    {
+        try {
+            $service->processData($this->data);
+
+            Log::info('Job completed successfully', [
+                'job' => self::class,
+                'data' => $this->data,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Job failed', [
+                'job' => self::class,
+                'error' => $e->getMessage(),
+            ]);
+
+            $this->fail($e);
+        }
+    }
+}
+```
+
+#### Step 3: Dispatch Job
+
+```php
+use App\Jobs\YourJob;
+use Illuminate\Support\Facades\Bus;
+
+// Dispatch immediately
+YourJob::dispatch($data);
+
+// Dispatch with delay
+YourJob::dispatch($data)->delay(now()->addMinutes(5));
+
+// Dispatch to specific queue
+YourJob::dispatch($data)->onQueue('high-priority');
+```
+
+---
+
+## Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+lando test
+
+# Run with verbose output
+lando artisan test -v
+
+# Run specific test file
+lando artisan test tests/Feature/YourTest.php
+
+# Run with coverage
+lando artisan test --coverage
+
+# Run in parallel (faster)
+lando artisan test --parallel
+```
+
+### Writing Tests
+
+#### Feature Test Example
+
+```php
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Customer;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class WorkflowSyncTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Create admin user
+        $this->admin = User::factory()->create();
+        $this->admin->assignRole('super_admin');
+
+        // Authenticate
+        $this->actingAs($this->admin);
+    }
+
+    /** @test */
+    public function it_can_sync_workflows_for_customer(): void
+    {
+        // Create customer
+        $customer = Customer::factory()->create([
+            'zuora_client_id' => 'test_id',
+            'zuora_client_secret' => 'test_secret',
+            'zuora_base_url' => 'https://rest.test.zuora.com',
+        ]);
+
+        // Dispatch sync job
+        $this->post(route('filament.resources.customers.sync', $customer->id))
+            ->assertStatus(200);
+
+        // Assert job was dispatched
+        $this->assertDatabaseHas('jobs', [
+            'queue' => 'default',
+        ]);
+    }
+}
+```
+
+#### Unit Test Example
+
+```php
+<?php
+
+namespace Tests\Unit;
+
+use App\Services\ZuoraService;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
+
+class ZuoraServiceTest extends TestCase
+{
+    protected ZuoraService $service;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->service = new ZuoraService();
+    }
+
+    /** @test */
+    public function it_gets_access_token(): void
+    {
+        // Mock HTTP response
+        Http::fake([
+            '*/oauth/token' => Http::response([
+                'access_token' => 'test_token',
+                'token_type' => 'Bearer',
+                'expires_in' => 3600,
+            ], 200),
+        ]);
+
+        // Call service method
+        $token = $this->service->getAccessToken(
+            'client_id',
+            'client_secret',
+            'https://rest.zuora.com'
+        );
+
+        // Assert token returned
+        $this->assertEquals('test_token', $token);
+    }
+}
+```
+
+### Test Database
+
+Use separate database for testing:
+
+```env
+# phpunit.xml
+<env name="DB_CONNECTION" value="sqlite"/>
+<env name="DB_DATABASE" value=":memory:"/>
+```
+
+---
+
+## Debugging
+
+### Debugbar
+
+Enable Laravel Debugbar:
+
+```env
+DEBUGBAR_ENABLED=true
+```
+
+Access debugbar at bottom of page to see:
+- Queries executed
+- Request duration
+- View data
+- Timeline
+- Exceptions
+
+### Xdebug
+
+Lando includes Xdebug by default. Configure in `.lando.yml`:
+
+```yaml
+config:
+  php: '8.4'
+  xdebug: true
+```
+
+**VS Code Configuration** (`.vscode/launch.json`):
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Listen for Xdebug",
+      "type": "php",
+      "request": "launch",
+      "port": 9003,
+      "pathMappings": {
+        "/app": "${workspaceFolder}/app"
+      }
+    }
+  ]
+}
+```
+
+### Logging
+
+Custom logging:
+
+```php
+use Illuminate\Support\Facades\Log;
+
+// Different log levels
+Log::emergency('Critical issue');
+Log::alert('Alert message');
+Log::critical('Critical failure');
+Log::error('Error occurred');
+Log::warning('Warning message');
+Log::notice('Notice message');
+Log::info('Information');
+Log::debug('Debug info');
+
+// Log with context
+Log::info('User logged in', [
+    'user_id' => $user->id,
+    'ip' => request()->ip(),
+]);
+```
+
+### Tinker
+
+Interactive REPL for debugging:
+
+```bash
+lando artisan tinker
+```
+
+**Examples:**
+
+```php
+// Test model queries
+>>> App\Models\Customer::first()
+>>> App\Models\Workflow::where('state', 'Active')->count()
+
+// Test services
+>>> $service = new App\Services\ZuoraService();
+>>> $service->getAccessToken('id', 'secret', 'https://rest.zuora.com')
+
+// Test jobs
+>>> App\Jobs\SyncCustomersJob::dispatch(App\Models\Customer::first())
+```
+
+---
+
+## Code Style
+
+### PHP Code Style
+
+Use Laravel Pint:
+
+```bash
+# Check code style
+./vendor/bin/pint --test
+
+# Fix code style
+./vendor/bin/pint
+```
+
+### PHPStan
+
+Static analysis with PHPStan:
+
+```bash
+# Run PHPStan
+./vendor/bin/phpstan analyse
+```
+
+### JavaScript/TypeScript
+
+Use ESLint and Prettier:
+
+```bash
+# Check style
+npx eslint resources/js
+
+# Fix style
+npx eslint resources/js --fix
+
+# Format code
+npx prettier --check .
+npx prettier --write .
+```
+
+---
+
+## Git Workflow
+
+### Branching Strategy
+
+- `main` - Production branch (protected)
+- `develop` - Development branch
+- `feature/*` - Feature branches
+- `bugfix/*` - Bug fix branches
+- `hotfix/*` - Emergency fixes
+
+### Commit Messages
+
+Follow Conventional Commits:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+
+**Examples:**
+
+```
+feat(workflow): add graphical view for workflows
+
+- Implement JointJS integration
+- Add Dagre layout algorithm
+- Add zoom controls
+
+Closes #123
+```
+
+```
+fix(auth): resolve OAuth token caching issue
+
+Tokens were not being cached properly, causing
+excessive API calls. Updated cache key generation.
+
+Fixes #456
+```
+
+---
+
+## Contributing Guidelines
+
+### Before Contributing
+
+1. Check existing [issues](https://github.com/FrancoStino/zuora-workflows/issues)
+2. Comment on issue you want to work on
+3. Create feature branch from `main`
+4. Make your changes
+5. Add tests for new functionality
+6. Update documentation if needed
+7. Submit Pull Request
+
+### Pull Request Checklist
+
+- [ ] Code follows project style guide
+- [ ] Tests pass (`lando test`)
+- [ ] No PHPStan errors
+- [ ] No linting errors
+- [ ] Documentation updated
+- [ ] Commit messages follow convention
+- [ ] PR description includes what and why
+- [ ] No merge conflicts
+
+### Code Review
+
+- Be respectful and constructive
+- Focus on code, not person
+- Explain reasoning for suggestions
+- Test suggestions before recommending
+
+---
+
+## Common Development Tasks
+
+### Adding a New Migration
+
+```bash
+lando artisan make:migration create_new_table
+```
+
+Edit migration file:
+
+```php
+public function up(): void
+{
+    Schema::create('new_table', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->timestamps();
+        $table->foreignId('customer_id')
+            ->nullable()
+            ->constrained()
+            ->onDelete('cascade');
+    });
+}
+```
+
+Run migration:
+
+```bash
+lando artisan migrate
+```
+
+---
+
+### Adding a New Model
+
+```bash
+lando artisan make:model YourModel
+```
+
+Add fillable and casts:
+
+```php
+protected $fillable = ['name', 'email', 'phone'];
+protected $casts = ['email_verified_at' => 'datetime'];
+```
+
+---
+
+### Adding a New Command
+
+```bash
+lando artisan make:command SyncSomething
+```
+
+Implement command signature and handle method:
+
+```php
+protected $signature = 'app:sync-something {--all}';
+
+public function handle(): int
+{
+    $this->info('Starting sync...');
+
+    // Your logic here
+
+    $this->info('Sync completed!');
+
+    return self::SUCCESS;
+}
+```
+
+---
+
+## Performance Optimization
+
+### Database Queries
+
+- Use eager loading to prevent N+1 queries
+- Add indexes on frequently queried columns
+- Use query caching for expensive queries
+
+**Example:**
+
+```php
+// Bad: N+1 queries
+$workflows = Workflow::all();
+foreach ($workflows as $workflow) {
+    echo $workflow->customer->name; // Separate query each time
+}
+
+// Good: Single query
+$workflows = Workflow::with('customer')->get();
+foreach ($workflows as $workflow) {
+    echo $workflow->customer->name;
+}
+```
+
+### Caching
+
+- Cache expensive operations
+- Use appropriate cache drivers
+- Set reasonable TTL values
+
+**Example:**
+
+```php
+use Illuminate\Support\Facades\Cache;
+
+$workflows = Cache::remember('workflows.all', 3600, function () {
+    return Workflow::with('customer')->get();
+});
+```
+
+---
+
+## Security Best Practices
+
+- Never commit secrets (API keys, passwords)
+- Always use parameterized queries (Eloquent does this automatically)
+- Validate and sanitize all user inputs
+- Use Laravel's built-in security features (Auth, Gates, Policies)
+- Keep dependencies updated
+- Use HTTPS in production
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue: Assets not loading**
+
+```bash
+# Clear caches
+lando artisan cache:clear
+lando artisan config:clear
+lando artisan view:clear
+
+# Rebuild assets
+yarn run build
+```
+
+**Issue: Tests failing**
+
+```bash
+# Clear test database
+lando artisan migrate:fresh
+
+# Check PHPUnit configuration
+cat phpunit.xml
+```
+
+**Issue: Queue not processing**
+
+```bash
+# Check queue status
+lando artisan queue:failed
+
+# Clear failed jobs
+lando artisan queue:flush
+
+# Retry failed jobs
+lando artisan queue:retry all
+```
+
+---
+
+## Next Steps
+
+- [Features Guide](../guides/features) - Learn about features
+- [API Reference](../reference/api) - API documentation
+- [Deployment Guide](../guides/deployment) - Deploy to production
+
+## Related Documentation
+
+- [Laravel Documentation](https://laravel.com/docs/12.x)
+- [Filament Documentation](https://filamentphp.com/docs/4.x)
+- [PHPUnit Documentation](https://phpunit.de/documentation.html)
+- [Lando Documentation](https://docs.lando.dev/)
