@@ -18,7 +18,49 @@ Workflows can be synchronized automatically from Zuora API:
 2. **Scheduled Sync**: Automatic hourly sync (configurable via `routes/console.php`)
 3. **CLI Command**: `php artisan app:sync-workflows --customer="Name"`
 
-**Sync Process:**
+```mermaid
+flowchart LR
+    subgraph Triggers["Sync Triggers"]
+        Manual[Manual Sync<br/>Button click]
+        Scheduled[Scheduled Sync<br/>Hourly cron]
+        CLI[CLI Command<br/>php artisan sync-workflows]
+    end
+
+    Manual --> Job[SyncCustomersJob]
+    Scheduled --> Job
+    CLI --> Job
+
+    subgraph Process["Sync Process"]
+        Token[Get OAuth Token<br/>cached 1h]
+        Fetch[Fetch Workflows<br/>paginated]
+        Download[Download JSON<br/>per workflow]
+        Save[Save/Update<br/>workflow records]
+        Extract[Extract Tasks<br/>from JSON]
+        Cleanup[Remove stale<br/>workflows]
+    end
+
+    Job --> Token
+    Token --> Fetch
+    Fetch --> Download
+    Download --> Save
+    Save --> Extract
+    Extract --> Cleanup
+
+    style Triggers fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
+    style Manual fill:#10b981,stroke:#059669,stroke-width:2px
+    style Scheduled fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style CLI fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style Job fill:#ec4899,stroke:#dc2626,stroke-width:3px
+    style Process fill:#dbeafe,stroke:#0d9488,stroke-width:2px
+    style Token fill:#10b981,stroke:#059669,stroke-width:2px
+    style Fetch fill:#10b981,stroke:#059669,stroke-width:2px
+    style Download fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Save fill:#10b981,stroke:#059669,stroke-width:2px
+    style Extract fill:#10b981,stroke:#059669,stroke-width:2px
+    style Cleanup fill:#ef4444,stroke:#b91c1c,stroke-width:2px
+```
+
+**Sync Process Details:**
 1. Retrieves OAuth access token (cached for 1 hour)
 2. Fetches workflows from Zuora API (paginated, 50 per page)
 3. Downloads complete workflow JSON for each workflow
@@ -194,8 +236,48 @@ Comprehensive task information in modal view:
 
 Background job processing for non-blocking operations:
 
+```mermaid
+flowchart LR
+    subgraph JobTypes["Job Types"]
+        SCJ[SyncCustomersJob<br/>Synchronize workflows]
+    end
+
+    SCJ --> Queue[(Queue<br/>Redis/Database)]
+
+    Queue --> Worker{Queue Worker}
+
+    Worker --> Process[Process Job]
+    Process --> Success{Success?}
+
+    Success -->|Yes| Complete[Mark as complete<br/>Log success]
+    Success -->|No| Fail[Mark as failed<br/>Log error]
+
+    Fail --> Retry{Retry?}
+    Retry -->|Attempts < 3| Queue
+    Retry -->|Attempts >= 3| Dead[Move to failed_jobs<br/>Stop retrying]
+
+    Complete --> Notif[Send notification<br/>Update UI]
+
+    style JobTypes fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
+    style SCJ fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Queue fill:#6366f1,stroke:#4f46e5,stroke-width:2px
+    style Worker fill:#10b981,stroke:#059669,stroke-width:2px
+    style Process fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style Success fill:#10b981,stroke:#059669,stroke-width:2px
+    style Complete fill:#059669,stroke:#03c9a6,stroke-width:2px,color:#ffffff
+    style Fail fill:#ef4444,stroke:#b91c1c,stroke-width:2px
+    style Retry fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Dead fill:#dc2626,stroke:#991b1b,stroke-width:2px,color:#ffffff
+    style Notif fill:#3b82f6,stroke:#1e40af,stroke-width:2px
+```
+
 **Jobs:**
 - `SyncCustomersJob`: Synchronize workflows for a customer
+
+**Retry Logic:**
+- Failed sync jobs are automatically retried up to 3 times
+- 60-second exponential backoff between attempts
+- Failed jobs logged and visible in Moox Jobs panel
 
 **Queue Configuration:**
 ```bash
@@ -266,6 +348,35 @@ Edit `routes/console.php` to change sync frequency:
 #### OAuth Login
 
 Google OAuth integration for seamless authentication:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as "Zuora Workflow App"
+    participant Google as "Google OAuth"
+    participant DB as "Database"
+
+    User->>App: 1. Click OAuth Login
+    App->>Google: 2. Redirect to Google<br/>/oauth/google
+    Google->>User: 3. Google Login Page
+    User->>Google: 4. Enter credentials<br/>& authorize
+
+    Google->>App: 5. Callback with code<br/>/auth/google/callback
+
+    App->>Google: 6. Exchange code for token
+    Google-->>App: 7. Access token + user info
+
+    alt User exists in database
+        App->>DB: 8. Update user info
+        App->>DB: 9. Update avatar
+        App-->>User: 10. Login successful
+    else New user
+        App->>DB: 11. Create user record
+        App->>DB: 12. Assign workflow_user role
+        App->>DB: 13. Store avatar URL
+        App-->>User: 14. Welcome + Login
+    end
+```
 
 **Setup:**
 1. Create Google OAuth 2.0 credentials in Google Cloud Console

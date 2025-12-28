@@ -11,6 +11,70 @@ This document describes the architecture of Zuora Workflow Manager, including sy
 
 ### High-Level Architecture
 
+```mermaid
+flowchart TB
+    subgraph Client ["Client Layer"]
+        Browser["Browser / Client"]
+    end
+
+    subgraph Web ["Web Server"]
+        Nginx["Nginx / Web Server"]
+    end
+
+    subgraph Laravel ["Laravel 12.x Framework"]
+        direction TB
+        subgraph Filament ["Filament Admin Panel"]
+            direction LR
+            FRes["• Resources<br/Customers, Workflows, Tasks"]
+            FPage["• Pages<br/List, View, Create, Edit"]
+            FWid["• Widgets<br/Job monitoring, Stats"]
+        end
+
+        subgraph Services ["Service Layer"]
+            direction LR
+            ZSrv["• ZuoraService<br>Zuora API integration"]
+            WSS["• WorkflowSyncService<br>Sync orchestration"]
+            OSrv["• OAuthService<br>Authentication"]
+        end
+
+        subgraph Jobs ["Jobs & Commands"]
+            direction LR
+            SCJob["• SyncCustomersJob<br>Queue job"]
+            SWCmd["• SyncWorkflows<br>Artisan command"]
+            SWT["• SyncWorkflowTasks<br>Artisan command"]
+        end
+
+        subgraph Models ["Models & Policies"]
+            direction LR
+            Mdl["• Customer, Workflow, Task, User"]
+            Pol["• Access control via Filament Shield"]
+        end
+    end
+
+    subgraph Data ["Data Layer"]
+        Eloquent["Eloquent ORM / Query Builder"]
+        MariaDB["MariaDB 11.4"]
+        Redis["Redis 7.0<br/Queue/Cache"]
+    end
+
+    Browser -->|HTTPS| Nginx
+    Nginx -->|PHP-FPM| Laravel
+
+    Filament --> Services
+    Services --> Jobs
+    Jobs --> Models
+    Models --> Eloquent
+    Eloquent --> MariaDB
+    Eloquent --> Redis
+
+    style Client fill:#e1f5fe,stroke:#0d9488,stroke-width:2px
+    style Web fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
+    style Laravel fill:#10b981,stroke:#0d9488,stroke-width:3px
+    style Filament fill:#3b82f6,stroke:#1e40af,stroke-width:2px
+    style Services fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style Jobs fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Models fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Data fill:#6366f1,stroke:#4f46e5,stroke-width:2px
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Browser / Client                        │
@@ -383,77 +447,83 @@ Manages tasks in Filament admin:
 
 ### Entity Relationship Diagram
 
-```
-┌──────────────┐
-│   users      │
-├──────────────┤
-│ id           │
-│ name         │
-│ email        │
-│ password     │
-│ role_id      │───┐
-└──────────────┘    │
-                     ▼
-              ┌──────────────┐
-              │   roles      │
-              ├──────────────┤
-              │ id           │
-              │ name         │
-              │ guard_name   │
-              └──────────────┘
+```mermaid
+erDiagram
+    User ||--o{ Role : belongs to
 
-┌──────────────┐
-│  customers   │
-├──────────────┤
-│ id           │
-│ name         │
-│ zuora_client_id│
-│ zuora_client_│
-│    secret    │(encrypted)
-│ zuora_base_url│
-└──────┬───────┘
-       │
-       │ has many
-       │
-       ▼
-┌──────────────┐
-│  workflows   │
-├──────────────┤
-│ id           │
-│ customer_id  │◄── FK
-│ zuora_id     │(unique)
-│ name         │
-│ description  │
-│ state        │
-│ json_export  │(JSON)
-│ last_synced_at│
-└──────┬───────┘
-       │
-       │ has many
-       │
-       ▼
-┌──────────────┐
-│   tasks      │
-├──────────────┤
-│ id           │
-│ workflow_id  │◄── FK
-│ task_id      │
-│ name         │
-│ action_type  │
-│ priority     │
-│ state        │
-│ parameters   │(JSON)
-└──────────────┘
+    User {
+        uuid id PK
+        string name
+        string email
+        string password
+        uuid role_id FK
+    }
 
-┌──────────────┐
-│  settings    │
-├──────────────┤
-│ id           │
-│ group        │
-│ name         │
-│ locked       │
-│ payload      │(JSON)
-└──────────────┘
+    Role {
+        uuid id PK
+        string name
+        string guard_name
+    }
+
+    Customer ||--|{ Workflow : has many
+    Workflow ||--|{ Task : has many
+
+    Customer {
+        uuid id PK
+        string name
+        string zuora_client_id
+        string zuora_client_secret encrypted
+        string zuora_base_url
+    }
+
+    Workflow {
+        uuid id PK
+        uuid customer_id FK
+        string zuora_id unique
+        string name
+        string description
+        string state
+        json json_export
+        timestamp last_synced_at
+    }
+
+    Task {
+        uuid id PK
+        uuid workflow_id FK
+        string task_id
+        string name
+        string action_type
+        string priority
+        string state
+        json parameters
+    }
+
+    Settings {
+        uuid id PK
+        string group
+        string name
+        boolean locked
+        json payload
+    }
+
+    User {
+        style User fill:#3b82f6,stroke:#1e40af,color:#ffffff
+    }
+    Role {
+        style Role fill:#8b5cf6,stroke:#2563eb,color:#ffffff
+    }
+    Customer {
+        style Customer fill:#10b981,stroke:#059669,color:#ffffff
+    }
+    Workflow {
+        style Workflow fill:#f59e0b,stroke:#d97706,color:#ffffff
+    }
+    Task {
+        style Task fill:#ec4899,stroke:#dc2626,color:#ffffff
+    }
+    Settings {
+        style Settings fill:#6366f1,stroke:#4f46e5,color:#ffffff
+    }
 ```
 
 ### Tables Overview
@@ -477,101 +547,104 @@ Manages tasks in Filament admin:
 
 ### Workflow Synchronization Flow
 
-```
-┌───────────────┐
-│   User       │
-└──────┬────────┘
-       │ Click "Sync Workflows"
-       ▼
-┌───────────────┐
-│ Customer     │
-│ Resource     │
-└──────┬────────┘
-       │ Dispatches job
-       ▼
-┌─────────────────────────────┐
-│  SyncCustomersJob        │
-│  (Queued)              │
-└──────┬──────────────────┘
-       │
-       │ Queue worker picks up
-       ▼
-┌─────────────────────────────┐
-│ WorkflowSyncService       │
-│ ::syncCustomerWorkflows() │
-└──────┬──────────────────┘
-       │
-       ├─► Validate credentials
-       │
-       ├─► Get Zuora access token (cached)
-       │
-       ├─► Fetch workflows (paginated)
-       │
-       ├─► For each workflow:
-       │   │
-       │   ├─► Download workflow JSON
-       │   │
-       │   ├─► Create/Update workflow record
-       │   │
-       │   └─► Extract tasks from JSON
-       │
-       ├─► Delete stale workflows
-       │
-       └─► Return statistics
-       │
-       ▼
-┌───────────────┐
-│  Database    │
-└───────────────┘
-       │
-       ▼
-┌───────────────┐
-│ Filament UI  │
-│ (Updated)    │
-└───────────────┘
+```mermaid
+flowchart LR
+    User([User]) -->|Click "Sync Workflows"| CustResource[Customer Resource]
+
+    CustResource -->|Dispatches job| Job[SyncCustomersJob<br/>Queued]
+
+    Job -->|Queue worker picks up| SyncSvc[WorkflowSyncService<br/>syncCustomerWorkflows()]
+
+    SyncSvc --> Validate[Validate credentials]
+    SyncSvc --> Token[Get Zuora access token<br/>cached]
+    SyncSvc --> Fetch[Fetch workflows<br/>paginated]
+    SyncSvc --> Delete[Delete stale workflows]
+    SyncSvc --> Stats[Return statistics]
+
+    Fetch --> WorkflowLoop{For each workflow}
+
+    WorkflowLoop --> Download[Download workflow JSON]
+    WorkflowLoop --> Create[Create/Update<br/>workflow record]
+    WorkflowLoop --> Extract[Extract tasks from JSON]
+
+    Download --> UpdateDB[(Database)]
+    Create --> UpdateDB
+    Extract --> UpdateDB
+    Delete --> UpdateDB
+    Stats --> UpdateDB
+
+    UpdateDB --> UI[Filament UI<br/>Updated]
+
+    style User fill:#3b82f6,stroke:#1e40af,stroke-width:2px
+    style Job fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style SyncSvc fill:#8b5cf6,stroke:#2563eb,stroke-width:3px
+    style Validate fill:#10b981,stroke:#059669,stroke-width:2px
+    style Token fill:#10b981,stroke:#059669,stroke-width:2px
+    style Fetch fill:#10b981,stroke:#059669,stroke-width:2px
+    style Download fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Create fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Extract fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Delete fill:#ef4444,stroke:#b91c1c,stroke-width:2px
+    style Stats fill:#10b981,stroke:#059669,stroke-width:2px
+    style UpdateDB fill:#6366f1,stroke:#4f46e5,stroke-width:3px
+    style UI fill:#0d9488,stroke:#0f766e,stroke-width:2px,color:#ffffff
 ```
 
 ### Authentication Flow
 
-```
-┌──────────────┐
-│   User      │
-└──────┬───────┘
-       │ Visit /admin
-       ▼
-┌───────────────┐
-│ Check Setup   │
-│ Completed?    │
-└──────┬───────┘
-       │
-       ├─► No ──► Setup Wizard
-       │              └─► Create admin account
-       │                   └─► Mark setup complete
-       │
-       └─► Yes ──► Login Page
-                     │
-                     ├─► Manual Login
-                     │   ├─► Validate credentials
-                     │   └─► Auth::attempt()
-                     │
-                     └─► OAuth Login
-                         ├─► Redirect to Google
-                         ├─► User authenticates
-                         └─► Socialite callback
-                             ├─► Create/update user
-                             ├─► Assign workflow_user role
-                             └─► Update avatar
-                         │
-                         ▼
-                   ┌───────────────┐
-                   │ Filament     │
-                   │ Shield       │
-                   └──────┬──────┘
-                          │ Check permissions
-                          ▼
-                    ┌──────────────┐
-                    │  Dashboard  │
-                    └──────────────┘
+```mermaid
+flowchart TD
+    User([User]) --> Visit{Visit /admin}
+
+    Visit --> Check{Check Setup<br/>Completed?}
+
+    Check -->|No| Setup[Setup Wizard]
+    Check -->|Yes| Login[Login Page]
+
+    Setup --> Create[Create admin account]
+    Create --> Mark[Mark setup complete]
+    Mark --> Login
+
+    Login --> Manual[Manual Login]
+    Login --> OAuth[OAuth Login]
+
+    Manual --> Validate[Validate credentials]
+    Manual --> Attempt[Auth::attempt]
+
+    OAuth --> Redirect[Redirect to Google]
+    OAuth --> AuthUser[User authenticates]
+    OAuth --> Callback[Socialite callback]
+
+    Callback --> CreateUser[Create/update user]
+    Callback --> AssignRole[Assign workflow_user role]
+    Callback --> UpdateAvatar[Update avatar]
+
+    Validate --> Shield[Filament Shield]
+    Attempt --> Shield
+    CreateUser --> Shield
+    AssignRole --> Shield
+    UpdateAvatar --> Shield
+
+    Shield --> CheckPerm{Check permissions}
+    CheckPerm --> Dashboard[Dashboard]
+
+    style User fill:#3b82f6,stroke:#1e40af,stroke-width:2px
+    style Setup fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Create fill:#10b981,stroke:#059669,stroke-width:2px
+    style Mark fill:#10b981,stroke:#059669,stroke-width:2px
+    style Login fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style Manual fill:#10b981,stroke:#059669,stroke-width:2px
+    style OAuth fill:#3b82f6,stroke:#1e40af,stroke-width:2px
+    style Validate fill:#10b981,stroke:#059669,stroke-width:2px
+    style Attempt fill:#10b981,stroke:#059669,stroke-width:2px
+    style Redirect fill:#4285f4,stroke:#3b82f6,stroke-width:2px
+    style AuthUser fill:#10b981,stroke:#059669,stroke-width:2px
+    style Callback fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style CreateUser fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style AssignRole fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style UpdateAvatar fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Shield fill:#6366f1,stroke:#4f46e5,stroke-width:2px
+    style Dashboard fill:#0d9488,stroke:#0f766e,stroke-width:2px,color:#ffffff
 ```
 
 ## Security Architecture

@@ -11,6 +11,55 @@ This guide covers deploying Zuora Workflow Manager to production environments.
 
 The application is designed to be deployed to standard PHP hosting environments. The project includes GitHub Actions workflow for automated deployment to production.
 
+```mermaid
+flowchart TD
+    Dev[Development<br/>Local / Lando]
+
+    subgraph Methods["Deployment Methods"]
+        direction LR
+        GH[GitHub Actions<br/>CI/CD]
+        Manual[Manual SSH/FTP]
+        Platform[Platform<br/>Forge, Vapor]
+    end
+
+    subgraph Prod["Production Server"]
+        direction TB
+        Web[Nginx/Apache]
+        App[Laravel App]
+        DB[MariaDB]
+        Cache[Redis]
+        Queue[Queue Worker]
+        Cron[Scheduler]
+    end
+
+    Dev --> Methods
+
+    GH --> Web
+    Manual --> Web
+    Platform --> Web
+
+    Web --> App
+    App --> DB
+    App --> Cache
+    App --> Queue
+    App --> Cron
+
+    Cache -.-> Queue
+    Queue --> App
+
+    style Dev fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
+    style Methods fill:#dbeafe,stroke:#0d9488,stroke-width:2px
+    style GH fill:#10b981,stroke:#059669,stroke-width:2px
+    style Manual fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Platform fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style Web fill:#6366f1,stroke:#4f46e5,stroke-width:2px
+    style App fill:#3b82f6,stroke:#1e40af,stroke-width:3px
+    style DB fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Cache fill:#ef4444,stroke:#b91c1c,stroke-width:2px
+    style Queue fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Cron fill:#10b981,stroke:#059669,stroke-width:2px
+```
+
 ### Deployment Methods
 
 - **Option A**: GitHub Actions CI/CD (recommended)
@@ -82,6 +131,34 @@ The project includes `.github/workflows/deploy.yml` workflow:
 **Trigger:**
 - Manual dispatch from GitHub Actions tab
 - On push to `main` branch (if configured)
+
+```mermaid
+flowchart LR
+    Trigger[Trigger<br/>Push/Manual]
+
+    subgraph Pipeline["CI/CD Pipeline"]
+        Checkout[1. Checkout Code]
+        SetupPHP[2. Setup PHP]
+        Deps[3. Install Dependencies]
+        Build[4. Build Assets]
+        Migrate[5. Run Migrations]
+        Cache[6. Clear Caches]
+        Restart[7. Restart Services]
+    end
+
+    Trigger --> Checkout --> SetupPHP --> Deps --> Build --> Migrate --> Cache --> Complete[✓ Deployment Complete]
+
+    style Trigger fill:#10b981,stroke:#059669,stroke-width:2px
+    style Pipeline fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
+    style Checkout fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style SetupPHP fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style Deps fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
+    style Build fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Migrate fill:#ec4899,stroke:#dc2626,stroke-width:2px
+    style Cache fill:#ef4444,stroke:#b91c1c,stroke-width:2px
+    style Restart fill:#f59e0b,stroke:#d97706,stroke-width:2px
+    style Complete fill:#059669,stroke:#03c9a6,stroke-width:3px,color:#ffffff
+```
 
 **Process:**
 1. Checkout code
