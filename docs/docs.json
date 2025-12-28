@@ -23,13 +23,13 @@
     }
   ],
   "topbarCtaButton": {
-    "name": "Inizia Ora",
+    "name": "Get Started",
     "url": "/getting-started/introduction"
   },
   "navigation": {
     "groups": [
       {
-        "group": "Introduzione",
+        "group": "Getting Started",
         "pages": [
           "getting-started/introduction",
           "getting-started/installation",
@@ -38,14 +38,14 @@
         ]
       },
       {
-        "group": "Architettura",
+        "group": "Architecture",
         "pages": [
           "architecture/architecture",
           "architecture/overview"
         ]
       },
       {
-        "group": "Configurazione",
+        "group": "Configuration",
         "pages": [
           "configuration/settings-implementation"
         ]
@@ -57,7 +57,7 @@
         ]
       },
       {
-        "group": "Funzionalità",
+        "group": "Features",
         "pages": [
           "features/overview",
           "features/sync",
@@ -65,7 +65,7 @@
         ]
       },
       {
-        "group": "Sviluppo",
+        "group": "Development",
         "pages": [
           "development/contributing"
         ]

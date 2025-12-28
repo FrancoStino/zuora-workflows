@@ -1,27 +1,27 @@
 ---
 title: API Reference Overview
-description: Panoramica completa delle API REST disponibili in Zuora Workflow Manager
+description: Complete overview of REST APIs available in Zuora Workflow Manager
 ---
 
-# Panoramica API Reference
+# API Reference Overview
 
-Zuora Workflow Manager fornisce un set di API REST per l'integrazione programmabile. Questa sezione documentati tutti gli endpoints disponibili, metodi HTTP, e formati request/response.
+Zuora Workflow Manager provides a set of REST APIs for programmatic integration. This section documents all available endpoints, HTTP methods, and request/response formats.
 
-## Autenticazione
+## Authentication
 
-L'API richiede autenticazione tramite Laravel Sanctum.
+The API requires authentication via Laravel Sanctum.
 
-### Ottenere Token Auth
+### Obtaining Auth Token
 
-Dopo aver effettuato login nel pannello Filament, puoi ottenere il token dal dashboard o tramite API.
+After logging into the Filament panel, you can obtain the token from the dashboard or via API.
 
 <Note>
-Il token deve essere inviato nell'header `Authorization: Bearer YOUR_TOKEN` con ogni richiesta.
+The token must be sent in `Authorization: Bearer YOUR_TOKEN` header with each request.
 </Note>
 
 ## Base URL
 
-L'URL base dipende dall'ambiente:
+The base URL depends on environment:
 
 ```bash
 # Development
@@ -31,15 +31,15 @@ https://zuora-workflows.lndo.site/api
 https://yourdomain.com/api
 ```
 
-## Endpoints Disponibili
+## Available Endpoints
 
 ### 1. User Information
 
-Recupera informazioni sull'utente autenticato.
+Retrieve information about authenticated user.
 
 **Endpoint:** `GET /user`
 
-**Authentication:** Richiesto (`auth:sanctum`)
+**Authentication:** Required (`auth:sanctum`)
 
 **Request Headers:**
 ```http
@@ -85,7 +85,7 @@ Accept: application/json
 ```
 
 **Query Parameters:**
-Nessun parametro richiesto. Usa le credenziali del customer configurato.
+No required parameters. Uses configured customer credentials.
 
 **Response Success (200):**
 ```json
@@ -101,32 +101,32 @@ Nessun parametro richiesto. Usa le credenziali del customer configurato.
 }
 ```
 
-**Casi d'Uso:**
-- Ottienere token OAuth Zuora per integrazioni esterne
-- Test connessione con Zuora API
-- Debug autenticazione Zuora
+**Use Cases:**
+- Obtain Zuora OAuth token for external integrations
+- Test connection with Zuora API
+- Debug Zuora authentication
 
 ### 3. Download Workflow
 
-Scarica la definizione JSON di uno specifico workflow da Zuora.
+Download JSON definition of a specific workflow from Zuora.
 
 **Endpoint:** `GET /zuora/download/{workflowId}`
 
-**Authentication:** Richiesto (`auth:sanctum`)
+**Authentication:** Required (`auth:sanctum`)
 
 **Path Parameters:**
-| Parametro | Tipo | Richiesto | Descrizione |
+| Parameter | Type | Required | Description |
 |-----------|-------|-----------|-------------|
-| `workflowId` | string/int | Sì | Zuora workflow ID da scaricare |
+| `workflowId` | string/int | Yes | Zuora workflow ID to download |
 
 **Query Parameters:**
-| Parametro | Tipo | Richiesto | Descrizione |
+| Parameter | Type | Required | Description |
 |-----------|-------|-----------|-------------|
-| `client_id` | string | Sì | Zuora Client ID del customer |
-| `client_secret` | string | Sì | Zuora Client Secret del customer |
+| `client_id` | string | Yes | Zuora Client ID of customer |
+| `client_secret` | string | Yes | Zuora Client Secret of customer |
 | `base_url` | string | No | Zuora API base URL (default: https://rest.zuora.com) |
 
-**Request Esempio:**
+**Request Example:**
 ```http
 GET /api/zuora/download/2c92a0f8ce4830e9b73411ea6b2a7?client_id=abc123&client_secret=xyz789&base_url=https://rest.zuora.com HTTP/1.1
 Host: zuora-workflows.lndo.site
@@ -139,7 +139,7 @@ Accept: application/json
 {
   "id": "2c92a0f8ce4830e9b73411ea6b2a7",
   "name": "My Workflow",
-  "description": "Workflow per sincronizzazione customer",
+  "description": "Workflow for customer synchronization",
   "version": "1.0",
   "tasks": [
     {
@@ -149,7 +149,7 @@ Accept: application/json
       "object": "Email",
       "parameters": {
         "email": {
-          "subject": "Notifica Sync",
+          "subject": "Sync Notification",
           "to": "admin@example.com"
         }
       }
@@ -179,87 +179,87 @@ Accept: application/json
 }
 ```
 
-## Headers Standard
+## Standard Headers
 
 ### Request Headers
 
-| Header | Richiesto | Descrizione |
+| Header | Required | Description |
 |--------|-----------|-------------|
-| `Authorization` | Sì (la maggior parte endpoints) | Token Bearer: `Bearer YOUR_TOKEN` |
-| `Accept` | Sì | Content type accettato: `application/json` |
-| `Content-Type` | Sì (POST/PUT) | Content type del body: `application/json` |
+| `Authorization` | Yes (most endpoints) | Bearer Token: `Bearer YOUR_TOKEN` |
+| `Accept` | Yes | Accepted content type: `application/json` |
+| `Content-Type` | Yes (POST/PUT) | Body content type: `application/json` |
 
 ### Response Headers
 
-| Header | Descrizione |
+| Header | Description |
 |--------|-------------|
-| `Content-Type` | Content type della risposta |
-| `Cache-Control` | Politica caching |
-| `X-RateLimit-Limit` | Limite rate limiting (se attivo) |
-| `X-RateLimit-Remaining` | Richieste rimanenti (se attivo) |
+| `Content-Type` | Response content type |
+| `Cache-Control` | Caching policy |
+| `X-RateLimit-Limit` | Rate limit (if active) |
+| `X-RateLimit-Remaining` | Remaining requests (if active) |
 
-## Errori Standard
+## Standard Errors
 
-### Format Errori
+### Error Format
 
-Tutti gli errori seguono questo formato:
+All errors follow this format:
 
 ```json
 {
-  "message": "Descrizione dell'errore",
+  "message": "Error description",
   "errors": {
-    "field": ["Errore specifico del campo"]
+    "field": ["Specific field error"]
   },
-  "exception": "NomeException"
+  "exception": "ExceptionName"
 }
 ```
 
-### Codici Status HTTP
+### HTTP Status Codes
 
-| Codice | Significato | Descrizione |
+| Code | Meaning | Description |
 |---------|-------------|-------------|
-| `200` | OK | Richiesta completata con successo |
-| `201` | Created | Risorsa creata con successo |
-| `400` | Bad Request | Richiesta malformata |
-| `401` | Unauthorized | Token di autenticazione non valido o mancante |
-| `403` | Forbidden | Non hai permessi sufficienti |
-| `404` | Not Found | Risorsa non trovata |
-| `422` | Unprocessable Entity | Validazione fallita |
-| `429` | Too Many Requests | Rate limit superato |
-| `500` | Internal Server Error | Errore server interno |
-| `503` | Service Unavailable | Servizio temporaneamente non disponibile |
+| `200` | OK | Request completed successfully |
+| `201` | Created | Resource created successfully |
+| `400` | Bad Request | Malformed request |
+| `401` | Unauthorized | Invalid or missing authentication token |
+| `403` | Forbidden | Insufficient permissions |
+| `404` | Not Found | Resource not found |
+| `422` | Unprocessable Entity | Validation failed |
+| `429` | Too Many Requests | Rate limit exceeded |
+| `500` | Internal Server Error | Internal server error |
+| `503` | Service Unavailable | Service temporarily unavailable |
 
-## Esempi di Utilizzo
+## Usage Examples
 
-### Esempio 1: Curl - Get User Info
+### Example 1: Curl - Get User Info
 
 ```bash
-# Ottieni info utente
+# Get user info
 curl -X GET https://zuora-workflows.lndo.site/api/user \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Accept: application/json"
 ```
 
-### Esempio 2: Curl - Get Zuora Token
+### Example 2: Curl - Get Zuora Token
 
 ```bash
-# Ottieni token Zuora
+# Get Zuora token
 curl -X GET "https://zuora-workflows.lndo.site/api/zuora/token" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Accept: application/json"
 ```
 
-### Esempio 3: Curl - Download Workflow
+### Example 3: Curl - Download Workflow
 
 ```bash
-# Scarica workflow
+# Download workflow
 curl -X GET "https://zuora-workflows.lndo.site/api/zuora/download/2c92a0f8ce4830e9b73411ea6b2a7?client_id=YOUR_CLIENT_ID&client_secret=YOUR_CLIENT_SECRET&base_url=https://rest.zuora.com" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Accept: application/json" \
   -o workflow.json
 ```
 
-### Esempio 4: JavaScript Fetch
+### Example 4: JavaScript Fetch
 
 ```javascript
 // Get user info
@@ -274,10 +274,10 @@ const user = await response.json();
 console.log(user);
 ```
 
-### Esempio 5: PHP Guzzle
+### Example 5: PHP Guzzle
 
 ```php
-// Download workflow con Guzzle
+// Download workflow with Guzzle
 use GuzzleHttp\Client;
 
 $client = new Client();
@@ -296,7 +296,7 @@ $response = $client->request('GET', 'https://zuora-workflows.lndo.site/api/zuora
 $workflowData = json_decode($response->getBody(), true);
 ```
 
-### Esempio 6: Python Requests
+### Example 6: Python Requests
 
 ```python
 import requests
@@ -315,10 +315,10 @@ print(user)
 ## Rate Limiting
 
 <Note>
-Attualmente non implementato, ma l'API è progettata per supportare rate limiting in futuro.
+Currently not implemented, but API is designed to support rate limiting in the future.
 </Note>
 
-### Rate Limit Headers (Futuro)
+### Rate Limit Headers (Future)
 
 ```http
 X-RateLimit-Limit: 100
@@ -326,10 +326,10 @@ X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1735272000
 ```
 
-### Gestione Rate Limit
+### Rate Limit Handling
 
 ```php
-// Esempio di gestione rate limit
+// Rate limit handling example
 $response = $client->request('GET', '/api/user');
 
 if ($response->getStatusCode() === 429) {
@@ -341,7 +341,7 @@ if ($response->getStatusCode() === 429) {
 
 ## CORS
 
-Per richieste cross-origin, configura CORS in `config/cors.php`:
+For cross-origin requests, configure CORS in `config/cors.php`:
 
 ```php
 // config/cors.php
@@ -349,7 +349,7 @@ Per richieste cross-origin, configura CORS in `config/cors.php`:
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['*'],  // Specifica i tuoi domini
+    'allowed_origins' => ['*'],  // Specify your domains
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
@@ -360,7 +360,7 @@ return [
 
 ## Testing API
 
-### Esempio Test Pest
+### Pest Test Example
 
 ```php
 // tests/Feature/ApiTest.php
@@ -384,28 +384,28 @@ test('get user info', function () {
 });
 ```
 
-### Test con Postman
+### Test with Postman
 
-1. Importa collection (fornire in futuro)
-2. Configura base URL
-3. Aggiungi token nell'header Authorization
-4. Esegui requests
+1. Import collection (to be provided in the future)
+2. Configure base URL
+3. Add token in Authorization header
+4. Execute requests
 
-## Best Practices API
+## API Best Practices
 
-### 1. Gestione Token
+### 1. Token Management
 
 ```javascript
-// Salva token e riutilizza
+// Save token and reuse
 localStorage.setItem('api_token', token);
 
-// Usa token nelle richieste
+// Use token in requests
 const headers = {
     'Authorization': `Bearer ${localStorage.getItem('api_token')}`
 };
 ```
 
-### 2. Gestione Errori
+### 2. Error Handling
 
 ```javascript
 try {
@@ -413,7 +413,7 @@ try {
     if (!response.ok) {
         const error = await response.json();
         console.error('API Error:', error.message);
-        // Gestisci errore
+        // Handle error
     }
 } catch (error) {
     console.error('Network Error:', error);
@@ -423,11 +423,11 @@ try {
 ### 3. Pagination
 
 <Note>
-Attualmente gli endpoints API non supportano pagination. Implementare se necessario per liste large.
+Currently API endpoints do not support pagination. Implement if needed for large lists.
 </Note>
 
 ```javascript
-// Esempio pagination futuro
+// Future pagination example
 let page = 1;
 let allData = [];
 
@@ -439,24 +439,24 @@ do {
 } while (data.hasMore);
 ```
 
-## Prossimi Passi
+## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Authentication" icon="lock" href="/api-reference/authentication">
-    Dettagli autenticazione e autorizzazione
+    Authentication and authorization details
   </Card>
   <Card title="Endpoints" icon="endpoint" href="/api-reference/endpoints">
-    Documentazione completa endpoints
+    Complete endpoints documentation
   </Card>
   <Card title="Examples" icon="code" href="/api-reference/examples">
-    Esempi di utilizzo avanzati
+    Advanced usage examples
   </Card>
   <Card title="Features" icon="play" href="/features/workflows">
-    Usa funzionalità applicazione
+    Use application features
   </Card>
 </CardGroup>
 
-## Risorse
+## Resources
 
 - 📖 [Laravel API Resources](https://laravel.com/docs/api-resources)
 - 📖 [Laravel Sanctum](https://laravel.com/docs/sanctum)
@@ -465,5 +465,5 @@ do {
 
 ---
 
-**Versione API**: 1.0 |
-**Ultimo Aggiornamento**: Dicembre 2025
+**API Version**: 1.0 |
+**Last Updated**: December 2025

@@ -1,15 +1,15 @@
 ---
-title: Panoramica Architettura
-description: Comprendi l'architettura generale dell'applicazione e i design patterns utilizzati
+title: Architecture Overview
+description: Understand the application's overall architecture and design patterns used
 ---
 
-# Panoramica Architettura
+# Architecture Overview
 
-Zuora Workflow Manager segue un'architettura pulita orientata ai servizi con chiara separazione delle responsabilità. Questa sezione ti fornisce una panoramica di come i componenti interagiscono tra loro.
+Zuora Workflow Manager follows a clean service-oriented architecture with clear separation of responsibilities. This section provides an overview of how components interact with each other.
 
-## Architettura Generale
+## General Architecture
 
-L'applicazione segue l'architettura **Service-Oriented** (SOA) con pattern MVC (Model-View-Controller).
+The application follows the **Service-Oriented** (SOA) architecture with MVC (Model-View-Controller) pattern.
 
 ```mermaid
 graph TB
@@ -59,65 +59,72 @@ graph TB
     G --> A
 ```
 
-### Layer Descritti
+### Layer Description
 
-| Layer | Responsabilità | Componenti |
+| Layer | Responsibility | Components |
 |-------|--------------|------------|
-| **Presentation** | UI e API | Filament Resources, API Routes, CLI Commands |
-| **Application** | Business logic e orchestrazione | Services, Jobs, Controllers |
-| **Domain** | Entità e regole di dominio | Models, Form Requests, Policies |
-| **Infrastructure** | Persistenza e infrastruttura | Database, Queue, Cache |
-| **External** | Integrazioni esterne | Zuora API, Google OAuth |
+| **Presentation** | UI and API | Filament Resources, API Routes, CLI Commands |
+| **Application** | Business logic and orchestration | Services, Jobs, Controllers |
+| **Domain** | Domain entities and rules | Models, Form Requests, Policies |
+| **Infrastructure** | Persistence and infrastructure | Database, Queue, Cache |
+| **External** | External integrations | Zuora API, Google OAuth |
 
-## Componenti Principali
+## Main Components
 
 ### 1. Filament UI Layer
 
-Filament fornisce il pannello admin per la gestione dell'applicazione.
+Filament provides the admin panel for application management.
 
-```mermaid
-graph LR
-    A[Customer Resource] --> B[Create Customer Page]
-    A --> C[List Customers Page]
-    A --> D[Edit Customer Page]
+**Filament Resources:**
+- `CustomerResource` - Customer management (CRUD)
+- `WorkflowResource` - Workflow management and visualization
+- `TaskResource` - Task management with advanced filters
+- `UserResource` - User management
+- `RoleResource` - Role and permission management
 
-    E[Workflow Resource] --> F[List Workflows Page]
-    E --> G[View Workflow Page]
-
-    H[Task Resource] --> I[List Tasks Page]
-    H --> J[View Task Page]
-```
-
-**Resources Filament:**
-- `CustomerResource` - Gestione customer (CRUD)
-- `WorkflowResource` - Gestione workflow e visualizzazione
-- `TaskResource` - Gestione task con filtri avanzati
-- `UserResource` - Gestione utenti
-- `RoleResource` - Gestione ruoli e permessi
-
-**Pages Filament:**
-- Create/Edit forms per CRUD
-- List tables con search e filtri
-- Relation managers per relazioni modelli
-- Custom pages per visualizzazioni complesse
+**Filament Pages:**
+- Create/Edit forms for CRUD
+- List tables with search and filters
+- Relation managers for model relationships
+- Custom pages for complex visualizations
 
 ### 2. Application Layer
 
 #### Services
 
-Il Service Layer incapsula la business logic:
+The Service Layer encapsulates business logic:
 
-```mermaid
-graph TB
-    A[ZuoraService] --> B[OAuth 2.0 Auth]
-    A --> C[HTTP API Calls]
-    A --> D[Token Caching]
+**Services Responsibilities:**
 
-    E[WorkflowSyncService] --> F[Paginated Fetch]
-    E --> G[CRUD Operations]
-    E --> H[Task Extraction]
+| Service | Responsibility | Key Methods |
+|---------|--------------|-------------|
+| **ZuoraService** | Communication with Zuora API | `listWorkflows()`, `getAccessToken()`, `downloadWorkflow()` |
+| **WorkflowSyncService** | Workflow sync orchestration | `syncCustomerWorkflows()`, `syncWorkflowRecord()` |
+| **OAuthService** | Google OAuth integration | `login()`, `callback()` |
 
-    I[OAuthService] --> J[Google OAuth]
+#### Jobs
+
+Jobs handle asynchronous processes:
+
+```php
+// app/Jobs/SyncCustomersJob.php
+
+class SyncCustomersJob implements ShouldQueue
+{
+    public $tries = 3;           // Retry 3 times
+    public $backoff = 60;         // 60 seconds between retry
+    public $timeout = 300;         // 5 minute timeout
+
+    public function __construct(
+        public Customer $customer
+    ) {}
+
+    public function handle(): void
+    {
+        $service = app(WorkflowSyncService::class);
+        $service->syncCustomerWorkflows($this->customer);
+    }
+}
 ```
 
 **Responsabilità Services:**
@@ -182,7 +189,7 @@ sequenceDiagram
 
 #### Models
 
-Eloquent models rappresentano le entità del dominio:
+Eloquent models represent domain entities:
 
 ```mermaid
 erDiagram
@@ -195,33 +202,33 @@ erDiagram
 
 **Models:**
 
-| Model | Tabella | Responsabilità |
+| Model | Table | Responsibility |
 |-------|---------|--------------|
-| **Customer** | `customers` | Credenziali Zuora, multi-tenancy |
-| **Workflow** | `workflows` | Workflow sincronizzati da Zuora |
-| **Task** | `tasks` | Task estratti dai workflow |
-| **User** | `users` | Utenti del sistema |
-| **Setting** | `settings` | Impostazioni applicazione |
+| **Customer** | `customers` | Zuora credentials, multi-tenancy |
+| **Workflow** | `workflows` | Workflows synced from Zuora |
+| **Task** | `tasks` | Tasks extracted from workflows |
+| **User** | `users` | System users |
+| **Setting** | `settings` | Application settings |
 
 ### 4. Infrastructure Layer
 
 #### Database
 
-MariaDB 11.4 gestisce la persistenza dati:
+MariaDB 11.4 manages data persistence:
 
 ```sql
--- Tabelle principali
-customers     → Credenziali Zuora per customer
-workflows      → Workflow sincronizzati
-tasks          → Task estratti dai workflow
-users          → Utenti del sistema
-roles          → Ruoli Filament Shield
-settings       → Impostazioni applicazione
-jobs           → Job in coda
-failed_jobs    → Job falliti
+-- Main tables
+customers     → Zuora credentials for customer
+workflows      → Synced workflows
+tasks          → Tasks extracted from workflows
+users          → System users
+roles          → Filament Shield roles
+settings       → Application settings
+jobs           → Queued jobs
+failed_jobs    → Failed jobs
 ```
 
-**Relazioni Database:**
+**Database Relationships:**
 
 ```sql
 -- Foreign Keys
@@ -231,12 +238,12 @@ tasks.workflow_id → workflows.id (ON DELETE CASCADE)
 
 #### Queue System
 
-Laravel Queue gestisce job asincroni:
+Laravel Queue manages asynchronous jobs:
 
-**Drivers Supportati:**
-- `sync` - Esecuzione immediata (no queue)
-- `database` - Persistenza in database
-- `redis` - High-performance con Redis
+**Supported Drivers:**
+- `sync` - Immediate execution (no queue)
+- `database` - Database persistence
+- `redis` - High-performance with Redis
 
 **Workflow Queue:**
 
@@ -254,27 +261,27 @@ graph LR
 
 #### Cache
 
-Laravel Cache ottimizza performance:
+Laravel Cache optimizes performance:
 
 **Cache Drivers:**
-- `array` - Per singola richiesta (sviluppo)
-- `database` - Persistenza in database
-- `redis` - High-performance (produzione)
+- `array` - Per single request (development)
+- `database` - Database persistence
+- `redis` - High-performance (production)
 
-**Cosa viene cachato:**
+**What is Cached:**
 - OAuth token Zuora (1h TTL)
 - Application config
 - Route cache
 - View cache
 
-## Design Patterns Utilizzati
+## Design Patterns Used
 
 ### 1. Service Layer Pattern
 
-I servizi incapsulano business logic:
+Services encapsulate business logic:
 
 ```php
-// Service per logica complessa
+// Service for complex logic
 class WorkflowSyncService
 {
     public function __construct(
@@ -283,37 +290,37 @@ class WorkflowSyncService
 
     public function syncCustomerWorkflows(Customer $customer): array
     {
-        // Business logic qui...
+        // Business logic here...
     }
 }
 ```
 
-**Benefici:**
-- ✅ Separazione delle responsabilità
-- ✅ Testabilità
-- ✅ Riutilizzabilità
+**Benefits:**
+- ✅ Separation of concerns
+- ✅ Testability
+- ✅ Reusability
 - ✅ Dependency Injection
 
 ### 2. Repository Pattern (via Eloquent)
 
-I modelli fungono da repository:
+Models act as repositories:
 
 ```php
-// Model come repository
+// Model as repository
 $customer->workflows()->create($data);
 $customer->workflows()->where('zuora_id', $id)->first();
 $workflow->tasks()->where('state', 'pending')->get();
 ```
 
-**Benefici:**
-- ✅ API pulita per data access
-- ✅ Query builder fluent
-- ✅ Relazioni automatiche
+**Benefits:**
+- ✅ Clean API for data access
+- ✅ Fluent query builder
+- ✅ Automatic relationships
 - ✅ Lazy/Eager loading
 
 ### 3. Observer Pattern
 
-Laravel events triggerano azioni automatiche:
+Laravel events trigger automatic actions:
 
 ```php
 // app/Models/Customer.php
@@ -342,14 +349,14 @@ sequenceDiagram
     J->>Q: Dispatch job
 ```
 
-**Benefici:**
+**Benefits:**
 - ✅ Decoupling
-- ✅ Reattività automatica
-- ✅ Logica separata dal model
+- ✅ Automatic reactivity
+- ✅ Logic separated from model
 
 ### 4. Strategy Pattern
 
-Differenti queue drivers come strategie:
+Different queue drivers as strategies:
 
 ```php
 // Configurable strategy
@@ -366,14 +373,14 @@ switch (config('queue.default')) {
 }
 ```
 
-**Benefici:**
-- ✅ Flessibilità configurazione
-- ✅ Scambiabilità driver
-- ✅ Ambiente-specific optimization
+**Benefits:**
+- ✅ Configuration flexibility
+- ✅ Driver swappability
+- ✅ Environment-specific optimization
 
 ### 5. Factory Pattern
 
-Laravel Service Container crea istanze:
+Laravel Service Container creates instances:
 
 ```php
 // Automatic dependency injection
@@ -385,7 +392,7 @@ public function __construct(
 $service = app(ZuoraService::class);
 ```
 
-**Benefici:**
+**Benefits:**
 - ✅ Singleton pattern
 - ✅ Lazy loading
 - ✅ Testability (mocking)
@@ -479,12 +486,12 @@ graph TB
 ### Data Protection
 
 **Encryption:**
-- `client_secret` - Criptato con EncryptedCast
-- `APP_KEY` - Chiave crittografica
-- Sessions - Criptate con Laravel
+- `client_secret` - Encrypted with EncryptedCast
+- `APP_KEY` - Encryption key
+- Sessions - Encrypted with Laravel
 
 **RBAC:**
-- Filament Shield per granular permissions
+- Filament Shield for granular permissions
 - Role-based access control
 - Policy-based authorization
 
@@ -534,11 +541,11 @@ graph TB
 - View cache (production)
 
 **Database Optimization:**
-- Indexes su foreign keys
-- Indexes su frequent queries
+- Indexes on foreign keys
+- Indexes on frequent queries
 - Foreign key cascade operations
 
-## Scalability Considerazioni
+## Scalability Considerations
 
 ### Horizontal Scaling
 
@@ -557,38 +564,38 @@ graph LR
     D --> F
 ```
 
-**Scalabile orizzontalmente con:**
-- Redis per queue distribuita
+**Horizontally scalable with:**
+- Redis for distributed queue
 - Database read replicas
 - Shared cache (Redis)
-- Sticky sessions se necessario
+- Sticky sessions if needed
 
 ### Vertical Scaling
 
-**Ottimizzazioni:**
-- Aumento risorse server
-- Code workers multipli
+**Optimizations:**
+- Increase server resources
+- Multiple queue workers
 - Database connection pooling
 - PHP OPcache
 
-## Prossimi Passi
+## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Service Layer" icon="cog" href="/architecture/service-layer">
-    Dettagli sui servizi principali
+    Details on main services
   </Card>
   <Card title="Data Model" icon="database" href="/architecture/data-model">
-    Schema database e relazioni
+    Database schema and relationships
   </Card>
   <Card title="Design Patterns" icon="puzzle" href="/architecture/design-patterns">
-    Pattern di design utilizzati
+    Design patterns used
   </Card>
   <Card title="Core Concepts" icon="lightbulb" href="/core-concepts/customer">
-    Concetti fondamentali del dominio
+    Fundamental domain concepts
   </Card>
 </CardGroup>
 
-## Risorse
+## Resources
 
 - 📖 [Laravel Architecture](https://laravel.com/docs/architecture-concepts)
 - 📖 [Design Patterns PHP](https://refactoring.guru/design-patterns/php)
@@ -596,5 +603,5 @@ graph LR
 
 ---
 
-**Versione**: 1.4.0 |
-**Ultimo Aggiornamento**: Dicembre 2025
+**Version**: 1.4.0 |
+**Last Updated**: December 2025
