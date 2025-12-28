@@ -9,6 +9,7 @@ use App\Settings\GeneralSettings;
 use BackedEnum;
 use Exception;
 use Filament\Actions\Action;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Infolists\Components\TextEntry;
@@ -84,7 +85,28 @@ class Setup extends Page implements HasForms
                         ->description('Create your administrator account')
                         ->columns(1)
                         ->schema([
-                            ...$this->getApplicationFields(),
+                            TextInput::make('name')
+                                ->label('First Name')
+                                ->required()
+                                ->maxLength(255),
+                            TextInput::make('surname')
+                                ->label('Surname')
+                                ->required()
+                                ->maxLength(255),
+                            TextInput::make('admin_default_email')
+                                ->columnSpanFull()
+                                ->label('Admin Default Email')
+                                ->email()
+                                ->required()
+                                ->maxLength(255)
+                                ->helperText('The default email for the administrator account.'),
+                            TextInput::make('admin_password')
+                                ->label('Admin Password')
+                                ->password()
+                                ->required()
+                                ->revealable()
+                                ->minLength(8)
+                                ->helperText('Set a password for admin account  '),
                         ]),
                     Step::make('Summary')
                         ->description('Review and complete the setup')
@@ -118,7 +140,7 @@ class Setup extends Page implements HasForms
 
             $user = $this->createAdminUser($data);
             $this->generateShieldRolesIfNeeded($user);
-            $this->saveOAuthConfiguration($data, $settings);
+            $this->saveConfiguration($data, $settings);
             $this->markSetupAsCompleted();
 
             DB::commit();
@@ -246,18 +268,20 @@ class Setup extends Page implements HasForms
      *
      * @param  array<string, mixed>  $data  Setup form data
      */
-    private function saveOAuthConfiguration(array $data, GeneralSettings $settings): void
+    private function saveConfiguration(array $data, GeneralSettings $settings): void
     {
-        $settings->oauth_enabled = $data['oauth_enabled'] ?? false;
+        $settings->site_name = $data['site_name'] ?? $settings->site_name;
+        $settings->site_description = $data['site_description'] ?? $settings->site_description;
+
+        $settings->maintenance_mode = $data['maintenance_mode'] ?? $settings->maintenance_mode;
+
+        $settings->oauth_enabled = $data['oauth_enabled'] ?? $settings->oauth_enabled;
 
         if ($settings->oauth_enabled) {
-            $settings->oauth_google_client_id = $data['oauth_google_client_id'] ?? '';
-            $settings->oauth_google_client_secret = $data['oauth_google_client_secret'] ?? '';
-            $settings->oauth_allowed_domains = $data['oauth_allowed_domains'] ?? [];
+            $settings->oauth_google_client_id = $data['oauth_google_client_id'] ?? $settings->oauth_google_client_id;
+            $settings->oauth_google_client_secret = $data['oauth_google_client_secret'] ?? $settings->oauth_google_client_secret;
+            $settings->oauth_allowed_domains = $data['oauth_allowed_domains'] ?? $settings->oauth_allowed_domains;
         }
-
-        $settings->admin_default_email = $data['admin_default_email'];
-
         $settings->save();
     }
 

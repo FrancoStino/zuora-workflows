@@ -18,7 +18,7 @@ class AuthenticateWithSetupBypass extends FilamentAuthenticate
     public function handle($request, Closure $next, ...$guards): Response
     {
         $isSetupRoute = $this->isSetupRoute($request);
-        $isLoginRoute = $request->is('login'); // ← Aggiungi questo
+        $isLoginRoute = $request->is('login');
         $setupCompleted = $this->isSetupCompleted();
 
         // If setup not completed

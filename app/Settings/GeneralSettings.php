@@ -24,9 +24,6 @@ class GeneralSettings extends Settings
 
     public string $oauth_google_client_secret = '';
 
-    // Admin Configuration
-    public string $admin_default_email = 'admin@example.com';
-
     public static function group(): string
     {
         return 'general';

@@ -8,6 +8,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Support\Icons\Heroicon;
 
 trait HasGeneralSettingsSchema
 {
@@ -16,7 +17,6 @@ trait HasGeneralSettingsSchema
         return [
             $this->getSiteInformationSection(),
             $this->getOAuthSection(),
-            $this->getApplicationSection(),
             $this->getMaintenanceSection(),
         ];
     }
@@ -25,7 +25,7 @@ trait HasGeneralSettingsSchema
     {
         return Section::make('Site Information')
             ->description('Configure the basic information about your application')
-            ->icon('heroicon-o-information-circle')
+            ->icon(Heroicon::OutlinedInformationCircle)
             ->columnSpanFull()
             ->columns(1)
             ->schema($this->getSiteInformationFields());
@@ -53,7 +53,7 @@ trait HasGeneralSettingsSchema
     {
         return Section::make('OAuth Configuration')
             ->description('Manage OAuth authentication settings for your application')
-            ->icon('heroicon-o-shield-check')
+            ->icon(Heroicon::OutlinedShieldCheck)
             ->columnSpanFull()
             ->schema($this->getOAuthFields());
     }
@@ -101,48 +101,11 @@ trait HasGeneralSettingsSchema
         ];
     }
 
-    public function getApplicationSection(): Section
-    {
-        return Section::make('Application Configuration')
-            ->description('General application settings and administrator details')
-            ->icon('heroicon-o-cog-6-tooth')
-            ->columnSpanFull()
-            ->schema($this->getApplicationFields());
-    }
-
-    public function getApplicationFields(): array
-    {
-        return [
-            TextInput::make('name')
-                ->label('First Name')
-                ->required()
-                ->maxLength(255),
-            TextInput::make('surname')
-                ->label('Surname')
-                ->required()
-                ->maxLength(255),
-            TextInput::make('admin_default_email')
-                ->columnSpanFull()
-                ->label('Admin Default Email')
-                ->email()
-                ->required()
-                ->maxLength(255)
-                ->helperText('The default email for the administrator account.'),
-            TextInput::make('admin_password')
-                ->label('Admin Password')
-                ->password()
-                ->required()
-                ->revealable()
-                ->minLength(8)
-                ->helperText('Set a password for admin account  '),
-        ];
-    }
-
     public function getMaintenanceSection(): Section
     {
         return Section::make('Maintenance')
             ->description('Control access to the application during maintenance')
-            ->icon('heroicon-o-wrench-screwdriver')
+            ->icon(Heroicon::OutlinedWrenchScrewdriver)
             ->columnSpanFull()
             ->schema($this->getMaintenanceFields());
     }
