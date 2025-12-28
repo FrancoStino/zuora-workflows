@@ -3,311 +3,242 @@ title: Configuration
 description: Application configuration and environment variables
 ---
 
+import { EnvConfigSection } from '@/components/env-config-section'
+import { AppSettings } from '@/components/app-settings'
+import { FilamentConfig } from '@/components/filament-config'
+import { SecurityConfig } from '@/components/security-config'
+import { PerformanceConfig } from '@/components/performance-config'
+import { MaintenanceConfig } from '@/components/maintenance-config'
+import { MonitoringConfig } from '@/components/monitoring-config'
+import { NextSteps } from '@/components/next-steps'
+
 # Configuration Reference
 
 This document describes all configuration options for Zuora Workflow Manager.
 
 ## Environment Variables
 
-### Application Configuration
+<EnvConfigSection
+  title="Application Configuration"
+  env={[
+    { name: 'APP_NAME', default: '"Zuora Workflows"', required: true, description: 'Application name' },
+    { name: 'APP_ENV', default: 'local', required: true, options: ['local', 'production'], description: 'Environment' },
+    { name: 'APP_KEY', default: 'Generated', required: true, description: 'Laravel application key (32-char base64)' },
+    { name: 'APP_DEBUG', default: 'false', required: true, options: ['true', 'false'], description: 'Enable debug mode' },
+    { name: 'APP_URL', default: '-', required: true, description: 'Application base URL' }
+  ]}
+/>
 
-```env
-APP_NAME="Zuora Workflows"
-APP_ENV=local
-APP_KEY=base64:...
-APP_DEBUG=true
-APP_URL=https://zuora-workflows.lndo.site
-```
+<Alert type="warning">
+  <strong>Security:</strong> Always set <Code inline>APP_DEBUG=false</Code> in production environments.
+</Alert>
 
-| Variable | Description | Default | Required |
-|----------|-------------|----------|-----------|
-| `APP_NAME` | Application name | `"Zuora Workflows"` | Yes |
-| `APP_ENV` | Environment (local, production) | `local` | Yes |
-| `APP_KEY` | Laravel application key (32-char base64) | Generated | Yes |
-| `APP_DEBUG` | Enable debug mode | `false` | Yes |
-| `APP_URL` | Application base URL | - | Yes |
+<EnvConfigSection
+  title="Database Configuration"
+  env={[
+    { name: 'DB_CONNECTION', default: 'mariadb', required: true, description: 'Database driver' },
+    { name: 'DB_HOST', default: '127.0.0.1', required: true, description: 'Database host' },
+    { name: 'DB_PORT', default: '3306', required: true, description: 'Database port' },
+    { name: 'DB_DATABASE', default: 'laravel', required: true, description: 'Database name' },
+    { name: 'DB_USERNAME', default: 'root', required: true, description: 'Database username' },
+    { name: 'DB_PASSWORD', default: '-', required: true, description: 'Database password' }
+  ]}
+/>
 
-<div className="warning">
-  <p><strong>Security:</strong> Always set <code>APP_DEBUG=false</code> in production environments.</p>
-</div>
+<Alert type="info">
+  <strong>Lando Configuration:</strong> When using Lando, database credentials are automatically configured. You don't need to set these manually.
+</Alert>
 
----
+<EnvConfigSection
+  title="Queue Configuration"
+  env={[
+    { name: 'QUEUE_CONNECTION', default: 'database', required: false, options: ['database', 'redis', 'sync'], description: 'Queue driver' },
+    { name: 'QUEUE_FAILED_DRIVER', default: 'database', required: false, options: ['database', 'redis'], description: 'Failed jobs storage' }
+  ]}
+/>
 
-### Database Configuration
+<DataTable
+  columns={['Driver', 'Description']}
+  rows={[
+    ['database', 'Queue jobs in database table (recommended for development)'],
+    ['redis', 'Queue jobs in Redis (recommended for production)'],
+    ['sync', 'Execute jobs immediately (no background processing)']
+  ]}
+/>
 
-```env
-DB_CONNECTION=mariadb
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=laravel
-DB_USERNAME=root
-DB_PASSWORD=password
-```
+<Alert type="info">
+  <strong>Development Tip:</strong> Use <Code inline>QUEUE_CONNECTION=sync</Code> for easier debugging during development.
+</Alert>
 
-| Variable | Description | Default | Required |
-|----------|-------------|----------|-----------|
-| `DB_CONNECTION` | Database driver | `mariadb` | Yes |
-| `DB_HOST` | Database host | `127.0.0.1` | Yes |
-| `DB_PORT` | Database port | `3306` | Yes |
-| `DB_DATABASE` | Database name | `laravel` | Yes |
-| `DB_USERNAME` | Database username | `root` | Yes |
-| `DB_PASSWORD` | Database password | - | Yes |
+<EnvConfigSection
+  title="Cache Configuration"
+  env={[
+    { name: 'CACHE_STORE', default: 'array', required: false, options: ['array', 'database', 'redis', 'file', 'null'], description: 'Cache driver' }
+  ]}
+/>
 
-**Lando Configuration:**
-When using Lando, database credentials are automatically configured. You don't need to set these manually.
+<DataTable
+  columns={['Store', 'Description']}
+  rows={[
+    ['array', 'Cache persists only for single request (recommended for development)'],
+    ['database', 'Persistent cache in database'],
+    ['redis', 'Persistent cache in Redis (recommended for production)'],
+    ['file', 'Persistent cache in filesystem'],
+    ['null', 'Disable cache completely']
+  ]}
+/>
 
----
+<EnvConfigSection
+  title="Session Configuration"
+  env={[
+    { name: 'SESSION_DRIVER', default: 'file', required: false, options: ['file', 'database', 'redis'], description: 'Session storage' },
+    { name: 'SESSION_LIFETIME', default: '120', required: false, description: 'Session lifetime (minutes)' }
+  ]}
+/>
 
-### Queue Configuration
+<EnvConfigSection
+  title="Redis Configuration"
+  env={[
+    { name: 'REDIS_CLIENT', default: 'phpredis', required: true, description: 'Redis client' },
+    { name: 'REDIS_HOST', default: '127.0.0.1', required: true, description: 'Redis host' },
+    { name: 'REDIS_PORT', default: '6379', required: true, description: 'Redis port' },
+    { name: 'REDIS_PASSWORD', default: 'null', required: false, description: 'Redis password' }
+  ]}
+/>
 
-```env
-QUEUE_CONNECTION=database
-QUEUE_FAILED_DRIVER=database
-```
+<EnvConfigSection
+  title="Logging Configuration"
+  env={[
+    { name: 'LOG_CHANNEL', default: 'stack', required: false, description: 'Default log channel' },
+    { name: 'LOG_STACK', default: 'single', required: false, options: ['single', 'daily', 'stack'], description: 'Log channels' },
+    { name: 'LOG_LEVEL', default: 'debug', required: false, options: ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'], description: 'Minimum log level' }
+  ]}
+/>
 
-| Variable | Description | Default | Options |
-|----------|-------------|----------|----------|
-| `QUEUE_CONNECTION` | Queue driver | `database` | `database`, `redis`, `sync` |
-| `QUEUE_FAILED_DRIVER` | Failed jobs storage | `database` | `database`, `redis` |
+<EnvConfigSection
+  title="Mail Configuration"
+  env={[
+    { name: 'MAIL_MAILER', default: 'log', required: false, description: 'Mail driver' },
+    { name: 'MAIL_HOST', default: '127.0.0.1', required: false, description: 'SMTP host' },
+    { name: 'MAIL_PORT', default: '2525', required: false, description: 'SMTP port' },
+    { name: 'MAIL_USERNAME', default: 'null', required: false, description: 'SMTP username' },
+    { name: 'MAIL_PASSWORD', default: 'null', required: false, description: 'SMTP password' },
+    { name: 'MAIL_FROM_ADDRESS', default: '"hello@example.com"', required: false, description: 'Default from address' },
+    { name: 'MAIL_FROM_NAME', default: '${APP_NAME}', required: false, description: 'Default from name' }
+  ]}
+/>
 
-**Queue Drivers:**
+<EnvConfigSection
+  title="OAuth Configuration"
+  env={[
+    { name: 'GOOGLE_CLIENT_ID', default: '-', required: false, description: 'Google OAuth client ID' },
+    { name: 'GOOGLE_CLIENT_SECRET', default: '-', required: false, description: 'Google OAuth client secret' }
+  ]}
+/>
 
-- **`database`**: Queue jobs in database table (recommended for development)
-- **`redis`**: Queue jobs in Redis (recommended for production)
-- **`sync`**: Execute jobs immediately (no background processing)
+<Alert type="warning">
+  <strong>Note:</strong> These variables are optional. OAuth credentials can also be configured via Settings UI with encryption.
+</Alert>
 
-<div className="info">
-  <p><strong>Development Tip:</strong> Use <code>QUEUE_CONNECTION=sync</code> for easier debugging during development.</p>
-</div>
-
----
-
-### Cache Configuration
-
-```env
-CACHE_STORE=array
-```
-
-| Variable | Description | Default | Options |
-|----------|-------------|----------|----------|
-| `CACHE_STORE` | Cache driver | `array` | `array`, `database`, `redis`, `file`, `null` |
-
-**Cache Stores:**
-
-- **`array`**: Cache persists only for single request (recommended for development)
-- **`database`**: Persistent cache in database
-- **`redis`**: Persistent cache in Redis (recommended for production)
-- **`file`**: Persistent cache in filesystem
-- **`null`**: Disable cache completely
-
----
-
-### Session Configuration
-
-```env
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-```
-
-| Variable | Description | Default | Options |
-|----------|-------------|----------|----------|
-| `SESSION_DRIVER` | Session storage | `file` | `file`, `database`, `redis` |
-| `SESSION_LIFETIME` | Session lifetime (minutes) | `120` | - |
-
----
-
-### Redis Configuration
-
-```env
-REDIS_CLIENT=phpredis
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_PASSWORD=null
-```
-
-| Variable | Description | Default | Required |
-|----------|-------------|----------|-----------|
-| `REDIS_CLIENT` | Redis client | `phpredis` | Yes |
-| `REDIS_HOST` | Redis host | `127.0.0.1` | Yes |
-| `REDIS_PORT` | Redis port | `6379` | Yes |
-| `REDIS_PASSWORD` | Redis password | `null` | No |
-
----
-
-### Logging Configuration
-
-```env
-LOG_CHANNEL=stack
-LOG_STACK=single
-LOG_LEVEL=debug
-```
-
-| Variable | Description | Default | Options |
-|----------|-------------|----------|----------|
-| `LOG_CHANNEL` | Default log channel | `stack` | - |
-| `LOG_STACK` | Log channels | `single` | `single`, `daily`, `stack` |
-| `LOG_LEVEL` | Minimum log level | `debug` | `emergency`, `alert`, `critical`, `error`, `warning`, `notice`, `info`, `debug` |
-
----
-
-### Mail Configuration
-
-```env
-MAIL_MAILER=log
-MAIL_HOST=127.0.0.1
-MAIL_PORT=2525
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_FROM_ADDRESS="hello@example.com"
-MAIL_FROM_NAME="${APP_NAME}"
-```
-
-| Variable | Description | Default |
-|----------|-------------|----------|
-| `MAIL_MAILER` | Mail driver | `log` |
-| `MAIL_HOST` | SMTP host | `127.0.0.1` |
-| `MAIL_PORT` | SMTP port | `2525` |
-| `MAIL_USERNAME` | SMTP username | `null` |
-| `MAIL_PASSWORD` | SMTP password | `null` |
-| `MAIL_FROM_ADDRESS` | Default from address | `"hello@example.com"` |
-| `MAIL_FROM_NAME` | Default from name | `${APP_NAME}` |
-
----
-
-### OAuth Configuration
-
-```env
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-```
-
-| Variable | Description | Required |
-|----------|-------------|-----------|
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | No |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | No |
-
-<div className="warning">
-  <p><strong>Note:</strong> These variables are optional. OAuth credentials can also be configured via Settings UI with encryption.</p>
-</div>
-
----
-
-### Debugbar Configuration
-
-```env
-DEBUGBAR_ENABLED=false
-```
-
-| Variable | Description | Default |
-|----------|-------------|----------|
-| `DEBUGBAR_ENABLED` | Enable Laravel Debugbar | `false` |
-
----
+<EnvConfigSection
+  title="Debugbar Configuration"
+  env={[
+    { name: 'DEBUGBAR_ENABLED', default: 'false', required: false, description: 'Enable Laravel Debugbar' }
+  ]}
+/>
 
 ## Application Settings
 
-Settings are managed via Spatie Laravel Settings and stored in the database. Access them via **Settings** → **General Settings** in the Filament admin panel (Super Admin only).
-
-### Site Information
-
-**Settings:**
-- **Site Name**: Application title displayed in UI (default: "Zuora Workflow")
-- **Site Description**: Application description
-
-**Location:** Settings UI → Site Information section
-
-### OAuth Configuration
-
-**Settings:**
-- **OAuth Enabled**: Toggle Google OAuth login (default: false)
-- **Allowed Domains**: Comma-separated list of allowed email domains (e.g., `example.com,company.org`)
-- **Google Client ID**: OAuth client ID from Google Cloud Console
-- **Google Client Secret**: OAuth client secret from Google Cloud Console (encrypted)
-
-**Location:** Settings UI → OAuth Configuration section
-
-**Security:** Client secret is encrypted using `EncryptedCastGoogleClientSecret` and Laravel's Crypt facade.
-
-### Application Configuration
-
-**Settings:**
-- **Admin Default Email**: Default email for admin operations (default: `admin@example.com`)
-
-**Location:** Settings UI → Application Configuration section
-
-### Maintenance Mode
-
-**Settings:**
-- **Maintenance Mode**: Toggle site maintenance mode
-
-**When Enabled:**
-- All requests redirect to maintenance page
-- Admin panel remains accessible for admins
-- Background jobs continue processing
-
-**Location:** Settings UI → Maintenance section
-
----
+<AppSettings
+  title="General Settings"
+  description="Settings are managed via Spatie Laravel Settings and stored in database. Access them via Settings → General Settings in Filament admin panel (Super Admin only)."
+  sections={[
+    {
+      name: 'Site Information',
+      settings: [
+        { name: 'Site Name', description: 'Application title displayed in UI (default: "Zuora Workflow")' },
+        { name: 'Site Description', description: 'Application description' }
+      ],
+      location: 'Settings UI → Site Information section'
+    },
+    {
+      name: 'OAuth Configuration',
+      settings: [
+        { name: 'OAuth Enabled', description: 'Toggle Google OAuth login (default: false)' },
+        { name: 'Allowed Domains', description: 'Comma-separated list of allowed email domains (e.g., example.com,company.org)' },
+        { name: 'Google Client ID', description: 'OAuth client ID from Google Cloud Console' },
+        { name: 'Google Client Secret', description: 'OAuth client secret from Google Cloud Console (encrypted)' }
+      ],
+      location: 'Settings UI → OAuth Configuration section',
+      security: 'Client secret is encrypted using EncryptedCastGoogleClientSecret and Laravel\'s Crypt facade'
+    },
+    {
+      name: 'Application Configuration',
+      settings: [
+        { name: 'Admin Default Email', description: 'Default email for admin operations (default: admin@example.com)' }
+      ],
+      location: 'Settings UI → Application Configuration section'
+    },
+    {
+      name: 'Maintenance',
+      settings: [
+        { name: 'Maintenance Mode', description: 'Toggle site maintenance mode' }
+      ],
+      location: 'Settings UI → Maintenance section',
+      notes: ['All requests redirect to maintenance page', 'Admin panel remains accessible for admins', 'Background jobs continue processing']
+    }
+  ]}
+/>
 
 ## Filament Configuration
 
-### Panel Configuration
-
-**Location:** `config/filament.php`
-
-**Key Settings:**
-
-```php
-'theme' => [
+<FilamentConfig
+  panelConfig={{
+    location: 'config/filament.php',
+    settings: `{
+  'theme' => [
     'dark_mode' => false,
     'panels' => [
-        'default' => [
-            'brand' => [
-                'name' => env('APP_NAME', 'Zuora Workflow'),
-                'logo' => resource_path('images/logo.svg'),
-                'logoHeight' => '2.5rem',
-            ],
+      'default' => [
+        'brand' => [
+          'name' => env('APP_NAME', 'Zuora Workflow'),
+          'logo' => resource_path('images/logo.svg'),
+          'logoHeight' => '2.5rem',
         ],
+      ],
     ],
-],
-```
-
-**Customization Options:**
-- Dark mode toggle
-- Brand name
-- Logo and logo height
-- Colors (via CSS)
-- Fonts
-
-### Shield Configuration
-
-**Location:** `config/filament-shield.php`
-
-**Key Settings:**
-
-```php
-'auth_provider_model' => \App\Models\User::class,
-'auth_provider_guard' => 'web',
-'register_role_policy' => true,
-'enabled' => true,
-```
-
-**Features:**
-- Role management
-- Permission management
-- Policy generation
-- Resource-based permissions
-
----
+  ]
+}`
+  }}
+  customization={[
+    'Dark mode toggle',
+    'Brand name',
+    'Logo and logo height',
+    'Colors (via CSS)',
+    'Fonts'
+  ]}
+  shieldConfig={{
+    location: 'config/filament-shield.php',
+    settings: `{
+  'auth_provider_model' => \\App\\Models\\User::class,
+  'auth_provider_guard' => 'web',
+  'register_role_policy' => true,
+  'enabled' => true,
+}`
+  }}
+  shieldFeatures={[
+    'Role management',
+    'Permission management',
+    'Policy generation',
+    'Resource-based permissions'
+  ]}
+/>
 
 ## Settings Configuration
 
-**Location:** `config/settings.php`
-
-**Key Settings:**
-
-```php
-'repositories' => [
+<CodeBlock
+  title="Settings Configuration (config/settings.php)"
+  code={`'repositories' => [
     'database' => [
         'type' => DatabaseSettingsRepository::class,
         'table' => 'settings',
@@ -322,324 +253,269 @@ Settings are managed via Spatie Laravel Settings and stored in the database. Acc
 ],
 'auto_discover_settings' => [
     app_path('Settings'),
-],
-```
+],`}
+  language="php"
+/>
 
-**Options:**
-- Database or Redis repository
-- Caching (disabled by default)
-- Auto-discovery of settings classes
-
----
+<DataTable
+  columns={['Option', 'Description']}
+  rows={[
+    ['Database or Redis repository', 'Choose storage backend for settings'],
+    ['Caching', 'Enable/disable caching (disabled by default)'],
+    ['Auto-discovery', 'Automatically discover settings classes']
+  ]}
+/>
 
 ## Job Configuration
 
-**Location:** `config/jobs.php`
+<CodeBlock
+  title="Job Defaults (config/jobs.php)"
+  code={`'retry_after' => 600, // 10 minutes
+'queue' => 'default',`}
+  language="php"
+/>
 
-**Job Defaults:**
-
-```php
-'retry_after' => 600, // 10 minutes
-'queue' => 'default',
-```
-
-**SyncCustomersJob Configuration:**
-
-```php
-public $tries = 3;
-public $backoff = [60, 120, 180]; // Seconds
-public $queue = 'default';
-```
-
----
+<CodeBlock
+  title="SyncCustomersJob Configuration"
+  code={`public \$tries = 3;
+public \$backoff = [60, 120, 180]; // Seconds
+public \$queue = 'default';`}
+  language="php"
+/>
 
 ## Zuora Configuration
 
-Zuora credentials are stored per customer in the database, not in environment variables.
+<Alert type="info">
+  <strong>Note:</strong> Zuora credentials are stored per customer in database, not in environment variables.
+</Alert>
 
-**Customer Model Fields:**
+<DataTable
+  columns={['Field', 'Type', 'Description']}
+  rows={[
+    ['name', 'string', 'Customer/company name'],
+    ['zuora_client_id', 'string', 'Zuora OAuth client ID'],
+    ['zuora_client_secret', 'string', 'Zuora OAuth client secret (encrypted)'],
+    ['zuora_base_url', 'string', 'Zuora API base URL']
+  ]}
+/>
 
-| Field | Type | Description |
-|-------|-------|-------------|
-| `name` | string | Customer/company name |
-| `zuora_client_id` | string | Zuora OAuth client ID |
-| `zuora_client_secret` | string | Zuora OAuth client secret (encrypted) |
-| `zuora_base_url` | string | Zuora API base URL |
-
-**Base URL Options:**
-- Production: `https://rest.zuora.com`
-- Sandbox: `https://rest.test.zuora.com`
-- Custom: Any valid Zuora endpoint
-
----
+<InfoCards
+  cards={[
+    { title: 'Production', description: 'https://rest.zuora.com' },
+    { title: 'Sandbox', description: 'https://rest.test.zuora.com' },
+    { title: 'Custom', description: 'Any valid Zuora endpoint' }
+  ]}
+/>
 
 ## Scheduler Configuration
 
-**Location:** `routes/console.php`
-
-**Scheduled Jobs:**
-
-```php
-// Automatic workflow sync
+<CodeBlock
+  title="Scheduled Jobs (routes/console.php)"
+  code={`// Automatic workflow sync
 Schedule::command('app:sync-workflows --all')
     ->hourly()              // Every hour
     // ->everyThirtyMinutes()  // Every 30 minutes
     // ->everyFiveMinutes()    // Every 5 minutes
     // ->daily()               // Once per day
-    ->name('sync-customer-workflows');
-```
+    ->name('sync-customer-workflows');`}
+  language="php"
+/>
 
-**Customization:**
-Edit the frequency method to change sync schedule.
-
----
+<Alert type="info">
+  <strong>Customization:</strong> Edit frequency method to change sync schedule.
+</Alert>
 
 ## Security Configuration
 
-### Encryption
+<SecurityConfig
+  encryption={{
+    title: 'Encryption',
+    items: [
+      { name: 'Application Key', description: 'APP_KEY=base64:32-character-string', usage: ['Encrypt sensitive data at rest', 'Encrypt OAuth client secrets', 'Encrypt settings secrets', 'Sign session cookies'] },
+      {
+        name: 'Generate New Key',
+        command: 'php artisan key:generate',
+        language: 'bash'
+      }
+    ]
+  }}
+  hashing={{
+    title: 'Password Hashing',
+    config: `BCRYPT_ROUNDS=12`,
+    usage: ['Hash user passwords', 'Verify passwords on login']
+  }}
+  session={{
+    title: 'Session Security',
+    config: `SESSION_ENCRYPT=false`,
+    note: 'Session encryption is disabled by default. Enable with SESSION_ENCRYPT=true for additional security.'
+  }}
+/>
 
-**Application Key:**
-
-```env
-APP_KEY=base64:32-character-string
-```
-
-**Usage:**
-- Encrypt sensitive data at rest
-- Encrypt OAuth client secrets
-- Encrypt settings secrets
-- Sign session cookies
-
-**Generate New Key:**
-```bash
-php artisan key:generate
-```
-
-<div className="warning">
-  <p><strong>Critical:</strong> Never commit <code>APP_KEY</code> to version control. If leaked, rotate the key immediately.</p>
-</div>
-
----
-
-### Password Hashing
-
-**Configuration:**
-```env
-BCRYPT_ROUNDS=12
-```
-
-**Usage:**
-- Hash user passwords
-- Verify passwords on login
-
----
-
-### Session Security
-
-**Configuration:**
-```env
-SESSION_ENCRYPT=false
-```
-
-<div className="info">
-  <p><strong>Note:</strong> Session encryption is disabled by default. Enable with <code>SESSION_ENCRYPT=true</code> for additional security.</p>
-</div>
-
----
+<Alert type="warning">
+  <strong>Critical:</strong> Never commit APP_KEY to version control. If leaked, rotate key immediately.
+</Alert>
 
 ## Performance Configuration
 
-### Cache Configuration
-
-**Recommended Production Settings:**
-
-```env
-CACHE_STORE=redis
-SETTINGS_CACHE_ENABLED=true
-```
-
-**Benefits:**
-- Faster API responses
-- Reduced database queries
-- Improved Zuora token caching
-
----
-
-### Queue Configuration
-
-**Recommended Production Settings:**
-
-```env
-QUEUE_CONNECTION=redis
-```
-
-**Benefits:**
-- Faster job processing
-- Better scalability
-- Redis persistence
-
-**Queue Worker:**
-```bash
-# Start multiple workers
-php artisan queue:work --queue=default --sleep=3 --tries=3
-```
-
----
+<PerformanceConfig
+  cache={{
+    title: 'Recommended Production Settings',
+    env: `CACHE_STORE=redis
+SETTINGS_CACHE_ENABLED=true`,
+    benefits: ['Faster API responses', 'Reduced database queries', 'Improved Zuora token caching']
+  }}
+  queue={{
+    title: 'Recommended Production Settings',
+    env: `QUEUE_CONNECTION=redis`,
+    benefits: ['Faster job processing', 'Better scalability', 'Redis persistence'],
+    worker: 'php artisan queue:work --queue=default --sleep=3 --tries=3'
+  }}
+/>
 
 ## Development Configuration
 
-### Recommended Development Settings
-
-```env
-APP_DEBUG=true
+<CodeBlock
+  title="Recommended Development Settings"
+  code={`APP_DEBUG=true
 APP_ENV=local
 CACHE_STORE=array
 QUEUE_CONNECTION=database
 DEBUGBAR_ENABLED=true
-LOG_LEVEL=debug
-```
+LOG_LEVEL=debug`}
+  language="env"
+/>
 
-**Benefits:**
-- Detailed error messages
-- No persistent cache (fresh data)
-- Queue jobs in database (easier debugging)
-- Debugbar for profiling
-- Verbose logging
+<DataTable
+  columns={['Setting', 'Benefit']}
+  rows={[
+    ['APP_DEBUG=true', 'Detailed error messages'],
+    ['CACHE_STORE=array', 'No persistent cache (fresh data)'],
+    ['QUEUE_CONNECTION=database', 'Queue jobs in database (easier debugging)'],
+    ['DEBUGBAR_ENABLED=true', 'Debugbar for profiling'],
+    ['LOG_LEVEL=debug', 'Verbose logging']
+  ]}
+/>
 
----
-
-### Testing Configuration
-
-```env
-APP_ENV=testing
+<CodeBlock
+  title="Testing Configuration"
+  code={`APP_ENV=testing
 APP_DEBUG=false
 CACHE_DRIVER=array
-QUEUE_CONNECTION=sync
-```
+QUEUE_CONNECTION=sync`}
+  language="env"
+/>
 
-**Benefits:**
-- Isolated test environment
-- Fast test execution
-- Clean state between tests
-
----
+<DataTable
+  columns={['Setting', 'Benefit']}
+  rows={[
+    ['APP_ENV=testing', 'Isolated test environment'],
+    ['APP_DEBUG=false', 'Fast test execution'],
+    ['CACHE_DRIVER=array', 'Clean state between tests'],
+    ['QUEUE_CONNECTION=sync', 'Immediate job processing in tests']
+  ]}
+/>
 
 ## Maintenance Configuration
 
-### Maintenance Mode
-
-**Enable via Settings:**
-1. Navigate to **Settings** → **General Settings**
-2. Toggle **Maintenance Mode** on
-3. Click **Save**
-
-**Enable via CLI:**
-```bash
-php artisan down
-```
-
-**Disable via CLI:**
-```bash
-php artisan up
-```
-
-**Options:**
-```bash
-# Allow specific IPs
-php artisan down --allow=127.0.0.1
-
-# Show maintenance message
-php artisan down --message="Upgrading database"
-
-# Redirect to specific URL
-php artisan down --redirect=/maintenance
-```
-
----
+<MaintenanceConfig
+  ui={{
+    title: 'Enable via Settings',
+    steps: [
+      'Navigate to Settings → General Settings',
+      'Toggle Maintenance Mode on',
+      'Click Save'
+    ]
+  }}
+  cli={{
+    title: 'Enable via CLI',
+    commands: [
+      { code: 'php artisan down', description: 'Enable maintenance mode' },
+      { code: 'php artisan up', description: 'Disable maintenance mode' }
+    ]
+  }}
+  options={[
+    { code: 'php artisan down --allow=127.0.0.1', description: 'Allow specific IPs' },
+    { code: 'php artisan down --message="Upgrading database"', description: 'Show maintenance message' },
+    { code: 'php artisan down --redirect=/maintenance', description: 'Redirect to specific URL' }
+  ]}
+/>
 
 ## Lando Configuration
 
-**Location:** `.lando.yml`
-
-**Key Services:**
-
-```yaml
-recipe: laravel
+<CodeBlock
+  title=".lando.yml"
+  code={`recipe: laravel
 config:
   php: '8.4'
   database: 'mariadb:11.4'
   cache: 'redis:7.0'
-  webserver: 'nginx'
-```
+  webserver: 'nginx'`}
+  language="yaml"
+/>
 
-**Services:**
-- **appserver**: PHP 8.4 with Nginx
-- **database**: MariaDB 11.4
-- **cache**: Redis 7.0
+<DataTable
+  columns={['Service', 'Description']}
+  rows={[
+    ['appserver', 'PHP 8.4 with Nginx'],
+    ['database', 'MariaDB 11.4'],
+    ['cache', 'Redis 7.0']
+  ]}
+/>
 
-**Custom Commands:**
-```bash
-lando start          # Start all services
+<CodeBlock
+  title="Custom Commands"
+  code={`lando start          # Start all services
 lando stop           # Stop all services
 lando restart        # Restart all services
 lando queue          # Start queue worker
 lando schedule       # Start scheduler
-lando test           # Run tests
-```
-
----
+lando test           # Run tests`}
+  language="bash"
+/>
 
 ## Monitoring Configuration
 
-### Logging
+<MonitoringConfig
+  logging={{
+    title: 'Log Files',
+    location: 'storage/logs/laravel.log',
+    commands: [
+      { name: 'Tail logs', code: 'tail -f storage/logs/laravel.log' },
+      { name: 'Search errors', code: 'grep -i "error" storage/logs/laravel.log' },
+      { name: 'With Lando', code: 'lando exec appserver tail -f storage/logs/laravel.log' }
+    ]
+  }}
+  debugbar={{
+    title: 'Debugbar',
+    enable: 'DEBUGBAR_ENABLED=true',
+    features: [
+      'Query analysis',
+      'Request profiling',
+      'View data',
+      'Timeline visualization',
+      'Exception handling'
+    ]
+  }}
+/>
 
-**Log Files:**
-```
-storage/logs/laravel.log
-```
+<Alert type="warning">
+  <strong>Performance Warning:</strong> Debugbar adds overhead. Always disable in production.
+</Alert>
 
-**View Logs:**
-```bash
-# Tail logs
-tail -f storage/logs/laravel.log
-
-# Search for errors
-grep -i "error" storage/logs/laravel.log
-
-# With Lando
-lando exec appserver tail -f storage/logs/laravel.log
-```
-
----
-
-### Debugbar
-
-**Enable:**
-```env
-DEBUGBAR_ENABLED=true
-```
-
-**Features:**
-- Query analysis
-- Request profiling
-- View data
-- Timeline visualization
-- Exception handling
-
-<div className="warning">
-  <p><strong>Performance Warning:</strong> Debugbar adds overhead. Always disable in production.</p>
-</div>
-
----
-
-## Next Steps
-
-- [Getting Started Guide](../guides/getting-started) - Initial setup
-- [Development Guide](../guides/development) - Development workflow
-- [Deployment Guide](../guides/deployment) - Production deployment
+<NextSteps
+  links={[
+    { title: 'Getting Started Guide', href: '../guides/getting-started', description: 'Initial setup' },
+    { title: 'Development Guide', href: '../guides/development', description: 'Development workflow' },
+    { title: 'Deployment Guide', href: '../guides/deployment', description: 'Production deployment' }
+  ]}
+/>
 
 ## Related Documentation
 
-- [Laravel Configuration](https://laravel.com/docs/12.x/configuration)
-- [Filament Configuration](https://filamentphp.com/docs/4.x/panels/configuration)
-- [Environment Variables](https://laravel.com/docs/12.x/configuration#environment-configuration)
+<LinksGrid
+  links={[
+    { title: 'Laravel Configuration', url: 'https://laravel.com/docs/12.x/configuration', icon: '📚' },
+    { title: 'Filament Configuration', url: 'https://filamentphp.com/docs/4.x/panels/configuration', icon: '🎨' },
+    { title: 'Environment Variables', url: 'https://laravel.com/docs/12.x/configuration#environment-configuration', icon: '⚙️' }
+  ]}
+/>

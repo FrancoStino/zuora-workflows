@@ -3,27 +3,34 @@ title: Getting Started
 description: Prerequisites, installation, and initial setup for Zuora Workflow Manager
 ---
 
+import { RequirementsTable } from '@/components/requirements-table'
+import { InstallationSteps } from '@/components/installation-steps'
+import { CodeBlock } from '@/components/code-block'
+import { TroubleshootingCard } from '@/components/troubleshooting-card'
+import { QuickCommands } from '@/components/quick-commands'
+import { NextSteps } from '@/components/next-steps'
+
 # Getting Started
 
 This guide will help you set up and run Zuora Workflow Manager on your local development environment.
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+<Alert type="warning">
+  <strong>Important:</strong> Lando requires Docker to be installed and running before you can start the development environment.
+</Alert>
 
 ### Required Software
 
-| Software | Version | Installation Link |
-|----------|---------|-------------------|
-| [Lando](https://lando.dev) | Latest | [lando.dev](https://lando.dev/) |
-| [Docker](https://www.docker.com/) | 20.0+ | [docker.com](https://www.docker.com/) |
-| [Node.js](https://nodejs.org/) | 24.0+ | [nodejs.org](https://nodejs.org/) |
-| [Yarn](https://yarnpkg.com/) | Latest | [yarnpkg.com](https://yarnpkg.com/) |
-| [Git](https://git-scm.com/) | 2.0+ | [git-scm.com](https://git-scm.com/) |
-
-<div className="warning">
-  <p><strong>Important:</strong> Lando requires Docker to be installed and running before you can start the development environment.</p>
-</div>
+<RequirementsTable
+  requirements={[
+    { name: 'Lando', version: 'Latest', url: 'https://lando.dev', required: true },
+    { name: 'Docker', version: '20.0+', url: 'https://www.docker.com/', required: true },
+    { name: 'Node.js', version: '24.0+', url: 'https://nodejs.org/', required: true },
+    { name: 'Yarn', version: 'Latest', url: 'https://yarnpkg.com/', required: true },
+    { name: 'Git', version: '2.0+', url: 'https://git-scm.com/', required: true }
+  ]}
+/>
 
 ### Lando Stack
 
@@ -38,67 +45,57 @@ When you start Lando, it will automatically provision:
 
 You will need access to your Zuora account to obtain OAuth 2.0 credentials:
 
-1. Navigate to Zuora Admin Console
-2. Go to Settings → OAuth Clients
-3. Create a new OAuth client with "Client Credentials" grant type
-4. Note down:
-   - **Client ID**
-   - **Client Secret**
-   - **Base URL** (Production: `https://rest.zuora.com`, Sandbox: `https://rest.test.zuora.com`)
+<Steps steps={[
+  'Navigate to Zuora Admin Console',
+  'Go to Settings → OAuth Clients',
+  'Create a new OAuth client with "Client Credentials" grant type',
+  'Note down: Client ID, Client Secret, Base URL (Production: https://rest.zuora.com, Sandbox: https://rest.test.zuora.com)'
+]} />
 
 ## Installation
 
-### Step 1: Clone Repository
+<InstallationSteps
+  steps={[
+    {
+      title: 'Clone Repository',
+      commands: [
+        'git clone https://github.com/FrancoStino/zuora-workflows.git',
+        'cd zuora-workflows'
+      ],
+      description: 'Clone the repository from GitHub'
+    },
+    {
+      title: 'Start Lando',
+      commands: ['lando start'],
+      description: 'Start all Docker containers (PHP, MariaDB, Nginx, Redis)',
+      notes: [
+        'Automatically runs lando composer install',
+        'Configures the development environment',
+        'Generates application URL: https://zuora-workflows.lndo.site'
+      ]
+    },
+    {
+      title: 'Setup Environment',
+      commands: [
+        'cp .env.example .env',
+        'lando artisan key:generate',
+        'lando artisan migrate',
+        'yarn install',
+        'yarn run build'
+      ],
+      description: 'Configure environment and build assets'
+    },
+    {
+      title: 'Access Application',
+      description: 'Open your browser and navigate to https://zuora-workflows.lndo.site',
+      notes: ['You will be redirected to the setup wizard if this is your first visit']
+    }
+  ]}
+/>
 
-```bash
-git clone https://github.com/FrancoStino/zuora-workflows.git
-cd zuora-workflows
-```
-
-### Step 2: Start Lando
-
-```bash
-lando start
-```
-
-This command will:
-- Start all Docker containers (PHP, MariaDB, Nginx, Redis)
-- Run `lando composer install` automatically
-- Configure the development environment
-- Generate application URL: `https://zuora-workflows.lndo.site`
-
-<div className="info">
-  <p><strong>Tip:</strong> Use <code>lando info</code> to view all available services and their URLs.</p>
-</div>
-
-### Step 3: Setup Environment
-
-```bash
-# Copy environment file
-cp .env.example .env
-
-# Generate application key
-lando artisan key:generate
-
-# Run database migrations
-lando artisan migrate
-
-# Install frontend dependencies
-yarn install
-
-# Build frontend assets
-yarn run build
-```
-
-### Step 4: Access Application
-
-Open your browser and navigate to:
-
-```
-https://zuora-workflows.lndo.site
-```
-
-You will be redirected to the setup wizard if this is your first visit.
+<Alert type="info">
+  <strong>Tip:</strong> Use <Code inline>lando info</Code> to view all available services and their URLs.
+</Alert>
 
 ## Initial Setup
 
@@ -106,216 +103,242 @@ You will be redirected to the setup wizard if this is your first visit.
 
 On first launch, you'll see the setup wizard:
 
-1. Enter your admin user details:
-   - **Name**: Your full name
-   - **Email**: Admin email address
-   - **Password**: Secure password (min 8 characters)
-2. Click "Create Account"
-3. You'll be logged in automatically as super admin
+<Steps steps={[
+  'Enter your admin user details (Name, Email, Password)',
+  'Click "Create Account"',
+  'You\'ll be logged in automatically as super admin'
+]} />
 
 ### 2. Configure OAuth (Optional)
 
 If you want to enable Google OAuth login:
 
-1. Navigate to **Settings** → **General Settings**
-2. Scroll to **OAuth Configuration** section
-3. Enable OAuth by toggling the switch
-4. Configure:
-   - **Allowed Domains**: Comma-separated list of allowed email domains (e.g., `example.com,company.org`)
-   - **Google Client ID**: OAuth client ID from Google Cloud Console
-   - **Google Client Secret**: OAuth client secret from Google Cloud Console
-5. Click **Save**
+<Steps steps={[
+  'Navigate to Settings → General Settings',
+  'Scroll to OAuth Configuration section',
+  'Enable OAuth by toggling the switch',
+  'Configure: Allowed Domains, Google Client ID, Google Client Secret',
+  'Click Save'
+]} />
 
-<div className="warning">
-  <p><strong>Security Note:</strong> OAuth secrets are encrypted in the database using Laravel's encryption (APP_KEY).</p>
-</div>
+<Alert type="warning">
+  <strong>Security Note:</strong> OAuth secrets are encrypted in the database using Laravel's encryption (APP_KEY).
+</Alert>
 
 ### 3. Add Customer and Configure Zuora
 
-After setup, you need to configure a customer with Zuora credentials:
-
-1. Go to **Customers** in the sidebar
-2. Click **Create Customer**
-3. Fill in customer details:
-   - **Name**: Customer/company name
-   - **Client ID**: Zuora OAuth client ID
-   - **Client Secret**: Zuora OAuth client secret
-   - **Base URL**: Select from dropdown:
-     - `https://rest.zuora.com` (Production)
-     - `https://rest.test.zuora.com` (Sandbox)
-4. Click **Save**
+<Steps steps={[
+  'Go to Customers in the sidebar',
+  'Click Create Customer',
+  'Fill in customer details (Name, Client ID, Client Secret, Base URL)',
+  'Select Base URL from dropdown (Production or Sandbox)',
+  'Click Save'
+]} />
 
 ### 4. Sync Workflows
 
-After creating a customer:
-
-1. Click on the customer record
-2. Click **Sync Workflows** button in the header
-3. This will queue a background job to fetch workflows from Zuora
-4. Navigate to **Workflows** to see synchronized workflows
+<Steps steps={[
+  'Click on the customer record',
+  'Click Sync Workflows button in the header',
+  'This will queue a background job to fetch workflows from Zuora',
+  'Navigate to Workflows to see synchronized workflows'
+]} />
 
 ## Starting Queue Worker
 
 For background job processing (workflow syncs, etc.), you need to start a queue worker:
 
-```bash
-# Start queue worker (recommended)
-lando queue
+<CodeBlock
+  title="Queue Worker Commands"
+  tabs={[
+    {
+      name: 'Queue Worker',
+      code: 'lando queue',
+      language: 'bash'
+    },
+    {
+      name: 'Scheduler',
+      code: 'lando schedule',
+      language: 'bash'
+    }
+  ]}
+/>
 
-# OR start scheduler for automatic hourly sync
-lando schedule
-```
-
-<div className="info">
-  <p><strong>Development Tip:</strong> For development, you can also use <code>QUEUE_CONNECTION=sync</code> in your .env file to process jobs immediately without a queue worker.</p>
-</div>
+<Alert type="info">
+  <strong>Development Tip:</strong> For development, you can also use <Code inline>QUEUE_CONNECTION=sync</Code> in your .env file to process jobs immediately without a queue worker.
+</Alert>
 
 ## Quick Commands
 
-Here are the most commonly used Lando commands:
-
-```bash
-# Start all services
-lando start
-
-# Stop all services
-lando stop
-
-# Restart services
-lando restart
-
-# View logs
-lando logs -f
-
-# Start queue worker
-lando queue
-
-# Start scheduler
-lando schedule
-
-# Run tests
-lando test
-
-# Access MySQL/MariaDB
-lando mariadb
-
-# Access PHP container shell
-lando ssh
-
-# Clear application cache
-lando artisan cache:clear
-
-# Clear configuration cache
-lando artisan config:clear
-
-# Run migrations
-lando artisan migrate
-
-# Rollback migrations
-lando artisan migrate:rollback
-
-# Run specific Artisan command
-lando artisan [command]
-```
+<QuickCommands
+  groups={[
+    {
+      title: 'Basic Commands',
+      commands: [
+        { command: 'lando start', description: 'Start all services' },
+        { command: 'lando stop', description: 'Stop all services' },
+        { command: 'lando restart', description: 'Restart services' },
+        { command: 'lando logs -f', description: 'View logs' }
+      ]
+    },
+    {
+      title: 'Queue & Schedule',
+      commands: [
+        { command: 'lando queue', description: 'Start queue worker' },
+        { command: 'lando schedule', description: 'Start scheduler' }
+      ]
+    },
+    {
+      title: 'Database',
+      commands: [
+        { command: 'lando mariadb', description: 'Access MySQL/MariaDB' },
+        { command: 'lando artisan migrate', description: 'Run migrations' },
+        { command: 'lando artisan migrate:rollback', description: 'Rollback migrations' }
+      ]
+    },
+    {
+      title: 'Cache & Config',
+      commands: [
+        { command: 'lando artisan cache:clear', description: 'Clear application cache' },
+        { command: 'lando artisan config:clear', description: 'Clear configuration cache' }
+      ]
+    }
+  ]}
+/>
 
 ## Troubleshooting
 
-### Issue: "Site can't be reached" or "Connection refused"
-
-**Solution**: Ensure Docker and Lando are running:
-```bash
-docker ps
-lando start
-```
-
-### Issue: Migration errors
-
-**Solution**: Clear database and re-run migrations:
-```bash
-lando artisan migrate:fresh
-```
-
-### Issue: Assets not loading (404 errors)
-
-**Solution**: Rebuild frontend assets:
-```bash
-yarn run build
-lando artisan config:clear
-lando artisan cache:clear
-```
-
-### Issue: Queue jobs not processing
-
-**Solution**: Ensure queue worker is running:
-```bash
-lando queue
-```
-
-Or use `QUEUE_CONNECTION=sync` in `.env` for development.
-
-### Issue: SSL certificate errors
-
-**Solution**: Trust Lando's SSL certificate:
-```bash
-lando security-certs
-```
-
-Then follow the instructions for your browser.
+<TroubleshootingCard
+  problems={[
+    {
+      title: 'Site can\'t be reached or Connection refused',
+      solution: 'Ensure Docker and Lando are running',
+      commands: [
+        'docker ps',
+        'lando start'
+      ]
+    },
+    {
+      title: 'Migration errors',
+      solution: 'Clear database and re-run migrations',
+      commands: ['lando artisan migrate:fresh']
+    },
+    {
+      title: 'Assets not loading (404 errors)',
+      solution: 'Rebuild frontend assets',
+      commands: [
+        'yarn run build',
+        'lando artisan config:clear',
+        'lando artisan cache:clear'
+      ]
+    },
+    {
+      title: 'Queue jobs not processing',
+      solution: 'Ensure queue worker is running',
+      commands: ['lando queue'],
+      note: 'Or use QUEUE_CONNECTION=sync in .env for development'
+    },
+    {
+      title: 'SSL certificate errors',
+      solution: 'Trust Lando\'s SSL certificate',
+      commands: ['lando security-certs'],
+      note: 'Follow the instructions for your browser'
+    }
+  ]}
+/>
 
 ## Development Workflow
 
 ### Running Tests
 
-```bash
-# Run all tests
-lando test
-
-# Run specific test file
-lando artisan test tests/Feature/SyncWorkflowsTest.php
-
-# Run tests with coverage
-lando artisan test --coverage
-
-# Verbose output
-lando artisan test -v
-```
+<CodeBlock
+  title="Test Commands"
+  tabs={[
+    {
+      name: 'All Tests',
+      code: 'lando test',
+      language: 'bash'
+    },
+    {
+      name: 'Specific Test',
+      code: 'lando artisan test tests/Feature/SyncWorkflowsTest.php',
+      language: 'bash'
+    },
+    {
+      name: 'With Coverage',
+      code: 'lando artisan test --coverage',
+      language: 'bash'
+    },
+    {
+      name: 'Verbose',
+      code: 'lando artisan test -v',
+      language: 'bash'
+    }
+  ]}
+/>
 
 ### Database Access
 
-```bash
-# Access MariaDB command line
-lando mariadb
-
-# View queue table
-lando mariadb -e "SELECT * FROM jobs;"
-
-# View failed jobs
-lando mariadb -e "SELECT * FROM failed_jobs;"
-```
+<CodeBlock
+  title="Database Commands"
+  tabs={[
+    {
+      name: 'Access MariaDB',
+      code: 'lando mariadb',
+      language: 'bash'
+    },
+    {
+      name: 'View Queue Table',
+      code: 'lando mariadb -e "SELECT * FROM jobs;"',
+      language: 'bash'
+    },
+    {
+      name: 'View Failed Jobs',
+      code: 'lando mariadb -e "SELECT * FROM failed_jobs;"',
+      language: 'bash'
+    }
+  ]}
+/>
 
 ### Viewing Logs
 
-```bash
-# View all Lando logs
-lando logs -f
+<CodeBlock
+  title="Log Commands"
+  tabs={[
+    {
+      name: 'All Lando Logs',
+      code: 'lando logs -f',
+      language: 'bash'
+    },
+    {
+      name: 'Application Logs',
+      code: 'lando exec appserver tail -f storage/logs/laravel.log',
+      language: 'bash'
+    },
+    {
+      name: 'Filter Errors',
+      code: 'lando exec appserver grep -i "error" storage/logs/laravel.log',
+      language: 'bash'
+    }
+  ]}
+/>
 
-# View application logs
-lando exec appserver tail -f storage/logs/laravel.log
-
-# Filter for specific errors
-lando exec appserver grep -i "error" storage/logs/laravel.log
-```
-
-## Next Steps
-
-- [Architecture Guide](./architecture) - Learn about system architecture
-- [Features Guide](./features) - Explore available features
-- [Configuration Reference](../reference/configuration) - Configure your application
-- [API Reference](../reference/api) - API endpoints and usage
+<NextSteps
+  links={[
+    { title: 'Architecture Guide', href: './architecture', description: 'Learn about system architecture' },
+    { title: 'Features Guide', href: './features', description: 'Explore available features' },
+    { title: 'Configuration Reference', href: '../reference/configuration', description: 'Configure your application' },
+    { title: 'API Reference', href: '../reference/api', description: 'API endpoints and usage' }
+  ]}
+/>
 
 ## Additional Resources
 
-- [Lando Documentation](https://docs.lando.dev/)
-- [Laravel Documentation](https://laravel.com/docs/12.x)
-- [Filament Documentation](https://filamentphp.com/docs/4.x)
-- [Zuora API Documentation](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API)
+<LinksGrid
+  links={[
+    { title: 'Lando Documentation', url: 'https://docs.lando.dev/', icon: '🐳' },
+    { title: 'Laravel Documentation', url: 'https://laravel.com/docs/12.x', icon: '📚' },
+    { title: 'Filament Documentation', url: 'https://filamentphp.com/docs/4.x', icon: '🎨' },
+    { title: 'Zuora API Documentation', url: 'https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API', icon: '🔌' }
+  ]}
+/>

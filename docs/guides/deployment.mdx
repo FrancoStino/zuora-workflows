@@ -3,107 +3,75 @@ title: Deployment Guide
 description: Production deployment and CI/CD pipeline setup
 ---
 
+import { DeploymentDiagram } from '@/components/deployment-diagram'
+import { RequirementsCard } from '@/components/requirements-card'
+import { DeploymentMethods } from '@/components/deployment-methods'
+import { ServerConfig } from '@/components/server-config'
+import { PostDeployment } from '@/components/post-deployment'
+import { MonitoringSection } from '@/components/monitoring-section'
+import { BackupStrategy } from '@/components/backup-strategy'
+import { TroubleshootingSection } from '@/components/troubleshooting-section'
+import { NextSteps } from '@/components/next-steps'
+
 # Deployment Guide
 
 This guide covers deploying Zuora Workflow Manager to production environments.
 
 ## Deployment Overview
 
-The application is designed to be deployed to standard PHP hosting environments. The project includes GitHub Actions workflow for automated deployment to production.
+The application is designed to be deployed to standard PHP hosting environments.
 
-```mermaid
-flowchart TD
-    Dev[Development<br/>Local / Lando]
-
-    subgraph Methods["Deployment Methods"]
-        direction LR
-        GH[GitHub Actions<br/>CI/CD]
-        Manual[Manual SSH/FTP]
-        Platform[Platform<br/>Forge, Vapor]
-    end
-
-    subgraph Prod["Production Server"]
-        direction TB
-        Web[Nginx/Apache]
-        App[Laravel App]
-        DB[MariaDB]
-        Cache[Redis]
-        Queue[Queue Worker]
-        Cron[Scheduler]
-    end
-
-    Dev --> Methods
-
-    GH --> Web
-    Manual --> Web
-    Platform --> Web
-
-    Web --> App
-    App --> DB
-    App --> Cache
-    App --> Queue
-    App --> Cron
-
-    Cache -.-> Queue
-    Queue --> App
-
-    style Dev fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
-    style Methods fill:#dbeafe,stroke:#0d9488,stroke-width:2px
-    style GH fill:#10b981,stroke:#059669,stroke-width:2px
-    style Manual fill:#f59e0b,stroke:#d97706,stroke-width:2px
-    style Platform fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
-    style Web fill:#6366f1,stroke:#4f46e5,stroke-width:2px
-    style App fill:#3b82f6,stroke:#1e40af,stroke-width:3px
-    style DB fill:#ec4899,stroke:#dc2626,stroke-width:2px
-    style Cache fill:#ef4444,stroke:#b91c1c,stroke-width:2px
-    style Queue fill:#f59e0b,stroke:#d97706,stroke-width:2px
-    style Cron fill:#10b981,stroke:#059669,stroke-width:2px
-```
+<DeploymentDiagram />
 
 ### Deployment Methods
 
-- **Option A**: GitHub Actions CI/CD (recommended)
-- **Option B**: Manual deployment via SSH/FTP
-- **Option C**: Platform-specific deployment (Forge, Vapor, etc.)
-
----
+<DeploymentMethods
+  methods={[
+    {
+      name: 'GitHub Actions',
+      description: 'CI/CD (recommended)',
+      recommended: true
+    },
+    {
+      name: 'Manual SSH/FTP',
+      description: 'Manual deployment',
+      recommended: false
+    },
+    {
+      name: 'Platform-specific',
+      description: 'Forge, Vapor, etc.',
+      recommended: false
+    }
+  ]}
+/>
 
 ## Prerequisites
 
-### Server Requirements
-
-| Requirement | Version | Description |
-|-------------|---------|-------------|
-| PHP | 8.4+ | Application runtime |
-| Composer | 2.x | Dependency management |
-| Node.js | 24.0+ | Asset building |
-| Yarn | Latest | Package management |
-| MariaDB | 11.4+ | Database |
-| Redis | 7.0+ | Queue/cache (recommended) |
-| Nginx/Apache | Latest | Web server |
-| SSL Certificate | - | HTTPS (required) |
+<RequirementsCard
+  title="Server Requirements"
+  requirements={[
+    { name: 'PHP', version: '8.4+', required: true },
+    { name: 'Composer', version: '2.x', required: true },
+    { name: 'Node.js', version: '24.0+', required: true },
+    { name: 'Yarn', version: 'Latest', required: true },
+    { name: 'MariaDB', version: '11.4+', required: true },
+    { name: 'Redis', version: '7.0+', required: false, description: 'Recommended' },
+    { name: 'Nginx/Apache', version: 'Latest', required: true },
+    { name: 'SSL Certificate', version: '-', required: true, description: 'HTTPS required' }
+  ]}
+/>
 
 ### PHP Extensions
 
-Required PHP extensions:
+<CodeBlock
+  title="Check PHP Extensions"
+  code="php -m | grep -E \"(mbstring|openssl|pdo|tokenizer|xml|ctype|json|bcmath|redis)\""
+  language="bash"
+/>
 
-```bash
-php -m | grep -E "(mbstring|openssl|pdo|tokenizer|xml|ctype|json|bcmath|redis)"
-```
-
-Required extensions:
-- `bcmath`
-- `ctype`
-- `fileinfo`
-- `json`
-- `mbstring`
-- `openssl`
-- `pdo`
-- `tokenizer`
-- `xml`
-- `redis` (optional, recommended)
-
----
+<Alert type="info">
+  <strong>Required Extensions:</strong> bcmath, ctype, fileinfo, json, mbstring, openssl, pdo, tokenizer, xml, redis (optional, recommended)
+</Alert>
 
 ## Option A: GitHub Actions Deployment
 
@@ -111,87 +79,53 @@ Required extensions:
 
 Navigate to GitHub repository → Settings → Secrets and variables → Actions
 
-Add the following secrets:
-
-| Secret | Value | Description |
-|--------|--------|-------------|
-| `SSH_PRIVATE_KEY` | Private SSH key | For server access |
-| `SSH_HOST` | Server IP/hostname | Deployment target |
-| `SSH_USERNAME` | SSH username | Deployment user |
-| `APP_KEY` | Laravel APP_KEY | Application key |
-| `DB_DATABASE` | Database name | Production database |
-| `DB_USERNAME` | Database username | Database user |
-| `DB_PASSWORD` | Database password | Database password |
-| `DB_HOST` | Database host | Database server |
+<DataTable
+  columns={['Secret', 'Description']}
+  rows={[
+    ['SSH_PRIVATE_KEY', 'Private SSH key for server access'],
+    ['SSH_HOST', 'Server IP/hostname'],
+    ['SSH_USERNAME', 'SSH username'],
+    ['APP_KEY', 'Laravel APP_KEY'],
+    ['DB_DATABASE', 'Production database name'],
+    ['DB_USERNAME', 'Database username'],
+    ['DB_PASSWORD', 'Database password'],
+    ['DB_HOST', 'Database server host']
+  ]}
+/>
 
 ### Deployment Workflow
 
-The project includes `.github/workflows/deploy.yml` workflow:
+<FlowDiagram type="ci-cd-pipeline" title="CI/CD Pipeline" />
 
-**Trigger:**
-- Manual dispatch from GitHub Actions tab
-- On push to `main` branch (if configured)
+<Steps steps={[
+  'Checkout code',
+  'Setup PHP',
+  'Install dependencies',
+  'Build assets',
+  'Run migrations',
+  'Clear caches',
+  'Restart services'
+]} />
 
-```mermaid
-flowchart LR
-    Trigger[Trigger<br/>Push/Manual]
-
-    subgraph Pipeline["CI/CD Pipeline"]
-        Checkout[1. Checkout Code]
-        SetupPHP[2. Setup PHP]
-        Deps[3. Install Dependencies]
-        Build[4. Build Assets]
-        Migrate[5. Run Migrations]
-        Cache[6. Clear Caches]
-        Restart[7. Restart Services]
-    end
-
-    Trigger --> Checkout --> SetupPHP --> Deps --> Build --> Migrate --> Cache --> Complete[✓ Deployment Complete]
-
-    style Trigger fill:#10b981,stroke:#059669,stroke-width:2px
-    style Pipeline fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
-    style Checkout fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
-    style SetupPHP fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
-    style Deps fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
-    style Build fill:#f59e0b,stroke:#d97706,stroke-width:2px
-    style Migrate fill:#ec4899,stroke:#dc2626,stroke-width:2px
-    style Cache fill:#ef4444,stroke:#b91c1c,stroke-width:2px
-    style Restart fill:#f59e0b,stroke:#d97706,stroke-width:2px
-    style Complete fill:#059669,stroke:#03c9a6,stroke-width:3px,color:#ffffff
-```
-
-**Process:**
-1. Checkout code
-2. Setup PHP
-3. Install dependencies
-4. Build assets
-5. Run migrations
-6. Clear caches
-7. Restart services
-
-**Trigger Deployment:**
-
-1. Navigate to **Actions** tab in GitHub
-2. Select **Deploy to Production** workflow
-3. Click **Run workflow**
-4. Select branch and click **Run workflow**
-
----
+<Alert type="info">
+  <strong>Trigger Deployment:</strong>
+  <ol className="list-decimal list-inside mt-2 space-y-1">
+    <li>Navigate to Actions tab in GitHub</li>
+    <li>Select Deploy to Production workflow</li>
+    <li>Click Run workflow</li>
+    <li>Select branch and click Run workflow</li>
+  </ol>
+</Alert>
 
 ## Option B: Manual Deployment
 
+<ServerConfig />
+
 ### Step 1: Prepare Server
 
-SSH into server:
-
-```bash
-ssh user@your-server.com
-```
-
-Install dependencies:
-
-```bash
-# Install PHP (if not installed)
+<CodeBlock
+  title="Install Dependencies"
+  code={`# Install PHP
 sudo apt install php8.4 php8.4-fpm php8.4-mysql php8.4-xml php8.4-mbstring php8.4-curl php8.4-zip php8.4-bcmath php8.4-intl
 
 # Install Composer
@@ -204,29 +138,22 @@ sudo apt-get install -y nodejs
 npm install -g yarn
 
 # Install Redis (optional)
-sudo apt install redis-server
-```
+sudo apt install redis-server`}
+  language="bash"
+/>
 
 ### Step 2: Configure Environment
 
-Clone repository:
+<Steps steps={[
+  'Clone repository: cd /var/www && git clone https://github.com/FrancoStino/zuora-workflows.git zuora-workflows && cd zuora-workflows',
+  'Copy environment file: cp .env.example .env',
+  'Edit .env file with production values',
+  'Generate application key: php artisan key:generate'
+]} />
 
-```bash
-cd /var/www
-git clone https://github.com/FrancoStino/zuora-workflows.git zuora-workflows
-cd zuora-workflows
-```
-
-Copy environment file:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` file:
-
-```env
-APP_NAME="Zuora Workflows"
+<CodeBlock
+  title=".env Configuration"
+  code={`APP_NAME="Zuora Workflows"
 APP_ENV=production
 APP_KEY=base64:YOUR_32_CHAR_KEY
 APP_DEBUG=false
@@ -242,65 +169,57 @@ DB_PASSWORD=secure_password
 CACHE_STORE=redis
 QUEUE_CONNECTION=redis
 REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-```
+REDIS_PORT=6379`}
+  language="env"
+/>
 
-Generate application key:
+### Step 3: Install Dependencies & Build
 
-```bash
-php artisan key:generate
-```
-
-### Step 3: Install Dependencies
-
-```bash
-# Install PHP dependencies
+<CodeBlock
+  title="Dependencies & Assets"
+  code={`# Install PHP dependencies
 composer install --optimize-autoloader --no-dev
 
 # Install Node.js dependencies
 yarn install --production
-```
 
-### Step 4: Build Assets
+# Build assets
+yarn run build`}
+  language="bash"
+/>
 
-```bash
-yarn run build
-```
+### Step 4: Database Setup
 
-### Step 5: Database Setup
+<CodeBlock
+  title="Database Creation"
+  code={`mysql -u root -p
 
-Create database:
-
-```bash
-mysql -u root -p
-```
-
-```sql
 CREATE DATABASE zuora_workflows CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'zuora_user'@'localhost' IDENTIFIED BY 'secure_password';
 GRANT ALL PRIVILEGES ON zuora_workflows.* TO 'zuora_user'@'localhost';
 FLUSH PRIVILEGES;
-EXIT;
-```
+EXIT;`}
+  language="sql"
+/>
 
-Run migrations:
+<CodeBlock
+  title="Run Migrations"
+  code="php artisan migrate --force"
+  language="bash"
+/>
 
-```bash
-php artisan migrate --force
-```
+### Step 5: Configure Web Server
 
-### Step 6: Configure Web Server
-
-#### Nginx Configuration
-
-Create `/etc/nginx/sites-available/zuora-workflows`:
-
-```nginx
-server {
+<CodeExample
+  title="Nginx Configuration"
+  steps={[
+    {
+      title: 'Create /etc/nginx/sites-available/zuora-workflows',
+      code: `server {
     listen 80;
     listen [::]:80;
     server_name your-domain.com;
-    return 301 https://$server_name$request_uri;
+    return 301 https://\$server_name\$request_uri;
 }
 
 server {
@@ -315,35 +234,37 @@ server {
     ssl_certificate_key /path/to/key.pem;
 
     location / {
-        try_files $uri $uri/ /index.php?$query_string;
+        try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    location ~ \.php$ {
+    location ~ \.php\$ {
         fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         include fastcgi_params;
     }
 
-    location ~ /\.(?!well-known).* {
+    location ~ /\\.(?!well-known).* {
         deny all;
     }
-}
-```
-
-Enable site:
-
-```bash
-sudo ln -s /etc/nginx/sites-available/zuora-workflows /etc/nginx/sites-enabled/
+}`,
+      language: 'nginx'
+    },
+    {
+      title: 'Enable site',
+      code: `sudo ln -s /etc/nginx/sites-available/zuora-workflows /etc/nginx/sites-enabled/
 sudo nginx -t
-sudo systemctl reload nginx
-```
+sudo systemctl reload nginx`,
+      language: 'bash'
+    }
+  ]}
+/>
 
-#### Apache Configuration
-
-Create VirtualHost:
-
-```apache
-<VirtualHost *:80>
+<CodeExample
+  title="Apache Configuration"
+  steps={[
+    {
+      title: 'Create VirtualHost',
+      code: `<VirtualHost *:80>
     ServerName your-domain.com
     Redirect permanent / https://your-domain.com/
 </VirtualHost>
@@ -360,39 +281,37 @@ Create VirtualHost:
         AllowOverride All
         Require all granted
     </Directory>
-</VirtualHost>
-```
+</VirtualHost>`,
+      language: 'apache'
+    },
+    {
+      title: 'Enable site',
+      code: `sudo a2ensite zuora-workflows
+sudo systemctl reload apache2`,
+      language: 'bash'
+    }
+  ]}
+/>
 
-Enable site:
+### Step 6: Set Permissions
 
-```bash
-sudo a2ensite zuora-workflows
-sudo systemctl reload apache2
-```
-
-### Step 7: Set Permissions
-
-```bash
-sudo chown -R www-data:www-data /var/www/zuora-workflows
+<CodeBlock
+  title="File Permissions"
+  code={`sudo chown -R www-data:www-data /var/www/zuora-workflows
 sudo chmod -R 755 /var/www/zuora-workflows
 sudo chmod -R 775 /var/www/zuora-workflows/storage
-sudo chmod -R 775 /var/www/zuora-workflows/bootstrap/cache
-```
+sudo chmod -R 775 /var/www/zuora-workflows/bootstrap/cache`}
+  language="bash"
+/>
 
-### Step 8: Configure Queue Worker
+### Step 7: Configure Queue Worker
 
-#### Using Supervisor
-
-Install Supervisor:
-
-```bash
-sudo apt install supervisor
-```
-
-Create `/etc/supervisor/conf.d/zuora-workflows.conf`:
-
-```ini
-[program:zuora-workflows-queue]
+<CodeExample
+  title="Supervisor Configuration"
+  steps={[
+    {
+      title: 'Create /etc/supervisor/conf.d/zuora-workflows.conf',
+      code: `[program:zuora-workflows-queue]
 process_name=%(program_name)s_%(process_num)02d
 command=php /var/www/zuora-workflows/artisan queue:work redis --sleep=3 --tries=3
 autostart=true
@@ -401,296 +320,255 @@ user=www-data
 numprocs=2
 redirect_stderr=true
 stdout_logfile=/var/www/zuora-workflows/storage/logs/queue-worker.log
-stopwaitsecs=3600
-```
-
-Start Supervisor:
-
-```bash
-sudo supervisorctl reread
+stopwaitsecs=3600`,
+      language: 'ini'
+    },
+    {
+      title: 'Start Supervisor',
+      code: `sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl start zuora-workflows-queue:*
-```
+sudo supervisorctl start zuora-workflows-queue:*`,
+      language: 'bash'
+    }
+  ]}
+/>
 
-#### Alternative: Cron Job
-
-Add to crontab:
-
-```bash
+<CodeBlock
+  title="Alternative: Cron Job"
+  code={`# Add to crontab
 crontab -e
-```
 
-```cron
-* * * * * * php /var/www/zuora-workflows/artisan schedule:run >> /dev/null 2>&1
-```
-
----
+# Cron entry
+* * * * * * php /var/www/zuora-workflows/artisan schedule:run >> /dev/null 2>&1`}
+  language="bash"
+/>
 
 ## Post-Deployment
 
-### Clear Caches
-
-```bash
-cd /var/www/zuora-workflows
-
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-```
-
-### Optimize Application
-
-```bash
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
-```
+<PostDeployment />
 
 ### Create Admin Account
 
-```bash
-php artisan tinker
-```
+<CodeBlock
+  title="Create Admin via Tinker"
+  code={`php artisan tinker
 
-```php
->>> \App\Models\User::create([
+>>> \\App\\Models\\User::create([
 ...     'name' => 'Admin User',
 ...     'email' => 'admin@your-domain.com',
 ...     'password' => bcrypt('secure_password'),
-... ])
-```
+... ])`}
+  language="bash"
+/>
 
 ### Verify Deployment
 
-Access your domain:
+<Checklist
+  items={[
+    'Login page (or setup wizard if first visit) displays correctly',
+    'No 404 errors on assets',
+    'Assets loading correctly',
+    'Database connections working',
+    'Queue worker processing jobs'
+  ]}
+/>
 
-```
-https://your-domain.com/admin
-```
-
-You should see:
-- Login page (or setup wizard if first visit)
-- No 404 errors
-- Assets loading correctly
-- Database connections working
-
----
+<Alert type="info">
+  <strong>Access your domain:</strong> <Code inline>https://your-domain.com/admin</Code>
+</Alert>
 
 ## Queue Configuration
 
-### Database Queue (Simple)
+<DataTable
+  columns={['Environment', 'Configuration']}
+  rows={[
+    ['Development (immediate)', 'QUEUE_CONNECTION=sync'],
+    ['Development (queue worker)', 'QUEUE_CONNECTION=database'],
+    ['Production (recommended)', 'QUEUE_CONNECTION=redis']
+  ]}
+/>
 
-Set in `.env`:
-
-```env
-QUEUE_CONNECTION=database
-```
-
-Run queue worker:
-
-```bash
-php artisan queue:work --tries=3 --backoff=60
-```
-
-### Redis Queue (Recommended)
-
-Set in `.env`:
-
-```env
-QUEUE_CONNECTION=redis
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-```
-
-Run queue worker:
-
-```bash
-php artisan queue:work redis --tries=3 --backoff=60
-```
-
----
+<CodeBlock
+  title="Run Queue Worker"
+  tabs={[
+    {
+      name: 'Database Queue',
+      code: 'php artisan queue:work --tries=3 --backoff=60',
+      language: 'bash'
+    },
+    {
+      name: 'Redis Queue',
+      code: 'php artisan queue:work redis --tries=3 --backoff=60',
+      language: 'bash'
+    }
+  ]}
+/>
 
 ## Monitoring
 
+<MonitoringSection />
+
 ### Logs
 
-Application logs: `/var/www/zuora-workflows/storage/logs/laravel.log`
-
-View logs:
-
-```bash
-tail -f /var/www/zuora-workflows/storage/logs/laravel.log
-```
-
-Queue worker logs (if using Supervisor):
-
-```bash
-tail -f /var/www/zuora-workflows/storage/logs/queue-worker.log
-```
+<CodeBlock
+  title="View Logs"
+  tabs={[
+    {
+      name: 'Application Logs',
+      code: 'tail -f /var/www/zuora-workflows/storage/logs/laravel.log',
+      language: 'bash'
+    },
+    {
+      name: 'Queue Worker Logs',
+      code: 'tail -f /var/www/zuora-workflows/storage/logs/queue-worker.log',
+      language: 'bash'
+    }
+  ]}
+/>
 
 ### Failed Jobs
 
-Check failed jobs:
-
-```bash
-php artisan queue:failed
-```
-
-Retry failed jobs:
-
-```bash
-php artisan queue:retry all
-```
-
----
+<CodeBlock
+  title="Failed Jobs Management"
+  tabs={[
+    {
+      name: 'Check Failed Jobs',
+      code: 'php artisan queue:failed',
+      language: 'bash'
+    },
+    {
+      name: 'Retry All',
+      code: 'php artisan queue:retry all',
+      language: 'bash'
+    },
+    {
+      name: 'Flush Failed Jobs',
+      code: 'php artisan queue:flush',
+      language: 'bash'
+    }
+  ]}
+/>
 
 ## Security
 
 ### SSL Certificate
 
-Use Let's Encrypt for free SSL:
-
-```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d your-domain.com
-```
+<CodeBlock
+  title="Let\'s Encrypt Setup"
+  code={`sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com`}
+  language="bash"
+/>
 
 ### Firewall Configuration
 
-Allow only necessary ports:
-
-```bash
-sudo ufw allow 22/tcp   # SSH
+<CodeBlock
+  title="UFW Setup"
+  code={`sudo ufw allow 22/tcp   # SSH
 sudo ufw allow 80/tcp   # HTTP
 sudo ufw allow 443/tcp  # HTTPS
-sudo ufw enable
-```
-
-### File Permissions
-
-Restrict access:
-
-```bash
-# Make .env and .git inaccessible
-chmod 600 /var/www/zuora-workflows/.env
-chmod 600 /var/www/zuora-workflows/.git
-```
+sudo ufw enable`}
+  language="bash"
+/>
 
 ### Security Headers
 
-Add to Nginx config:
-
-```nginx
-add_header X-Frame-Options "SAMEORIGIN";
+<CodeBlock
+  title="Nginx Security Headers"
+  code={`add_header X-Frame-Options "SAMEORIGIN";
 add_header X-XSS-Protection "1; mode=block";
 add_header X-Content-Type-Options "nosniff";
 add_header Referrer-Policy "strict-origin-when-cross-origin";
-add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';";
-```
-
----
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';";`}
+  language="nginx"
+/>
 
 ## Backup Strategy
 
+<BackupStrategy />
+
 ### Database Backup
 
-Daily backup with cron:
+<CodeBlock
+  title="Automated Database Backup"
+  code={`# Daily backup cron
+0 2 * * * * mysqldump -u zuora_user -p'secure_password' zuora_workflows | gzip > /backups/zuora-workflows-\$(date +%Y%m%d).sql.gz
 
-```bash
-0 2 * * * * mysqldump -u zuora_user -p'secure_password' zuora_workflows | gzip > /backups/zuora-workflows-$(date +\%Y\%m\%d).sql.gz
-```
-
-Keep 30 days of backups:
-
-```bash
-0 3 * * * * find /backups -name "*.sql.gz" -mtime +30 -delete
-```
+# Keep 30 days of backups
+0 3 * * * * find /backups -name "*.sql.gz" -mtime +30 -delete`}
+  language="bash"
+/>
 
 ### Application Backup
 
-Backup storage and configuration:
-
-```bash
-tar -czf /backups/app-$(date +\%Y\%m\%d).tar.gz \
-    /var/www/zuora-workflows/storage \
-    /var/www/zuora-workflows/.env
-```
-
----
+<CodeBlock
+  title="Application Files Backup"
+  code={`tar -czf /backups/app-\$(date +%Y%m%d).tar.gz \\
+    /var/www/zuora-workflows/storage \\
+    /var/www/zuora-workflows/.env`}
+  language="bash"
+/>
 
 ## Troubleshooting
 
-### 500 Internal Server Error
-
-Check logs:
-
-```bash
-tail -f /var/www/zuora-workflows/storage/logs/laravel.log
-```
-
-Common causes:
-- Missing PHP extensions
-- Incorrect permissions
-- Database connection issues
-- Missing environment variables
-
-### Queue Not Processing
-
-Check Supervisor:
-
-```bash
-sudo supervisorctl status zuora-workflows-queue:*
-```
-
-Restart if needed:
-
-```bash
-sudo supervisorctl restart zuora-workflows-queue:*
-```
-
-### Assets Not Loading
-
-Clear and rebuild:
-
-```bash
-php artisan view:clear
-php artisan cache:clear
-yarn run build
-```
-
----
+<TroubleshootingSection
+  problems={[
+    {
+      title: '500 Internal Server Error',
+      solution: 'Check logs: tail -f /var/www/zuora-workflows/storage/logs/laravel.log',
+      commonCauses: ['Missing PHP extensions', 'Incorrect permissions', 'Database connection issues', 'Missing environment variables']
+    },
+    {
+      title: 'Queue Not Processing',
+      solution: 'Check Supervisor: sudo supervisorctl status zuora-workflows-queue:*',
+      fix: 'sudo supervisorctl restart zuora-workflows-queue:*'
+    },
+    {
+      title: 'Assets Not Loading',
+      solution: 'Clear and rebuild: php artisan view:clear && php artisan cache:clear && yarn run build'
+    }
+  ]}
+/>
 
 ## Scaling Considerations
 
 ### Horizontal Scaling
 
-For high traffic:
-- Use load balancer (Nginx, HAProxy)
-- Multiple application servers
-- Shared database server
-- Redis cluster for cache/queue
+<InfoCards
+  cards={[
+    { title: 'Load Balancer', description: 'Use Nginx or HAProxy' },
+    { title: 'Multiple Servers', description: 'Horizontal scaling with shared database' },
+    { title: 'Redis Cluster', description: 'For cache and queue scalability' }
+  ]}
+/>
 
 ### Performance Optimization
 
-- Enable OPcache
-- Use Redis for cache and queue
-- Implement CDN for assets
-- Enable HTTP/2
-- Optimize database queries
+<Checklist
+  items={[
+    'Enable OPcache',
+    'Use Redis for cache and queue',
+    'Implement CDN for assets',
+    'Enable HTTP/2',
+    'Optimize database queries'
+  ]}
+/>
 
----
-
-## Next Steps
-
-- [Getting Started Guide](../guides/getting-started) - Initial setup
-- [Configuration Reference](../reference/configuration) - Configure production settings
-- [Features Guide](../guides/features) - Learn about features
+<NextSteps
+  links={[
+    { title: 'Getting Started Guide', href: '../guides/getting-started', description: 'Initial setup' },
+    { title: 'Configuration Reference', href: '../reference/configuration', description: 'Configure production settings' },
+    { title: 'Features Guide', href: '../guides/features', description: 'Learn about features' }
+  ]}
+/>
 
 ## Related Documentation
 
-- [Laravel Deployment](https://laravel.com/docs/12.x/deployment)
-- [Laravel Forge](https://forge.laravel.com)
-- [Nginx Configuration](https://nginx.org/en/docs/)
-- [Supervisor Documentation](http://supervisord.org/)
+<LinksGrid
+  links={[
+    { title: 'Laravel Deployment', url: 'https://laravel.com/docs/12.x/deployment', icon: '📚' },
+    { title: 'Laravel Forge', url: 'https://forge.laravel.com', icon: '🔧' },
+    { title: 'Nginx Configuration', url: 'https://nginx.org/en/docs/', icon: '🌐' },
+    { title: 'Supervisor Documentation', url: 'http://supervisord.org/', icon: '⚙️' }
+  ]}
+/>

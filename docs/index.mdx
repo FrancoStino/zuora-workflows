@@ -3,229 +3,242 @@ title: Zuora Workflow Manager
 description: A powerful Laravel application for managing Zuora workflows with Filament admin interface
 ---
 
+import { FeaturesList } from '@/components/features-list'
+import { TechStack } from '@/components/tech-stack'
+import { ArchitectureDiagram } from '@/components/architecture-diagram'
+import { UseCases } from '@/components/use-cases'
+import { NextSteps } from '@/components/next-steps'
+
 # Zuora Workflow Manager
+
+<TechnologiesBadge badges={['Laravel 12', 'Filament 4.2', 'PHP 8.4', 'MariaDB 11.4']} />
+
+<Alert type="warning">
+  This project requires <strong>Laravel 12</strong>, <strong>PHP 8.4+</strong>, and proper <strong>Zuora API credentials</strong> to function correctly.
+</Alert>
 
 Zuora Workflow Manager is a powerful web application for synchronizing, viewing, and managing Zuora workflows directly from your Filament admin dashboard. Built with modern Laravel architecture featuring automated sync jobs, real-time dashboards, and comprehensive workflow management capabilities.
 
-<div className="warning">
-  <p><strong>Note:</strong> This project requires Laravel 12, PHP 8.4+, and proper Zuora API credentials to function correctly.</p>
-</div>
+## Overview
 
-## Key Features
-
-- 🔄 **Automatic Synchronization**: Configurable scheduled sync (hourly by default) with manual sync buttons
-- 📊 **Filament Dashboard**: Rich workflow and task visualization with search, filters, and sorting
-- ⚙️ **Background Jobs**: Queue-based processing with retry logic (3 attempts, 60s backoff)
-- 🔐 **OAuth 2.0**: Secure token management with 1-hour caching and Google OAuth login integration
-- 📥 **Workflow Export**: Direct export from Zuora with automatic task extraction
-- 🔒 **RBAC**: Role-based access control via Filament Shield
-- 🗄️ **Multi-tenant**: Per-customer Zuora credentials stored in database
-- 📋 **Job Monitoring**: Real-time job tracking with Moox Jobs integration
-- 🎯 **Task Management**: Automatic task extraction and visualization from workflow JSON
-- 📈 **Workflow Graph Visualization**: Interactive graphical representation of workflows with @joint/layout-directed-graph
-- ⚙️ **Settings Management**: Comprehensive app settings via Spatie Laravel Settings with encrypted storage
-- 🔒 **Secure Settings**: Encrypted storage for sensitive data (OAuth secrets) using custom casts
-- 📋 **Tasks Filters**: Advanced filtering by action_type, priority, and state
-- 🖼️ **Tasks Relation Manager**: View workflow tasks in dedicated tab with sortable columns
+<FeaturesList
+  features={[
+    {
+      icon: '🔄',
+      title: 'Automatic Synchronization',
+      description: 'Configurable scheduled sync (hourly by default) with manual sync buttons'
+    },
+    {
+      icon: '📊',
+      title: 'Filament Dashboard',
+      description: 'Rich workflow and task visualization with search, filters, and sorting'
+    },
+    {
+      icon: '⚙️',
+      title: 'Background Jobs',
+      description: 'Queue-based processing with retry logic (3 attempts, 60s backoff)'
+    },
+    {
+      icon: '🔐',
+      title: 'OAuth 2.0',
+      description: 'Secure token management with 1-hour caching and Google OAuth login'
+    },
+    {
+      icon: '📥',
+      title: 'Workflow Export',
+      description: 'Direct export from Zuora with automatic task extraction'
+    },
+    {
+      icon: '🔒',
+      title: 'RBAC',
+      description: 'Role-based access control via Filament Shield'
+    },
+    {
+      icon: '🗄️',
+      title: 'Multi-tenant',
+      description: 'Per-customer Zuora credentials stored in database'
+    },
+    {
+      icon: '📋',
+      title: 'Job Monitoring',
+      description: 'Real-time job tracking with Moox Jobs integration'
+    }
+  ]}
+/>
 
 ## Technology Stack
 
-### Backend
-- **Framework**: Laravel 12.x
-- **PHP**: 8.4+
-- **Database**: MariaDB 11.4
-- **Queue**: Database/Redis queue driver
-- **Authentication**: Filament + Filament Socialite (Google OAuth)
-
-### Frontend
-- **UI Framework**: Filament 4.2
-- **Styling**: Tailwind CSS 4
-- **Build Tool**: Vite 7
-- **Graph Visualization**: JointJS with Dagre layout
-- **Reactivity**: Alpine.js
-
-### Key Dependencies
-- `bezhansalleh/filament-shield` - Role-based access control
-- `dutchcodingcompany/filament-socialite` - OAuth integration
-- `moox/jobs` - Job monitoring and management
-- `spatie/laravel-settings` - Application settings management
-- `filament/spatie-laravel-settings-plugin` - Filament settings integration
+<TechStack
+  backend={[
+    { name: 'Laravel', version: '12.x', url: 'https://laravel.com' },
+    { name: 'PHP', version: '8.4+', url: 'https://php.net' },
+    { name: 'MariaDB', version: '11.4', url: 'https://mariadb.org' },
+    { name: 'Redis', version: '7.0', url: 'https://redis.io' }
+  ]}
+  frontend={[
+    { name: 'Filament', version: '4.2', url: 'https://filamentphp.com' },
+    { name: 'Tailwind CSS', version: '4', url: 'https://tailwindcss.com' },
+    { name: 'Vite', version: '7', url: 'https://vitejs.dev' },
+    { name: 'Alpine.js', version: 'latest', url: 'https://alpinejs.dev' }
+  ]}
+  libraries={[
+    { name: 'bezhansalleh/filament-shield', description: 'Role-based access control' },
+    { name: 'dutchcodingcompany/filament-socialite', description: 'OAuth integration' },
+    { name: 'moox/jobs', description: 'Job monitoring and management' },
+    { name: 'spatie/laravel-settings', description: 'Settings management' }
+  ]}
+/>
 
 ## Architecture Overview
 
-The application follows a layered architecture with clear separation of concerns:
-
-```
-┌─────────────────────────────────────────────────┐
-│           Filament Admin Panel                │
-│  (Dashboard, Resources, Pages, Widgets)      │
-└─────────────────┬───────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────┐
-│              Service Layer                     │
-│  • ZuoraService (API calls, OAuth)            │
-│  • WorkflowSyncService (Sync orchestration)    │
-│  • OAuthService (Google authentication)        │
-└─────────────────┬───────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────┐
-│              Models & Jobs                     │
-│  • Customer, Workflow, Task                  │
-│  • SyncCustomersJob (Queue processing)         │
-└─────────────────┬───────────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────────┐
-│           Database Layer                        │
-│  • MariaDB with foreign keys and indexes       │
-└─────────────────────────────────────────────────┘
-```
+<ArchitectureDiagram />
 
 ### Data Flow
 
-1. **Sync Workflow Flow**:
-   ```
-   User/UI/CLI
-      ↓
-   SyncCustomersJob::dispatch()
-      ↓
-   Queue Worker
-      ↓
-   WorkflowSyncService::syncCustomerWorkflows()
-      ├─ ZuoraService::listWorkflows() (paginated)
-      ├─ ZuoraService::downloadWorkflow() (JSON export)
-      ├─ Save/update workflows in database
-      └─ Workflow::syncTasksFromJson() (extract tasks)
-      ↓
-   Filament UI display
-   ```
-
-2. **Authentication Flow**:
-   ```
-   User visits /admin
-      ↓
-   Check setup_completed status
-      ↓
-   If not setup → Setup Wizard
-      ↓
-   If setup → Login form
-      ├─ Manual login (username/password)
-      └─ OAuth login (Google)
-      ↓
-   Filament Shield checks permissions
-      ↓
-   Dashboard access
-   ```
+<Steps steps={[
+  {
+    title: 'Sync Workflow Flow',
+    steps: [
+      'User/UI/CLI triggers sync',
+      'SyncCustomersJob dispatched to queue',
+      'Queue worker processes job',
+      'WorkflowSyncService syncs workflows',
+      'ZuoraService: listWorkflows() (paginated)',
+      'ZuoraService: downloadWorkflow() (JSON export)',
+      'Save/update workflows in database',
+      'Workflow::syncTasksFromJson() extracts tasks',
+      'Filament UI displays updated data'
+    ]
+  },
+  {
+    title: 'Authentication Flow',
+    steps: [
+      'User visits /admin',
+      'Check setup_completed status',
+      'If not setup → Setup Wizard',
+      'If setup → Login form',
+      'Manual login (username/password)',
+      'OAuth login (Google)',
+      'Filament Shield checks permissions',
+      'Dashboard access granted'
+    ]
+  }
+]} />
 
 ## Project Structure
 
-```
-zuora-workflows/
-├── app/
-│   ├── Casts/                     # Custom Eloquent casts
-│   │   └── EncryptedCastZuoraClientSecret.php
-│   ├── Console/Commands/           # Artisan commands
-│   │   ├── SyncWorkflows.php
-│   │   └── SyncWorkflowTasks.php
-│   ├── Exceptions/                 # Custom exceptions
-│   │   ├── SetupException.php
-│   │   ├── ZuoraAuthenticationException.php
-│   │   ├── ZuoraException.php
-│   │   └── ZuoraHttpException.php
-│   ├── Filament/                  # Filament resources & pages
-│   │   ├── Concerns/
-│   │   ├── Pages/
-│   │   ├── Resources/
-│   │   │   ├── Customers/
-│   │   │   ├── Tasks/
-│   │   │   ├── Users/
-│   │   │   ├── Roles/
-│   │   │   └── Workflows/
-│   │   └── Widgets/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   └── Middleware/
-│   ├── Jobs/                      # Queue jobs
-│   │   └── SyncCustomersJob.php
-│   ├── Listeners/                 # Event listeners
-│   ├── Models/                    # Eloquent models
-│   │   ├── Customer.php
-│   │   ├── Task.php
-│   │   ├── User.php
-│   │   └── Workflow.php
-│   ├── Policies/                  # Authorization policies
-│   ├── Providers/
-│   ├── Rules/                    # Validation rules
-│   ├── Services/                 # Business logic
-│   │   ├── OAuthService.php
-│   │   ├── WorkflowSyncService.php
-│   │   └── ZuoraService.php
-│   ├── Settings/                 # Application settings
-│   │   └── GeneralSettings.php
-│   └── Support/
-│       └── EncryptionHelper.php
-├── config/                       # Configuration files
-├── database/
-│   ├── migrations/               # Database migrations
-│   └── seeders/
-├── public/
-├── resources/
-│   ├── css/
-│   ├── js/
-│   │   └── components/          # JavaScript components
-│   └── views/
-├── routes/
-│   ├── api.php                  # API routes
-│   ├── console.php              # Console routes
-│   └── web.php                  # Web routes
-├── tests/
-│   ├── Feature/
-│   └── Unit/
-├── .lando.yml                   # Lando configuration
-├── .env.example                 # Environment template
-├── composer.json                # PHP dependencies
-├── package.json                 # NPM dependencies
-└── vite.config.js              # Vite configuration
-```
+<FolderTree
+  name="zuora-workflows/"
+  items={[
+    { name: 'app/', type: 'folder', items: [
+      { name: 'Casts/', type: 'folder', items: [
+        { name: 'EncryptedCastZuoraClientSecret.php', type: 'file' }
+      ]},
+      { name: 'Console/Commands/', type: 'folder', items: [
+        { name: 'SyncWorkflows.php', type: 'file' },
+        { name: 'SyncWorkflowTasks.php', type: 'file' }
+      ]},
+      { name: 'Exceptions/', type: 'folder', items: [
+        { name: 'SetupException.php', type: 'file' },
+        { name: 'ZuoraAuthenticationException.php', type: 'file' },
+        { name: 'ZuoraException.php', type: 'file' },
+        { name: 'ZuoraHttpException.php', type: 'file' }
+      ]},
+      { name: 'Filament/', type: 'folder', items: [
+        { name: 'Resources/', type: 'folder', items: [
+          { name: 'Customers/', type: 'folder' },
+          { name: 'Tasks/', type: 'folder' },
+          { name: 'Workflows/', type: 'folder' }
+        ]},
+        { name: 'Pages/', type: 'folder' },
+        { name: 'Widgets/', type: 'folder' }
+      ]},
+      { name: 'Jobs/', type: 'folder', items: [
+        { name: 'SyncCustomersJob.php', type: 'file' }
+      ]},
+      { name: 'Models/', type: 'folder', items: [
+        { name: 'Customer.php', type: 'file' },
+        { name: 'Task.php', type: 'file' },
+        { name: 'User.php', type: 'file' },
+        { name: 'Workflow.php', type: 'file' }
+      ]},
+      { name: 'Services/', type: 'folder', items: [
+        { name: 'OAuthService.php', type: 'file' },
+        { name: 'WorkflowSyncService.php', type: 'file' },
+        { name: 'ZuoraService.php', type: 'file' }
+      ]},
+      { name: 'Settings/', type: 'folder', items: [
+        { name: 'GeneralSettings.php', type: 'file' }
+      ]}
+    ]},
+    { name: 'config/', type: 'folder' },
+    { name: 'database/', type: 'folder', items: [
+      { name: 'migrations/', type: 'folder' },
+      { name: 'seeders/', type: 'folder' }
+    ]},
+    { name: 'public/', type: 'folder' },
+    { name: 'resources/', type: 'folder' },
+    { name: 'routes/', type: 'folder' },
+    { name: 'tests/', type: 'folder' },
+    { name: '.env.example', type: 'file' },
+    { name: 'composer.json', type: 'file' },
+    { name: 'package.json', type: 'file' },
+    { name: '.lando.yml', type: 'file' }
+  ]}
+/>
 
 ## Use Cases
 
-### For Business Users
+<UseCases
+  sections={[
+    {
+      title: 'For Business Users',
+      items: [
+        'Monitor Workflow Status - View all Zuora workflows in one place',
+        'Track Task Progress - See individual tasks within workflows',
+        'Visualize Workflows - Interactive graphical representation',
+        'Export Data - Download workflow definitions in JSON format'
+      ]
+    },
+    {
+      title: 'For Developers',
+      items: [
+        'API Integration - Seamless Zuora REST API with OAuth 2.0',
+        'Queue Processing - Background job for non-blocking operations',
+        'Debug Tools - Job monitoring with Moox Jobs',
+        'Extensible - Easy to add features via Filament resources'
+      ]
+    },
+    {
+      title: 'For Administrators',
+      items: [
+        'Multi-tenant - Manage multiple customers with separate credentials',
+        'Access Control - Role-based permissions via Filament Shield',
+        'Settings Management - Centralized configuration with encryption',
+        'Automated Syncs - Schedule automatic workflow synchronization'
+      ]
+    }
+  ]}
+/>
 
-- **Monitor Workflow Status**: View all Zuora workflows in one place
-- **Track Task Progress**: See individual tasks within workflows
-- **Visualize Workflows**: Interactive graphical representation of workflow flows
-- **Export Data**: Download workflow definitions in JSON format
-
-### For Developers
-
-- **API Integration**: Seamless Zuora REST API integration with OAuth 2.0
-- **Queue Processing**: Background job processing for non-blocking operations
-- **Debug Tools**: Job monitoring with Moox Jobs integration
-- **Extensible**: Easy to add custom features via Filament resources
-
-### For Administrators
-
-- **Multi-tenant**: Manage multiple customers with separate Zuora credentials
-- **Access Control**: Role-based permissions via Filament Shield
-- **Settings Management**: Centralized configuration with encrypted secrets
-- **Automated Syncs**: Schedule automatic workflow synchronization
-
-## Next Steps
-
-- [Getting Started](./guides/getting-started) - Installation and setup guide
-- [Architecture](./guides/architecture) - Detailed system architecture
-- [Features](./guides/features) - Feature documentation
-- [API Reference](./reference/api) - API endpoints and usage
-- [Configuration](./reference/configuration) - Configuration options
+<NextSteps
+  links={[
+    { title: 'Getting Started', href: './guides/getting-started', description: 'Installation and setup guide' },
+    { title: 'Architecture', href: './guides/architecture', description: 'Detailed system architecture' },
+    { title: 'Features', href: './guides/features', description: 'Feature documentation' },
+    { title: 'API Reference', href: './reference/api', description: 'API endpoints and usage' },
+    { title: 'Configuration', href: './reference/configuration', description: 'Configuration options' }
+  ]}
+/>
 
 ## Resources
 
-- [GitHub Repository](https://github.com/FrancoStino/zuora-workflows)
-- [Laravel Documentation](https://laravel.com/docs)
-- [Filament Documentation](https://filamentphp.com/docs)
-- [Zuora REST API](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API)
-- [Issue Tracker](https://github.com/FrancoStino/zuora-workflows/issues)
-
-## License
-
-This project is licensed under the MIT License. See [LICENSE](https://github.com/FrancoStino/zuora-workflows/blob/main/LICENSE) for details.
+<LinksGrid
+  links={[
+    { title: 'GitHub Repository', url: 'https://github.com/FrancoStino/zuora-workflows', icon: '🔗' },
+    { title: 'Laravel Documentation', url: 'https://laravel.com/docs', icon: '📚' },
+    { title: 'Filament Documentation', url: 'https://filamentphp.com/docs', icon: '🎨' },
+    { title: 'Zuora REST API', url: 'https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API', icon: '🔌' },
+    { title: 'Issue Tracker', url: 'https://github.com/FrancoStino/zuora-workflows/issues', icon: '🐛' }
+  ]}
+/>

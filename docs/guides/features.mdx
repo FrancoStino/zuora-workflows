@@ -3,6 +3,14 @@ title: Features
 description: Detailed feature documentation for Zuora Workflow Manager
 ---
 
+import { FeatureSection } from '@/components/feature-section'
+import { WorkflowVisualization } from '@/components/workflow-visualization'
+import { JobProcessing } from '@/components/job-processing'
+import { Authentication } from '@/components/authentication'
+import { SettingsManagement } from '@/components/settings-management'
+import { WorkflowGraph } from '@/components/workflow-graph'
+import { NextSteps } from '@/components/next-steps'
+
 # Features
 
 Zuora Workflow Manager provides comprehensive tools for managing Zuora workflows, tasks, and users. This guide details all available features.
@@ -13,644 +21,570 @@ Zuora Workflow Manager provides comprehensive tools for managing Zuora workflows
 
 Workflows can be synchronized automatically from Zuora API:
 
-**Sync Triggers:**
-1. **Manual Sync**: Click "Sync Workflows" button on customer record
-2. **Scheduled Sync**: Automatic hourly sync (configurable via `routes/console.php`)
-3. **CLI Command**: `php artisan app:sync-workflows --customer="Name"`
+<FeatureSection
+  title="Sync Triggers"
+  items={[
+    {
+      icon: '👆',
+      title: 'Manual Sync',
+      description: 'Click "Sync Workflows" button on customer record'
+    },
+    {
+      icon: '⏰',
+      title: 'Scheduled Sync',
+      description: 'Automatic hourly sync (configurable via routes/console.php)'
+    },
+    {
+      icon: '💻',
+      title: 'CLI Command',
+      description: 'php artisan app:sync-workflows --customer="Name"'
+    }
+  ]}
+/>
 
-```mermaid
-flowchart LR
-    subgraph Triggers["Sync Triggers"]
-        Manual[Manual Sync<br/>Button click]
-        Scheduled[Scheduled Sync<br/>Hourly cron]
-        CLI[CLI Command<br/>php artisan sync-workflows]
-    end
+<FlowDiagram type="sync-triggers" title="Sync Process Flow" />
 
-    Manual --> Job[SyncCustomersJob]
-    Scheduled --> Job
-    CLI --> Job
+<Alert type="info">
+  <strong>Sync Process Details:</strong>
+  <ol className="list-decimal list-inside mt-2 space-y-1">
+    <li>Retrieves OAuth access token (cached for 1 hour)</li>
+    <li>Fetches workflows from Zuora API (paginated, 50 per page)</li>
+    <li>Downloads complete workflow JSON for each workflow</li>
+    <li>Saves/updates workflow records in database</li>
+    <li>Automatically extracts tasks from workflow JSON</li>
+    <li>Removes workflows no longer present in Zuora</li>
+  </ol>
+</Alert>
 
-    subgraph Process["Sync Process"]
-        Token[Get OAuth Token<br/>cached 1h]
-        Fetch[Fetch Workflows<br/>paginated]
-        Download[Download JSON<br/>per workflow]
-        Save[Save/Update<br/>workflow records]
-        Extract[Extract Tasks<br/>from JSON]
-        Cleanup[Remove stale<br/>workflows]
-    end
-
-    Job --> Token
-    Token --> Fetch
-    Fetch --> Download
-    Download --> Save
-    Save --> Extract
-    Extract --> Cleanup
-
-    style Triggers fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
-    style Manual fill:#10b981,stroke:#059669,stroke-width:2px
-    style Scheduled fill:#f59e0b,stroke:#d97706,stroke-width:2px
-    style CLI fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
-    style Job fill:#ec4899,stroke:#dc2626,stroke-width:3px
-    style Process fill:#dbeafe,stroke:#0d9488,stroke-width:2px
-    style Token fill:#10b981,stroke:#059669,stroke-width:2px
-    style Fetch fill:#10b981,stroke:#059669,stroke-width:2px
-    style Download fill:#ec4899,stroke:#dc2626,stroke-width:2px
-    style Save fill:#10b981,stroke:#059669,stroke-width:2px
-    style Extract fill:#10b981,stroke:#059669,stroke-width:2px
-    style Cleanup fill:#ef4444,stroke:#b91c1c,stroke-width:2px
-```
-
-**Sync Process Details:**
-1. Retrieves OAuth access token (cached for 1 hour)
-2. Fetches workflows from Zuora API (paginated, 50 per page)
-3. Downloads complete workflow JSON for each workflow
-4. Saves/updates workflow records in database
-5. Automatically extracts tasks from workflow JSON
-6. Removes workflows no longer present in Zuora
-
-**Retry Logic:**
-- Failed sync jobs are automatically retried up to 3 times
-- 60-second exponential backoff between attempts
-- Failed jobs logged and visible in Moox Jobs panel
+<Alert type="warning">
+  <strong>Retry Logic:</strong> Failed sync jobs are automatically retried up to 3 times with 60-second exponential backoff. Failed jobs are logged and visible in Moox Jobs panel.
+</Alert>
 
 ### Workflow Visualization
 
+<WorkflowVisualization />
+
 #### Graphical View
 
-Interactive workflow graph using JointJS with Dagre layout:
+<WorkflowGraph
+  features={[
+    'Color-coded nodes by action type',
+    'Automatic hierarchical layout (top-to-bottom)',
+    'Zoom controls (+, -, mouse scroll)',
+    'Pan functionality (click and drag)',
+    'Responsive design',
+    'Automatic fit-to-content'
+  ]}
+/>
 
-**Features:**
-- Color-coded nodes by action type
-- Automatic hierarchical layout (top-to-bottom)
-- Zoom controls (+, -, mouse scroll)
-- Pan functionality (click and drag)
-- Responsive design
-- Automatic fit-to-content
+<DataTable
+  columns={['Action Type', 'Color', 'Example Tasks']}
+  rows={[
+    ['Start', 'Green', 'Workflow start node'],
+    ['End', 'Red', 'Workflow end node'],
+    ['Export', 'Blue', 'Data export tasks'],
+    ['Iterate', 'Orange', 'Loop iterations'],
+    ['Cancel', 'Red', 'Cancellation tasks'],
+    ['Create', 'Green', 'Create operations'],
+    ['Update', 'Purple', 'Update operations'],
+    ['Delete', 'Dark Red', 'Delete operations'],
+    ['Query', 'Cyan', 'Query operations'],
+    ['Callout', 'Pink', 'External callouts'],
+    ['Email', 'Yellow', 'Email tasks'],
+    ['Wait', 'Gray', 'Wait/delay tasks']
+  ]}
+/>
 
-**Node Color Coding:**
-
-| Action Type | Color | Example Tasks |
-|-------------|--------|---------------|
-| Start | Green | Workflow start node |
-| End | Red | Workflow end node |
-| Export | Blue | Data export tasks |
-| Iterate | Orange | Loop iterations |
-| Cancel | Red | Cancellation tasks |
-| Create | Green | Create operations |
-| Update | Purple | Update operations |
-| Delete | Dark Red | Delete operations |
-| Query | Cyan | Query operations |
-| Callout | Pink | External callouts |
-| Email | Yellow | Email tasks |
-| Wait | Gray | Wait/delay tasks |
-
-**Access:**
-Navigate to **Workflows** → Select workflow → **Graphical View** tab
+<Alert type="info">
+  <strong>Access:</strong> Navigate to Workflows → Select workflow → Graphical View tab
+</Alert>
 
 #### JSON View
 
-View raw workflow JSON:
-
-**Features:**
-- Syntax-highlighted JSON display
-- Copy to clipboard button
-- Download as JSON file
-- Collapsible sections
-
-**Access:**
-Navigate to **Workflows** → Select workflow → **Workflow Json** tab
+<FeatureSection
+  title="JSON View Features"
+  items={[
+    { icon: '🎨', title: 'Syntax Highlighted', description: 'JSON display with color coding' },
+    { icon: '📋', title: 'Copy to Clipboard', description: 'One-click copy button' },
+    { icon: '⬇️', title: 'Download', description: 'Download as JSON file' },
+    { icon: '📂', title: 'Collapsible Sections', description: 'Expand/collapse JSON nodes' }
+  ]}
+/>
 
 #### Tasks View
 
-View all tasks within a workflow:
-
-**Features:**
-- Sortable columns (name, action_type, priority, state)
-- Filters by:
-  - Action Type (Email, Export, SOAP, etc.)
-  - Priority (High, Medium, Low)
-  - State (pending, processing, completed, failed)
-- Task detail modal (click on task)
-- Actions per task:
-  - View details
-  - Edit properties
-  - Delete task
-
-**Access:**
-Navigate to **Workflows** → Select workflow → **Tasks** tab
+<DataTable
+  columns={['Feature', 'Description']}
+  rows={[
+    ['Sortable Columns', 'name, action_type, priority, state'],
+    ['Filters', 'Action Type (Email, Export, SOAP, etc.), Priority (High, Medium, Low), State (pending, processing, completed, failed)'],
+    ['Task Detail Modal', 'Click on task to view details'],
+    ['Actions', 'View details, Edit properties, Delete task']
+  ]}
+/>
 
 ### Workflow Actions
 
-Available actions on workflow records:
-
-- **Sync Tasks**: Re-extract tasks from workflow JSON
-- **Download JSON**: Download workflow as JSON file
-- **Copy JSON**: Copy workflow JSON to clipboard
-- **Delete**: Delete workflow (cascades to tasks)
-- **Edit**: Edit workflow metadata (name, description)
+<InfoCards
+  cards={[
+    { title: 'Sync Tasks', description: 'Re-extract tasks from workflow JSON' },
+    { title: 'Download JSON', description: 'Download workflow as JSON file' },
+    { title: 'Copy JSON', description: 'Copy workflow JSON to clipboard' },
+    { title: 'Delete', description: 'Delete workflow (cascades to tasks)' },
+    { title: 'Edit', description: 'Edit workflow metadata (name, description)' }
+  ]}
+/>
 
 ## Customer Management
 
 ### Customer Records
 
-Manage customers with Zuora credentials:
+<DataTable
+  columns={['Property', 'Type', 'Description']}
+  rows={[
+    ['Name', 'string', 'Company or customer name'],
+    ['Client ID', 'string', 'Zuora OAuth client ID'],
+    ['Client Secret', 'string', 'Zuora OAuth client secret (encrypted)'],
+    ['Base URL', 'string', 'Zuora API endpoint (Production/Sandbox)']
+  ]}
+/>
 
-**Customer Properties:**
-- **Name**: Company or customer name
-- **Client ID**: Zuora OAuth client ID
-- **Client Secret**: Zuora OAuth client secret (encrypted)
-- **Base URL**: Zuora API endpoint
-  - Production: `https://rest.zuora.com`
-  - Sandbox: `https://rest.test.zuora.com`
-
-**Security:**
-- Client secrets are encrypted at rest using Laravel's Crypt facade
-- Secrets are hidden from API responses (`$hidden` attribute)
-- Uses custom `EncryptedCastZuoraClientSecret`
+<Alert type="warning">
+  <strong>Security:</strong>
+  <ul className="list-disc list-inside mt-2 space-y-1">
+    <li>Client secrets are encrypted at rest using Laravel's Crypt facade</li>
+    <li>Secrets are hidden from API responses ($hidden attribute)</li>
+    <li>Uses custom EncryptedCastZuoraClientSecret</li>
+  </ul>
+</Alert>
 
 ### Customer Actions
 
-Available actions on customer records:
-
-- **Sync Workflows**: Queue workflow synchronization for customer
-- **View Workflows**: Navigate to customer's workflows
-- **Edit**: Update customer details and credentials
-- **Delete**: Delete customer (cascades to workflows and tasks)
+<InfoCards
+  cards={[
+    { title: 'Sync Workflows', description: 'Queue workflow synchronization for customer' },
+    { title: 'View Workflows', description: 'Navigate to customer\'s workflows' },
+    { title: 'Edit', description: 'Update customer details and credentials' },
+    { title: 'Delete', description: 'Delete customer (cascades to workflows and tasks)' }
+  ]}
+/>
 
 ## Task Management
 
 ### Automatic Task Extraction
 
-Tasks are automatically extracted from workflow JSON during sync:
-
-**Extracted Properties:**
-- Task ID and name
-- Action type (Email, Export, Query, etc.)
-- Zuora object type
-- Call type
-- Priority
-- Parameters (JSON)
-- Assignment settings
-- Tags
-
-**Task Descriptions:**
-Automatically generated descriptions based on task properties:
-- Type + Object + Call format
-- Email subject for email tasks
-- Where clause for export tasks
+<FeatureSection
+  title="Extracted Properties"
+  items={[
+    { icon: '🆔', title: 'Task ID & Name', description: 'Identifier and display name' },
+    { icon: '🎯', title: 'Action Type', description: 'Email, Export, Query, etc.' },
+    { icon: '📦', title: 'Zuora Object', description: 'Object type being operated on' },
+    { icon: '📞', title: 'Call Type', description: 'Method of execution' },
+    { icon: '⭐', title: 'Priority', description: 'High, Medium, Low' },
+    { icon: '⚙️', title: 'Parameters', description: 'Task configuration (JSON)' },
+    { icon: '👤', title: 'Assignment Settings', description: 'Task assignment info' },
+    { icon: '🏷️', title: 'Tags', description: 'Organization tags' }
+  ]}
+/>
 
 ### Task Filtering
 
-Advanced filtering capabilities in Tasks table:
-
-**Filter Options:**
-- **Action Type**: Select from Email, Export, SOAP, Iterate, etc.
-- **Priority**: High, Medium, Low
-- **State**: pending, processing, completed, failed
-- **Workflow**: Filter by parent workflow
-
-**Usage:**
-Apply filters in Tasks table to find specific tasks quickly.
-
-### Task Details Modal
-
-Comprehensive task information in modal view:
-
-**Displayed Information:**
-- Task name and ID
-- Action type and object
-- Priority and state
-- Parameters (formatted JSON)
-- Assignment settings
-- Tags
-- Creation timestamp
-
-**Actions:**
-- Edit task properties
-- Delete task
-- Copy task ID
+<DataTable
+  columns={['Filter Option', 'Values']}
+  rows={[
+    ['Action Type', 'Email, Export, SOAP, Iterate, etc.'],
+    ['Priority', 'High, Medium, Low'],
+    ['State', 'pending, processing, completed, failed'],
+    ['Workflow', 'Filter by parent workflow']
+  ]}
+/>
 
 ## Job Processing
+
+<JobProcessing />
 
 ### Queue-based Jobs
 
 Background job processing for non-blocking operations:
 
-```mermaid
-flowchart LR
-    subgraph JobTypes["Job Types"]
-        SCJ[SyncCustomersJob<br/>Synchronize workflows]
-    end
+<FlowDiagram type="job-processing" title="Job Processing Flow" />
 
-    SCJ --> Queue[(Queue<br/>Redis/Database)]
+<DataTable
+  columns={['Configuration', 'Value']}
+  rows={[
+    ['Max Attempts', '3'],
+    ['Backoff', '60 seconds (exponential)'],
+    ['Queue', 'default'],
+    ['Retry Strategy', 'Automatic with exponential backoff']
+  ]}
+/>
 
-    Queue --> Worker{Queue Worker}
-
-    Worker --> Process[Process Job]
-    Process --> Success{Success?}
-
-    Success -->|Yes| Complete[Mark as complete<br/>Log success]
-    Success -->|No| Fail[Mark as failed<br/>Log error]
-
-    Fail --> Retry{Retry?}
-    Retry -->|Attempts < 3| Queue
-    Retry -->|Attempts >= 3| Dead[Move to failed_jobs<br/>Stop retrying]
-
-    Complete --> Notif[Send notification<br/>Update UI]
-
-    style JobTypes fill:#f3f4f6,stroke:#0d9488,stroke-width:2px
-    style SCJ fill:#f59e0b,stroke:#d97706,stroke-width:2px
-    style Queue fill:#6366f1,stroke:#4f46e5,stroke-width:2px
-    style Worker fill:#10b981,stroke:#059669,stroke-width:2px
-    style Process fill:#8b5cf6,stroke:#2563eb,stroke-width:2px
-    style Success fill:#10b981,stroke:#059669,stroke-width:2px
-    style Complete fill:#059669,stroke:#03c9a6,stroke-width:2px,color:#ffffff
-    style Fail fill:#ef4444,stroke:#b91c1c,stroke-width:2px
-    style Retry fill:#f59e0b,stroke:#d97706,stroke-width:2px
-    style Dead fill:#dc2626,stroke:#991b1b,stroke-width:2px,color:#ffffff
-    style Notif fill:#3b82f6,stroke:#1e40af,stroke-width:2px
-```
-
-**Jobs:**
-- `SyncCustomersJob`: Synchronize workflows for a customer
-
-**Retry Logic:**
-- Failed sync jobs are automatically retried up to 3 times
-- 60-second exponential backoff between attempts
-- Failed jobs logged and visible in Moox Jobs panel
-
-**Queue Configuration:**
-```bash
-# Development (immediate processing)
-QUEUE_CONNECTION=sync
-
-# Development (queue worker required)
-QUEUE_CONNECTION=database
-
-# Production (recommended)
-QUEUE_CONNECTION=redis
-```
+<CodeBlock
+  title="Queue Configuration"
+  tabs={[
+    {
+      name: 'Development (immediate)',
+      code: 'QUEUE_CONNECTION=sync',
+      language: 'env'
+    },
+    {
+      name: 'Development (queue)',
+      code: 'QUEUE_CONNECTION=database',
+      language: 'env'
+    },
+    {
+      name: 'Production (recommended)',
+      code: 'QUEUE_CONNECTION=redis',
+      language: 'env'
+    }
+  ]}
+/>
 
 ### Job Monitoring
 
 Real-time job monitoring via Moox Jobs integration:
 
-**Monitor Panels:**
-- **Jobs**: View running and completed jobs
-- **Jobs Waiting**: See queued jobs
-- **Failed Jobs**: View and retry failed jobs
-- **Job Batches**: Monitor batch operations
+<FeatureSection
+  title="Monitor Panels"
+  items={[
+    { icon: '📋', title: 'Jobs', description: 'View running and completed jobs' },
+    { icon: '⏳', title: 'Jobs Waiting', description: 'See queued jobs' },
+    { icon: '❌', title: 'Failed Jobs', description: 'View and retry failed jobs' },
+    { icon: '📦', title: 'Job Batches', description: 'Monitor batch operations' }
+  ]}
+/>
 
-**Job Information:**
-- Job class and payload
-- Queue name
-- Attempts and status
-- Started/finished timestamps
-- Error messages (for failed jobs)
-
-**Actions:**
-- **Retry**: Retry failed jobs
-- **Delete**: Remove from queue
-- **View Payload**: Inspect job data
-
-**Access:**
-Navigate to Filament panel → **Jobs** menu
+<DataTable
+  columns={['Information', 'Description']}
+  rows={[
+    ['Job Class & Payload', 'Job class and serialized data'],
+    ['Queue Name', 'Target queue for processing'],
+    ['Attempts & Status', 'Number of tries and current state'],
+    ['Started/Finished Timestamps', 'Execution timing data'],
+    ['Error Messages', 'Detailed error info (for failed jobs)']
+  ]}
+/>
 
 ### Scheduled Tasks
 
-Laravel scheduler for automated tasks:
-
-**Scheduled Jobs** (defined in `routes/console.php`):
-```php
-// Automatic workflow sync (hourly by default)
+<CodeBlock
+  title="Scheduled Jobs (routes/console.php)"
+  code={`// Automatic workflow sync (hourly by default)
 Schedule::command('app:sync-workflows --all')
     ->hourly()
     ->name('sync-customer-workflows');
-```
 
-**Customization:**
-Edit `routes/console.php` to change sync frequency:
-- `->everyFiveMinutes()` - Every 5 minutes
-- `->everyThirtyMinutes()` - Every 30 minutes
-- `->hourly()` - Every hour (default)
-- `->daily()` - Once per day
+// Available frequencies:
+// ->everyFiveMinutes()
+// ->everyThirtyMinutes()
+// ->hourly()
+// ->daily()
+`}
+  language="php"
+/>
+
+<Alert type="info">
+  <strong>Customization:</strong> Edit routes/console.php to change sync frequency.
+</Alert>
 
 ## Authentication & Authorization
+
+<Authentication />
 
 ### User Authentication
 
 #### Manual Login
 
-- Email and password authentication
-- Password reset functionality
-- Remember me option
+<InfoCards
+  cards={[
+    { title: 'Email & Password', description: 'Password reset functionality' },
+    { title: 'Remember Me', description: 'Persistent session option' }
+  ]}
+/>
 
 #### OAuth Login
 
 Google OAuth integration for seamless authentication:
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant App as "Zuora Workflow App"
-    participant Google as "Google OAuth"
-    participant DB as "Database"
+<FlowDiagram type="oauth-flow" title="OAuth Login Flow" />
 
-    User->>App: 1. Click OAuth Login
-    App->>Google: 2. Redirect to Google<br/>/oauth/google
-    Google->>User: 3. Google Login Page
-    User->>Google: 4. Enter credentials<br/>& authorize
-
-    Google->>App: 5. Callback with code<br/>/auth/google/callback
-
-    App->>Google: 6. Exchange code for token
-    Google-->>App: 7. Access token + user info
-
-    alt User exists in database
-        App->>DB: 8. Update user info
-        App->>DB: 9. Update avatar
-        App-->>User: 10. Login successful
-    else New user
-        App->>DB: 11. Create user record
-        App->>DB: 12. Assign workflow_user role
-        App->>DB: 13. Store avatar URL
-        App-->>User: 14. Welcome + Login
-    end
-```
-
-**Setup:**
-1. Create Google OAuth 2.0 credentials in Google Cloud Console
-2. Configure in **Settings** → **General Settings**
-3. Add allowed email domains
-4. Enable OAuth
-
-**Features:**
-- Automatic user creation on first login
-- Avatar download from Google
-- Role assignment (`workflow_user` by default)
+<FeatureSection
+  title="OAuth Features"
+  items={[
+    { icon: '👤', title: 'Automatic User Creation', description: 'Create user on first login' },
+    { icon: '🖼️', title: 'Avatar Download', description: 'Download avatar from Google' },
+    { icon: '👑', title: 'Role Assignment', description: 'Assign workflow_user role by default' }
+  ]}
+/>
 
 ### Role-Based Access Control (RBAC)
 
 Granular permissions via Filament Shield:
 
-**Default Roles:**
+<DataTable
+  columns={['Role', 'Permissions', 'Description']}
+  rows={[
+    ['super_admin', 'Full access', 'Can manage all resources and settings'],
+    ['admin', 'Manage resources', 'Can manage customers, workflows, tasks'],
+    ['workflow_user', 'View workflows', 'Read-only access to workflows and tasks']
+  ]}
+/>
 
-| Role | Permissions | Description |
-|------|-------------|-------------|
-| `super_admin` | Full access | Can manage all resources and settings |
-| `admin` | Manage resources | Can manage customers, workflows, tasks |
-| `workflow_user` | View workflows | Read-only access to workflows and tasks |
-
-**Permission Examples:**
-- `view_any_customer` - View all customers
-- `create_customer` - Create new customers
-- `sync_customer_workflows` - Sync workflows for customers
-- `view_any_workflow` - View all workflows
-- `view_workflow` - View specific workflow
-- `edit_workflow` - Edit workflow metadata
-- `delete_workflow` - Delete workflows
-- `view_any_task` - View all tasks
-- `sync_workflow_tasks` - Extract tasks from workflows
+<Alert type="info">
+  <strong>Permission Examples:</strong>
+  <ul className="list-disc list-inside mt-2 space-y-1">
+    <li><code>view_any_customer</code> - View all customers</li>
+    <li><code>create_customer</code> - Create new customers</li>
+    <li><code>sync_customer_workflows</code> - Sync workflows for customers</li>
+    <li><code>view_any_workflow</code> - View all workflows</li>
+    <li><code>edit_workflow</code> - Edit workflow metadata</li>
+    <li><code>delete_workflow</code> - Delete workflows</li>
+  </ul>
+</Alert>
 
 ### Setup Wizard
 
-Initial application setup flow:
-
-**Setup Process:**
-1. First visit to `/admin` redirects to setup wizard
-2. Create initial admin user account
-3. Mark setup as completed
-4. Redirect to login page
-
-**Bypass Setup:**
-Add `SETUP_COMPLETED=true` to environment to skip wizard (not recommended).
+<FeatureSection
+  title="Setup Process"
+  items={[
+    { icon: '1️⃣', title: 'First Visit', description: 'Redirects to /admin' } ,
+    { icon: '2️⃣', title: 'Setup Check', description: 'Checks if setup is completed' },
+    { icon: '3️⃣', title: 'Wizard', description: 'Redirects to setup wizard if not complete' },
+    { icon: '4️⃣', title: 'Create Admin', description: 'Create initial admin user' },
+    { icon: '5️⃣', title: 'Mark Complete', description: 'Mark setup as completed' },
+    { icon: '6️⃣', title: 'Login', description: 'Redirect to login page' }
+  ]}
+/>
 
 ## Settings Management
 
+<SettingsManagement />
+
 ### General Settings
 
-Centralized application configuration via Spatie Laravel Settings:
+<FeatureSection
+  title="Settings Sections"
+  items={[
+    {
+      icon: '🌐',
+      title: 'Site Information',
+      description: 'Site Name (default: "Zuora Workflow"), Site Description'
+    },
+    {
+      icon: '🔐',
+      title: 'OAuth Configuration',
+      description: 'OAuth Enabled, Allowed Domains, Google Client ID, Google Client Secret (encrypted)'
+    },
+    {
+      icon: '⚙️',
+      title: 'Application Configuration',
+      description: 'Admin Default Email (default: admin@example.com)'
+    },
+    {
+      icon: '🔧',
+      title: 'Maintenance',
+      description: 'Toggle site maintenance mode'
+    }
+  ]}
+/>
 
-**Settings Sections:**
-
-#### Site Information
-- **Site Name**: Application title (default: "Zuora Workflow")
-- **Site Description**: Application description
-
-#### OAuth Configuration
-- **OAuth Enabled**: Toggle OAuth login
-- **Allowed Domains**: Comma-separated list of allowed email domains
-- **Google Client ID**: OAuth client ID from Google
-- **Google Client Secret**: OAuth client secret (encrypted)
-
-#### Application Configuration
-- **Admin Default Email**: Default email for admin operations
-
-#### Maintenance
-- **Maintenance Mode**: Toggle site maintenance
-
-**Access:**
-Navigate to **Settings** → **General Settings** (Super Admin only)
+<Alert type="info">
+  <strong>Access:</strong> Navigate to Settings → General Settings (Super Admin only)
+</Alert>
 
 ### Encrypted Settings
 
-Sensitive settings are encrypted at rest:
+<DataTable
+  columns={['Encrypted Field', 'Description']}
+  rows={[
+    ['oauth_google_client_secret', 'Google OAuth client secret'],
+    ['zuora_client_secret', 'Per-customer Zuora OAuth client secret']
+  ]}
+/>
 
-**Encrypted Fields:**
-- `oauth_google_client_secret`
-- `zuora_client_secret` (per customer)
-
-**Encryption Method:**
-- Laravel's Crypt facade
-- Uses APP_KEY from `.env`
-- AES-256-CBC encryption
+<Alert type="warning">
+  <strong>Encryption Method:</strong> Laravel's Crypt facade using APP_KEY from .env with AES-256-CBC encryption
+</Alert>
 
 ## Workflow Graph Visualization
 
 ### JointJS Integration
 
-Interactive workflow graph visualization:
+<WorkflowGraph
+  features={[
+    'Nodes: Represent workflow tasks',
+    'Links: Represent task connections',
+    'Labels: Connection types (Success, For Each, etc.)',
+    'Colors: Task action types',
+    'Layout: Automatic hierarchical layout with Dagre'
+  ]}
+/>
 
-**Features:**
-- **Nodes**: Represent workflow tasks
-- **Links**: Represent task connections
-- **Labels**: Connection types (Success, For Each, etc.)
-- **Colors**: Task action types
-- **Layout**: Automatic hierarchical layout with Dagre
+<DataTable
+  columns={['Interaction', 'Description']}
+  rows={[
+    ['Zoom', 'Mouse wheel or +/- buttons (0.2x to 3x range)'],
+    ['Pan', 'Click and drag to move graph'],
+    ['Reset', 'Return to default view']
+  ]}
+/>
 
-**Interactions:**
-- **Zoom**: Mouse wheel or +/- buttons (0.2x to 3x range)
-- **Pan**: Click and drag to move graph
-- **Reset**: Return to default view
-
-**Performance:**
-- Lazy loading (tab-based)
-- SVG rendering (native browser performance)
-- Optimal for < 100 nodes
-
-**Supported Formats:**
-- Zuora workflow JSON (`tasks[]`, `linkages[]`)
-- Fallback formats (`nodes[]`, `connections[]`)
+<Alert type="info">
+  <strong>Performance:</strong> Lazy loading (tab-based), SVG rendering (native browser performance), Optimal for < 100 nodes
+</Alert>
 
 ## API Integration
 
 ### Zuora REST API
 
-Seamless integration with Zuora REST API:
+<DataTable
+  columns={['Endpoint', 'Method', 'Description']}
+  rows={[
+    ['/oauth/token', 'POST', 'OAuth 2.0 token'],
+    ['/workflows', 'GET', 'List workflows (paginated)'],
+    ['/workflows/{id}/export', 'GET', 'Download workflow JSON']
+  ]}
+/>
 
-**Endpoints Used:**
-- `GET /oauth/token` - OAuth 2.0 token
-- `GET /workflows` - List workflows (paginated)
-- `GET /workflows/{id}/export` - Download workflow JSON
-
-**OAuth 2.0 Flow:**
-1. Request access token with client credentials
-2. Cache token for 1 hour
-3. Use Bearer token in API requests
-4. Handle token expiration gracefully
-
-### API Routes
-
-Application provides internal API endpoints:
-
-**Authenticated Routes** (`/api/`):
-```php
-// Get authenticated user
-GET /api/user
-
-// Get Zuora access token
-GET /api/zuora/token
-
-// Download workflow JSON
-GET /api/zuora/download/{workflowId}?client_id=X&client_secret=Y&base_url=Z
-```
-
-**Authentication:**
-All API routes require `auth:sanctum` middleware.
+<Alert type="info">
+  <strong>OAuth 2.0 Flow:</strong>
+  <ol className="list-decimal list-inside mt-2 space-y-1">
+    <li>Request access token with client credentials</li>
+    <li>Cache token for 1 hour</li>
+    <li>Use Bearer token in API requests</li>
+    <li>Handle token expiration gracefully</li>
+  </ol>
+</Alert>
 
 ## Dashboard
 
 ### Main Dashboard
 
-Overview of workflow statistics and job status:
+<InfoCards
+  cards={[
+    { title: 'Total Workflows', description: 'Count of all workflows' },
+    { title: 'Active Workflows', description: 'Workflows in active state' },
+    { title: 'Total Tasks', description: 'Count of all tasks' },
+    { title: 'Pending Jobs', description: 'Jobs waiting in queue' },
+    { title: 'Failed Jobs', description: 'Failed job count' },
+    { title: 'Recent Syncs', description: 'Latest workflow syncs' }
+  ]}
+/>
 
-**Dashboard Widgets:**
-- **Total Workflows**: Count of all workflows
-- **Active Workflows**: Workflows in active state
-- **Total Tasks**: Count of all tasks
-- **Pending Jobs**: Jobs waiting in queue
-- **Failed Jobs**: Failed job count
-- **Recent Syncs**: Latest workflow syncs
-
-**Quick Actions:**
-- Create customer
-- Sync all workflows
-- View jobs
+<FeatureSection
+  title="Quick Actions"
+  items={[
+    { icon: '➕', title: 'Create Customer', description: 'Add new customer' },
+    { icon: '🔄', title: 'Sync All Workflows', description: 'Sync all customers' },
+    { icon: '📋', title: 'View Jobs', description: 'Access job panel' }
+  ]}
+/>
 
 ## Search & Filtering
 
 ### Global Search
 
-Quick search across all resources:
+<Alert type="info">
+  <strong>Access:</strong> Press Ctrl+K (or Cmd+K on Mac) or click search icon.
+</Alert>
 
-**Searchable Entities:**
-- Customers (by name)
-- Workflows (by name, description)
-- Tasks (by name)
-- Users (by name, email)
-
-**Access:**
-Press `Ctrl+K` (or `Cmd+K` on Mac) or click search icon.
+<DataTable
+  columns={['Entity', 'Search Fields']}
+  rows={[
+    ['Customers', 'Name'],
+    ['Workflows', 'Name, description'],
+    ['Tasks', 'Name'],
+    ['Users', 'Name, email']
+  ]}
+/>
 
 ### Table Filters
 
-Advanced filtering in resource tables:
-
-**Customer Filters:**
-- Name (text search)
-- Created at (date range)
-
-**Workflow Filters:**
-- Name (text search)
-- Customer (select)
-- State (select: Active, Inactive, etc.)
-- Last synced (date range)
-
-**Task Filters:**
-- Name (text search)
-- Workflow (select)
-- Action type (select)
-- Priority (select)
-- State (select)
+<DataTable
+  columns={['Table', 'Filters']}
+  rows={[
+    ['Customer', 'Name (text search), Created at (date range)'],
+    ['Workflow', 'Name (text search), Customer (select), State (select), Last synced (date range)'],
+    ['Task', 'Name (text search), Workflow (select), Action type (select), Priority (select), State (select)']
+  ]}
+/>
 
 ## Export & Import
 
 ### JSON Export
 
-Export workflow definitions:
-
-**Download Options:**
-- Individual workflow: "Download JSON" button
-- Copy to clipboard
-- Bulk export (future feature)
-
-**Format:**
-Complete workflow JSON including all tasks and linkages.
+<InfoCards
+  cards={[
+    { title: 'Individual Workflow', description: '"Download JSON" button' },
+    { title: 'Copy to Clipboard', description: 'Quick copy functionality' },
+    { title: 'Bulk Export', description: 'Future feature (planned)' }
+  ]}
+/>
 
 ### CSV Export
 
-Export table data to CSV:
-
-**Available For:**
-- Customers table
-- Workflows table
-- Tasks table
-- Users table
-
-**Usage:**
-Click "Export" button in table header.
+<DataTable
+  columns={['Available For', 'Usage']}
+  rows={[
+    ['Customers Table', 'Click "Export" button in table header'],
+    ['Workflows Table', 'Click "Export" button in table header'],
+    ['Tasks Table', 'Click "Export" button in table header'],
+    ['Users Table', 'Click "Export" button in table header']
+  ]}
+/>
 
 ## Notification System
 
-### Job Notifications
+<DataTable
+  columns={['Notification Type', 'Description']}
+  rows={[
+    ['Sync Started', 'Workflow sync initiated'],
+    ['Sync Completed', 'Sync finished with statistics'],
+    ['Sync Failed', 'Sync encountered errors'],
+    ['Task Extracted', 'Tasks extracted from workflow']
+  ]}
+/>
 
-Real-time notifications for job completion:
-
-**Notification Types:**
-- **Sync Started**: Workflow sync initiated
-- **Sync Completed**: Sync finished with statistics
-- **Sync Failed**: Sync encountered errors
-- **Task Extracted**: Tasks extracted from workflow
-
-**Delivery:**
-- Filament notifications (in-app)
-- Database storage (notification logs)
+<Alert type="info">
+  <strong>Delivery:</strong> Filament notifications (in-app), Database storage (notification logs)
+</Alert>
 
 ## Multi-Tenant Support
 
 ### Per-Customer Credentials
 
-Each customer maintains separate Zuora credentials:
+<FeatureSection
+  title="Benefits"
+  items={[
+    { icon: '🔒', title: 'Data Isolation', description: 'Isolate data between customers' },
+    { icon: '🌍', title: 'Multiple Environments', description: 'Different Zuora environments (production/sandbox)' },
+    { icon: '👥', title: 'Granular Access', description: 'Easy customer onboarding' }
+  ]}
+/>
 
-**Benefits:**
-- Isolate data between customers
-- Different Zuora environments (production/sandbox)
-- Granular access control
-- Easy customer onboarding
+<Alert type="warning">
+  <strong>Security:</strong>
+  <ul className="list-disc list-inside mt-2 space-y-1">
+    <li>Credentials encrypted per customer</li>
+    <li>No credential sharing between customers</li>
+    <li>Separate OAuth tokens per customer</li>
+  </ul>
+</Alert>
 
-**Security:**
-- Credentials encrypted per customer
-- No credential sharing between customers
-- Separate OAuth tokens per customer
-
-## Next Steps
-
-- [API Reference](../reference/api) - Detailed API documentation
-- [Configuration Reference](../reference/configuration) - All configuration options
-- [Development Guide](./development) - Development workflow
+<NextSteps
+  links={[
+    { title: 'API Reference', href: '../reference/api', description: 'Detailed API documentation' },
+    { title: 'Configuration Reference', href: '../reference/configuration', description: 'All configuration options' },
+    { title: 'Development Guide', href: './development', description: 'Development workflow' }
+  ]}
+/>
 
 ## Related Documentation
 
-- [Zuora REST API](https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API)
-- [Filament Resources](https://filamentphp.com/docs/4.x/resources)
-- [Laravel Queues](https://laravel.com/docs/12.x/queues)
+<LinksGrid
+  links={[
+    { title: 'Zuora REST API', url: 'https://knowledgecenter.zuora.com/Zuora_Central_Platform/API/Zuora_REST_API', icon: '🔌' },
+    { title: 'Filament Resources', url: 'https://filamentphp.com/docs/4.x/resources', icon: '🎨' },
+    { title: 'Laravel Queues', url: 'https://laravel.com/docs/12.x/queues', icon: '⚙️' }
+  ]}
+/>

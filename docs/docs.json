@@ -1,8 +1,13 @@
 {
   "$schema": "https://mintlify.com/schema.json",
+  "theme": "mint",
   "name": "Zuora Workflow",
   "description": "A comprehensive workflow management system for Zuora with synchronization, visualization, and monitoring capabilities",
-  "theme": "mint",
+  "colors": {
+    "primary": "#0D9488",
+    "dark": "#0D9488",
+    "light": "#0D9488"
+  },
   "logo": {
     "dark": "/images/logo-white.svg",
     "light": "/images/logo.svg"
@@ -10,11 +15,6 @@
   "favicon": {
     "dark": "/images/favicon.ico",
     "light": "/images/favicon.ico"
-  },
-  "colors": {
-    "primary": "#0D9488",
-    "dark": "#0D9488",
-    "light": "#0D9488"
   },
   "navbar": {
     "primary": {
