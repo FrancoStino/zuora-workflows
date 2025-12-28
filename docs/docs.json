@@ -100,5 +100,9 @@
             "github": "https://github.com/FrancoStino/",
             "instagram": "https://www.instagram.com/davideladisa.it/"
         }
+    },
+    "styling": {
+      "latex": true,
+      "eyebrows": "section"
     }
 }
