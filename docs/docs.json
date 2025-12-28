@@ -26,57 +26,59 @@
     "name": "Inizia Ora",
     "url": "/getting-started/introduction"
   },
-  "navigation": [
-    {
-      "group": "Introduzione",
-      "pages": [
-        "getting-started/introduction",
-        "getting-started/installation",
-        "getting-started/configuration",
-        "getting-started/verification"
-      ]
-    },
-    {
-      "group": "Architettura",
-      "pages": [
-        "architecture/architecture",
-        "architecture/overview"
-      ]
-    },
-    {
-      "group": "Configurazione",
-      "pages": [
-        "configuration/settings-implementation"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/overview"
-      ]
-    },
-    {
-      "group": "Funzionalità",
-      "pages": [
-        "features/overview",
-        "features/sync",
-        "features/workflow-graph"
-      ]
-    },
-    {
-      "group": "Sviluppo",
-      "pages": [
-        "development/contributing"
-      ]
-    },
-    {
-      "group": "Deployment",
-      "pages": [
-        "deployment/overview",
-        "deployment/deployment"
-      ]
-    }
-  ],
+  "navigation": {
+    "groups": [
+      {
+        "group": "Introduzione",
+        "pages": [
+          "getting-started/introduction",
+          "getting-started/installation",
+          "getting-started/configuration",
+          "getting-started/verification"
+        ]
+      },
+      {
+        "group": "Architettura",
+        "pages": [
+          "architecture/architecture",
+          "architecture/overview"
+        ]
+      },
+      {
+        "group": "Configurazione",
+        "pages": [
+          "configuration/settings-implementation"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api-reference/overview"
+        ]
+      },
+      {
+        "group": "Funzionalità",
+        "pages": [
+          "features/overview",
+          "features/sync",
+          "features/workflow-graph"
+        ]
+      },
+      {
+        "group": "Sviluppo",
+        "pages": [
+          "development/contributing"
+        ]
+      },
+      {
+        "group": "Deployment",
+        "pages": [
+          "deployment/overview",
+          "deployment/deployment"
+        ]
+      }
+    ]
+  },
   "footerSocials": {
     "github": "https://github.com/FrancoStino/zuora-workflows"
   },
