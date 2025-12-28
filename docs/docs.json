@@ -9,12 +9,12 @@
     "light": "#0D9488"
   },
   "logo": {
-    "dark": "/images/logo-white.svg",
-    "light": "/images/logo.svg"
+    "dark": "/assets/images/logo-white.svg",
+    "light": "/assets/images/logo.svg"
   },
   "favicon": {
-    "dark": "/images/favicon.ico",
-    "light": "/images/favicon.ico"
+    "dark": "/assets/images/favicon.ico",
+    "light": "/assets/images/favicon.ico"
   },
   "navbar": {
     "primary": {
