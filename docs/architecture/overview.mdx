@@ -170,58 +170,54 @@ Manages persistence and external services:
 
 ### Workflow synchronization
 
-```
-1. User Action (UI/CLI)
-   ↓
-2. Dispatch SyncCustomersJob
-   ↓
-3. Queue System
-   ↓
-4. WorkflowSyncService
-   ├─ Fetch workflows from Zuora (ZuoraService)
-   ├─ Download workflow JSON
-   ├─ Save/update in database
-   └─ Extract and sync tasks (Workflow Model)
-   ↓
-5. Database persistence
-   ↓
-6. UI update (Filament)
+```mermaid
+flowchart TD
+    A[User Action<br/>UI/CLI] --> B[Dispatch<br/>SyncCustomersJob]
+    B --> C[Queue System]
+    C --> D[WorkflowSyncService]
+    D --> E1[Fetch workflows<br/>from Zuora ZuoraService]
+    D --> E2[Download<br/>workflow JSON]
+    D --> E3[Save/update<br/>in database]
+    D --> E4[Extract and sync<br/>tasks Workflow Model]
+    E1 --> F[Database persistence]
+    E2 --> F
+    E3 --> F
+    E4 --> F
+    F --> G[UI update Filament]
 ```
 
 ### Zuora authentication
 
-```
-1. Customer credentials (encrypted in DB)
-   ↓
-2. ZuoraService->getAccessToken()
-   ├─ Check cache
-   ├─ If not cached: OAuth 2.0 flow
-   └─ Cache token (1 hour TTL)
-   ↓
-3. Use token for API calls
-   ↓
-4. Handle errors and retry
+```mermaid
+flowchart TD
+    A[Customer credentials<br/>encrypted in DB] --> B[ZuoraService<br/>getAccessToken]
+    B --> C{Token cached?}
+    C -->|Yes| D[Return cached token]
+    C -->|No| E[OAuth 2.0 flow]
+    E --> F[POST /oauth/token]
+    F --> G[Cache token<br/>1 hour TTL]
+    G --> D
+    D --> H[Use token for API calls]
+    H --> I[Handle errors<br/>and retry]
 ```
 
 ### Workflow visualization
 
-```
-1. User navigates to Workflows
-   ↓
-2. WorkflowResource->table()
-   ├─ Query database
-   ├─ Apply filters
-   └─ Format data
-   ↓
-3. Filament renders table
-   ↓
-4. User clicks workflow
-   ↓
-5. ViewWorkflow page
-   ├─ Load workflow details
-   ├─ Load tasks (relation)
-   ├─ Render graph visualization
-   └─ Display JSON
+```mermaid
+flowchart TD
+    A[User navigates<br/>to Workflows] --> B[WorkflowResource table]
+    B --> C1[Query database]
+    B --> C2[Apply filters]
+    B --> C3[Format data]
+    C1 --> D[Filament renders table]
+    C2 --> D
+    C3 --> D
+    D --> E[User clicks workflow]
+    E --> F[ViewWorkflow page]
+    F --> G1[Load workflow details]
+    F --> G2[Load tasks relation]
+    F --> G3[Render graph visualization]
+    F --> G4[Display JSON]
 ```
 
 ## Patterns used

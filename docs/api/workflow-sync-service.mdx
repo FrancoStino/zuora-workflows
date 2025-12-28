@@ -1,0 +1,440 @@
+---
+title: Workflow Sync Service
+description: API reference for WorkflowSyncService
+---
+
+# Workflow Sync Service
+
+The `WorkflowSyncService` is responsible for orchestrating the synchronization of workflows from Zuora to the local database.
+
+## Overview
+
+### Responsibilities
+
+- Validate customer credentials
+- Fetch workflows from Zuora (paginated)
+- Download JSON export for each workflow
+- Save/update workflows in the database
+- Delegate task extraction to the Workflow Model
+- Delete obsolete workflows (cleanup)
+
+### Dependencies
+
+```php
+public function __construct(private ZuoraService $zuoraService) {}
+```
+
+Depends on `ZuoraService` for:
+- OAuth authentication
+- API calls to Zuora
+- Download workflow JSON
+
+## Public Methods
+
+### syncCustomerWorkflows()
+
+Synchronizes all workflows of a customer from the local database.
+
+#### Signature
+
+```php
+public function syncCustomerWorkflows(Customer $customer): array
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$customer` | `Customer` | Customer model instance |
+
+#### Returns
+
+```php
+[
+    'created' => int,      // Number of new workflows created
+    'updated' => int,      // Number of workflows updated
+    'deleted' => int,      // Number of obsolete workflows deleted
+    'total' => int,        // Total workflows processed
+    'errors' => string[],   // Array of errors if any
+]
+```
+
+#### Example
+
+```php
+$customer = Customer::first();
+$syncService = app(WorkflowSyncService::class);
+
+$stats = $syncService->syncCustomerWorkflows($customer);
+
+// Output:
+// [
+//     'created' => 5,
+//     'updated' => 3,
+//     'deleted' => 1,
+//     'total' => 9,
+//     'errors' => []
+// ]
+```
+
+#### Workflow
+
+1. **Validate customer credentials**:
+   - Verify `zuora_client_id` is not empty
+   - Verify `zuora_client_secret` is not empty
+   - Verify `zuora_base_url` is valid URL
+
+2. **Iterate workflow pages**:
+   - Fetch from Zuora (50 per page)
+   - Continue until no more pages
+
+3. **For each workflow**:
+   - Call `syncWorkflowRecord()`
+   - Update statistics
+
+4. **Delete obsolete workflows**:
+   - Call `deleteStaleWorkflows()`
+
+5. **Log result**
+
+#### Credential Validation
+
+```php
+private function validateCustomerCredentials(Customer $customer): bool
+{
+    // Verify required fields
+    if (empty($customer->zuora_client_id)
+        || empty($customer->zuora_client_secret)
+        || empty($customer->zuora_base_url)
+    ) {
+        return false;
+    }
+
+    // Validate URL
+    if (filter_var($customer->zuora_base_url, FILTER_VALIDATE_URL) === false) {
+        return false;
+    }
+
+    return true;
+}
+```
+
+## Private Methods
+
+### syncWorkflowRecord()
+
+Synchronizes a single workflow record.
+
+#### Signature
+
+```php
+private function syncWorkflowRecord(Customer $customer, array $workflowData): array
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$customer` | `Customer` | Parent Customer instance |
+| `$workflowData` | `array` | Workflow data from Zuora |
+
+#### Returns
+
+```php
+[
+    'created' => bool,  // true if new workflow
+    'updated' => bool,  // true if updated
+]
+```
+
+#### Workflow
+
+1. **Get or create workflow**:
+   ```php
+   $workflow = Workflow::firstOrNew([
+       'zuora_id' => $zuoraId,
+       'customer_id' => $customer->id
+   ]);
+   ```
+
+2. **Download JSON export**:
+   ```php
+   $jsonExport = $this->downloadWorkflowJson($customer, $zuoraId);
+   ```
+
+3. **Fill and save**:
+   ```php
+   $workflow->fill([
+       'name' => $workflowData['name'],
+       'description' => $workflowData['description'],
+       'state' => $workflowData['state'],
+       'created_on' => $workflowData['created_on'],
+       'updated_on' => $workflowData['updated_on'],
+       'last_synced_at' => now(),
+       'json_export' => $jsonExport,
+   ])->save();
+   ```
+
+4. **Synchronize tasks** (delegates to Model):
+   ```php
+   $workflow->syncTasksFromJson();
+   ```
+
+### downloadWorkflowJson()
+
+Downloads the JSON export of a specific workflow.
+
+#### Signature
+
+```php
+private function downloadWorkflowJson(Customer $customer, string|int $workflowId): ?array
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$customer` | `Customer` | Customer instance |
+| `$workflowId` | `string\|int` | Zuora ID of the workflow |
+
+#### Returns
+
+- `array`: Complete JSON export
+- `null`: If error (logs warning)
+
+#### Workflow
+
+```php
+return $this->zuoraService->downloadWorkflow(
+    $customer->zuora_client_id,
+    $customer->zuora_client_secret,
+    $customer->zuora_base_url,
+    $workflowId
+);
+```
+
+### deleteStaleWorkflows()
+
+Deletes local workflows no longer present in Zuora.
+
+#### Signature
+
+```php
+private function deleteStaleWorkflows(Customer $customer, array $zuoraIds): int
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `$customer` | `Customer` | Customer instance |
+| `$zuoraIds` | `array` | Array of Zuora IDs present in Zuora |
+
+#### Returns
+
+- `int`: Number of workflows deleted
+
+#### Workflow
+
+```php
+return $customer->workflows()
+    ->whereNotIn('zuora_id', $zuoraIds)
+    ->delete();
+```
+
+## Constants
+
+### PAGE_SIZE
+
+```php
+private const PAGE_SIZE = 50;
+```
+
+Number of workflows to fetch per page from Zuora API.
+
+| Constant | Value | Description |
+|----------|--------|-------------|
+| `PAGE_SIZE` | 50 | Number of workflows per API request |
+
+## Configuration Options
+
+| Setting | Type | Default | Description |
+|----------|-------|----------|-------------|
+| Page Size | Integer | 50 | Number of workflows fetched per page from Zuora API |
+| Credential Validation | Boolean | Enabled | Validates customer credentials before sync starts |
+| Stale Workflow Cleanup | Boolean | Enabled | Automatically removes workflows no longer in Zuora |
+
+## Error Handling
+
+### Handled Errors
+
+| Error Type | Action | Retry |
+|------------|--------|--------|
+| Invalid credentials | Terminate job immediately | No |
+| Zuora API error | Add to `errors[]` array, continue with other workflows | No |
+| Network timeout | Add to `errors[]` array, continue with other workflows | No |
+| JSON parse error | Log warning, continue with other workflows | No |
+| Missing workflow ID | Skip workflow, continue with others | No |
+
+### Error Logging
+
+| Log Level | Condition | Context |
+|-----------|------------|----------|
+| `info` | Successful sync completion | Customer ID, statistics |
+| `warning` | Individual workflow download failure | Customer ID, workflow ID, error message |
+| `error` | Sync process failure | Customer ID, error message |
+
+### Logging
+
+```php
+Log::info('Workflow sync completed', [
+    'customer_id' => $customer->id,
+    'stats' => $stats,
+]);
+
+Log::error('Workflow sync failed', [
+    'customer_id' => $customer->id,
+    'error' => $e->getMessage(),
+]);
+```
+
+## Usage Examples
+
+### Synchronization from Job
+
+```php
+// app/Jobs/SyncCustomersJob.php
+class SyncCustomersJob implements ShouldQueue
+{
+    public function __construct(
+        private WorkflowSyncService $syncService
+    ) {}
+
+    public function handle(): void
+    {
+        $customers = Customer::all();
+
+        foreach ($customers as $customer) {
+            $stats = $this->syncService->syncCustomerWorkflows($customer);
+
+            Log::info('Synced customer', [
+                'customer' => $customer->name,
+                'stats' => $stats,
+            ]);
+        }
+    }
+}
+```
+
+### Synchronization from Command
+
+```php
+// app/Console/Commands/SyncWorkflows.php
+public function handle(): void
+{
+    $syncService = app(WorkflowSyncService::class);
+
+    if ($this->option('all')) {
+        // Synchronize all customers
+        Customer::each(function ($customer) use ($syncService) {
+            $stats = $syncService->syncCustomerWorkflows($customer);
+            $this->info("Synced {$stats['total']} workflows");
+        });
+    } elseif ($name = $this->option('customer')) {
+        // Synchronize specific customer
+        $customer = Customer::where('name', $name)->first();
+        $stats = $syncService->syncCustomerWorkflows($customer);
+        $this->info("Synced {$stats['total']} workflows for {$name}");
+    }
+}
+```
+
+### Manual Synchronization
+
+```php
+// In a controller
+public function sync(Customer $customer)
+{
+    $syncService = app(WorkflowSyncService::class);
+    $stats = $syncService->syncCustomerWorkflows($customer);
+
+    return response()->json([
+        'success' => empty($stats['errors']),
+        'stats' => $stats,
+    ]);
+}
+```
+
+## Performance Considerations
+
+### Pagination
+
+- Fetch 50 workflows per page
+- Avoid timeout on large datasets
+- Process sequentially
+
+### Eager Loading
+
+When synchronizing multiple customers, use eager loading:
+
+```php
+Customer::with('workflows')->get()->each(function ($customer) {
+    $syncService->syncCustomerWorkflows($customer);
+});
+```
+
+### Batch Processing
+
+For many customers, use batch processing:
+
+```php
+Customer::chunk(10, function ($customers) use ($syncService) {
+    foreach ($customers as $customer) {
+        $syncService->syncCustomerWorkflows($customer);
+    }
+});
+```
+
+## Testing
+
+### Unit Test Example
+
+```php
+// tests/Unit/WorkflowSyncServiceTest.php
+public function test_sync_customer_workflows()
+{
+    // Arrange
+    $customer = Customer::factory()->create();
+    $zuoraService = $this->mock(ZuoraService::class);
+    $syncService = new WorkflowSyncService($zuoraService);
+
+    $zuoraService->shouldReceive('listWorkflows')
+        ->once()
+        ->andReturn([
+            'data' => [
+                ['id' => 'wf1', 'name' => 'Workflow 1'],
+                ['id' => 'wf2', 'name' => 'Workflow 2'],
+            ],
+            'pagination' => ['next_page' => null]
+        ]);
+
+    $zuoraService->shouldReceive('downloadWorkflow')
+        ->twice()
+        ->andReturn(['tasks' => []]);
+
+    // Act
+    $stats = $syncService->syncCustomerWorkflows($customer);
+
+    // Assert
+    $this->assertEquals(2, $stats['total']);
+    $this->assertEquals(2, $stats['created']);
+    $this->assertEquals(0, $stats['updated']);
+    $this->assertEquals(0, $stats['deleted']);
+}
+```
+
+## See Also
+
+- [ZuoraService](/api/zuora-service) - Zuora API
+- [Workflow Model](/architecture/models#workflow) - Workflow Model
+- [Workflow Synchronization](/features/workflow-synchronization) - Synchronization guide

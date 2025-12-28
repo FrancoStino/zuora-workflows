@@ -1,0 +1,607 @@
+---
+title: Settings Management
+description: Guide to application general settings
+---
+
+# Settings Management
+
+General settings allow you to configure various aspects of the application via Settings interface, without directly modifying configuration files.
+
+## Overview
+
+### What is Settings?
+
+**Settings** is an interface to configure:
+
+- Site information (name, description)
+- OAuth configuration (enabled/disabled, credentials)
+- Administrator email
+- Maintenance mode
+
+### Settings vs Environment
+
+| Type | When to use | Examples |
+|------|----------------|---------|
+| **Settings** | Modifiable configurations from UI | OAuth credentials, site name |
+| **Environment (.env)** | Infrastructure configurations | Database connection, cache driver |
+
+<Tip>
+Use Settings for everything an administrator might want to modify without developer assistance.
+</Tip>
+
+### Spatie Laravel Settings
+
+Zuora Workflow Manager uses **Spatie Laravel Settings** package for:
+
+- Saving settings to database
+- Automatic type casting (bool, array, etc.)
+- Automatic settings caching
+- Evaluation without repeated queries
+
+## Settings Access
+
+### Prerequisites
+
+- Account with `super_admin` role
+- Access to admin panel
+
+### Navigation
+
+1. Log in to admin panel
+2. Navigate to **Settings** in the sidebar under **Settings group**
+3. Select **General Settings**
+
+<Note>
+Only users with `super_admin` role can access Settings.
+</Note>
+
+## Settings Sections
+
+### Site Information
+
+#### Site Name
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `site_name` |
+| **Type** | String |
+| **Required** | No |
+| **Default** | "Zuora Workflow Manager" |
+
+**Description**:
+Application name shown in:
+- Page title
+- Email notifications
+- Various UI elements
+
+#### Site Description
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `site_description` |
+| **Type** | String |
+| **Required** | No |
+| **Default** | Null |
+
+**Description**:
+Application description shown in:
+- Meta description (SEO)
+- Dashboard header
+- Notifications
+
+### OAuth Configuration
+
+#### OAuth Enabled
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `oauth_enabled` |
+| **Type** | Boolean |
+| **Required** | No |
+| **Default** | `false` |
+
+**Description**:
+Enables or disables Google OAuth login.
+
+- **true**: Shows "Sign in with Google" button on login page
+- **false**: Traditional login only (email + password)
+
+<Tip>
+Disable OAuth if you don't want to allow Google-based access.
+</Tip>
+
+#### Allowed Domains
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `oauth_allowed_domains` |
+| **Type** | Array |
+| **Required** | If OAuth enabled |
+| **Default** | `[]` (empty array) |
+
+**Description**:
+Email domains authorized to access via OAuth.
+
+**Format**:
+```
+example.com
+company.org
+*.startup.io
+```
+
+<Warning>
+If OAuth enabled but Allowed Domains is empty, OAuth access might be restricted.
+</Warning>
+
+**Wildcard Support**:
+- `*.example.com`: Allows `user@example.com`, `admin@example.com`
+- `company.org`: Allows only `@company.org` exactly
+
+#### Google Client ID
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `oauth_google_client_id` |
+| **Type** | String |
+| **Required** | If OAuth enabled |
+| **Default** | Null |
+
+**Description**:
+Client ID from Google Cloud Console.
+
+**Format**:
+```
+123456789-abcdefghijklmnop.apps.googleusercontent.com
+```
+
+<Tip>
+Get Client ID from Google Cloud Console → APIs & Services → Credentials.
+</Tip>
+
+#### Google Client Secret
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `oauth_google_client_secret` |
+| **Type** | String (encrypted) |
+| **Required** | If OAuth enabled |
+| **Default** | Null |
+
+**Description**:
+Client Secret from Google Cloud Console.
+
+**Format**:
+```
+GOCSPX-abcdefghijklmnopqrstuvwxyz123456
+```
+
+<Warning>
+The Client Secret is automatically encrypted in the database. It's not shown in plain text after being saved.
+</Warning>
+
+### Application Configuration
+
+#### Admin Email
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `admin_email` |
+| **Type** | String (email) |
+| **Required** | No |
+| **Default** | Null |
+
+**Description**:
+Default administrator email used for:
+
+- Email notifications
+- System alerts
+- From address for emails
+
+**Format**:
+```
+admin@example.com
+```
+
+### Maintenance
+
+#### Maintenance Mode
+
+| Property | Value |
+|-----------|--------|
+| **Field** | `maintenance_mode` |
+| **Type** | Boolean |
+| **Required** | No |
+| **Default** | `false` |
+
+**Description**:
+Enables or disables maintenance mode.
+
+- **true**: Application shows maintenance page to all users
+- **false**: Application is operational
+
+<Note>
+Users with `super_admin` role can still access during maintenance mode.
+</Note>
+
+## Saving Settings
+
+### Procedure
+
+1. Modify desired fields in various sections
+2. Click on **Save** in bottom right
+3. Changes are saved to database
+
+### Feedback
+
+- **Success**: Green notification "Settings saved successfully"
+- **Error**: Red notification with error message
+- **Validation**: Validation errors on fields
+
+## Settings vs Environment Variables
+
+### Priority
+
+Settings configured via UI have **priority over environment variables**:
+
+```php
+// In config/services.php
+'google' => [
+    'client_id' => env('OAUTH_GOOGLE_CLIENT_ID')
+        ?? app(GeneralSettings::class)->oauth_google_client_id,
+    'client_secret' => env('OAUTH_GOOGLE_CLIENT_SECRET')
+        ?? app(GeneralSettings::class)->oauth_google_client_secret,
+    'enabled' => env('OAUTH_ENABLED')
+        ?? app(GeneralSettings::class)->oauth_enabled,
+],
+```
+
+<Note>
+If a setting is configured both in .env and via UI, the UI value takes precedence.
+</Note>
+
+### When to use Settings
+
+Use Settings for:
+
+| Situation | Example |
+|-----------|----------|
+| Configurations that admin frequently modifies | OAuth credentials, site name |
+| Values that don't require application restart | Email templates, feature toggles |
+| Values specific to multi-tenant instance | Customer-specific settings |
+| Sensitive settings you don't want in .env | API secrets |
+
+### When to use .env
+
+Use .env for:
+
+| Situation | Example |
+|-----------|----------|
+| Infrastructure configurations | Database connection, cache driver |
+| Values that never change | APP_KEY, APP_URL |
+| Configurations that require restart | Queue driver, log level |
+| Settings critical for deployment | Environment (production/development) |
+
+## Caching Settings
+
+### Automatic Cache
+
+Spatie Laravel Settings automatically caches:
+
+```php
+// First call: database query
+$settings = app(GeneralSettings::class);
+
+// Subsequent calls: cache (no query)
+$settings = app(GeneralSettings::class);
+```
+
+### Cache Clearing
+
+To update settings immediately after modification:
+
+```bash
+# Clear settings cache
+lando artisan settings:clear
+
+# Clear all cache
+lando artisan cache:clear
+```
+
+<Tip>
+After modifying settings, clear cache to apply changes.
+</Tip>
+
+### Cache Duration
+
+The cache lasts until explicitly cleared or server is restarted.
+
+## Accessing Settings via Code
+
+### In Controller/Service
+
+```php
+// Get settings instance
+$settings = app(GeneralSettings::class);
+
+// Access properties
+$siteName = $settings->site_name;
+$oauthEnabled = $settings->oauth_enabled;
+$allowedDomains = $settings->oauth_allowed_domains;
+
+// Modify settings
+$settings->site_name = 'New Name';
+$settings->save(); // Saves to database and clears cache
+```
+
+### In Blade Template
+
+```blade
+{{-- Direct access --}}
+{{ app(App\Settings\GeneralSettings::class)->site_name }}
+
+{{-- In variable --}}
+@php
+    $settings = app(App\Settings\GeneralSettings::class);
+@endphp
+{{ $settings->site_description }}
+```
+
+### In CLI/Tinker
+
+```bash
+lando artisan tinker
+
+>>> $settings = app(GeneralSettings::class)
+>>> $settings->site_name
+"Zuora Workflow Manager"
+>>> $settings->oauth_enabled
+true
+>>> $settings->oauth_allowed_domains
+[
+  "example.com",
+  "company.org"
+]
+```
+
+## Settings Migration
+
+### Migrating Settings
+
+When adding or removing settings:
+
+1. Update `GeneralSettings` class
+2. Run migration if necessary
+3. Clear settings cache
+
+```bash
+# Clear cache
+lando artisan settings:clear
+
+# Verify new settings
+lando artisan tinker
+>>> $settings = app(GeneralSettings::class)
+>>> dd($settings)
+```
+
+### Default Values
+
+Default values are defined in `GeneralSettings.php`:
+
+```php
+class GeneralSettings extends Settings
+{
+    public string $site_name = 'Zuora Workflow Manager';
+    public bool $oauth_enabled = false;
+    public array $oauth_allowed_domains = [];
+    // ...
+}
+```
+
+## Troubleshooting
+
+### Settings not saving
+
+**Symptom**: Click "Save" but changes not saved
+
+**Possible causes**:
+
+1. **Validation error**:
+   - Check red notifications
+   - Verify required fields
+
+2. **Database error**:
+   - Verify database connection
+   - Check logs
+
+3. **Cache not cleared**:
+   ```bash
+   lando artisan cache:clear
+   ```
+
+**Solutions**:
+
+1. **Verify validation**:
+   - All required fields filled?
+   - Email formats valid?
+   - Password requirements?
+
+2. **Check logs**:
+   ```bash
+   lando logs -f | grep -i "settings"
+   ```
+
+### OAuth not working after changes
+
+**Symptom**: Modified OAuth settings but login doesn't work
+
+**Possible causes**:
+
+1. **Incorrect credentials**:
+   - Verify Client ID and Secret
+
+2. **Cache not cleared**:
+   ```bash
+   lando artisan cache:clear
+   ```
+
+3. **Redirect URI**:
+   - Verify on Google Cloud Console
+   - Must be: `{APP_URL}/oauth/google/callback`
+
+**Solutions**:
+
+See [OAuth Management](/features/oauth-management) for detailed troubleshooting.
+
+### Settings not visible
+
+**Symptom**: Settings page empty or errors
+
+**Possible causes**:
+
+1. **Not super_admin**:
+   - Only super_admin can see Settings
+
+2. **Class not registered**:
+   - Verify SettingsServiceProvider
+
+3. **Migration not run**:
+   ```bash
+   lando artisan migrate
+   ```
+
+**Solutions**:
+
+1. **Verify role**:
+   ```bash
+   >>> auth()->user()->roles
+   ```
+
+2. **Verify ServiceProvider**:
+   - Check `app/Providers/SettingsServiceProvider.php`
+   - Verify that `GeneralSettings` is registered
+
+3. **Run migrations**:
+   ```bash
+   lando artisan migrate:refresh
+   ```
+
+## Best Practices
+
+### Settings Management
+
+**1. Documentation**:
+   - Document every added setting
+   - Explain purpose and valid values
+   - Configuration examples
+
+**2. Versioning**:
+   - Track settings changes
+   - Note date and author of changes
+   - Keep backup of important settings
+
+**3. Testing**:
+   - Test settings in staging environment before production
+   - Verify changes work as expected
+   - Test fallbacks if settings missing
+
+### Security
+
+**1. Access Protection**:
+   - Only super_admin can modify settings
+   - Log all settings changes
+   - Consider MFA for critical settings
+
+**2. Encryption**:
+   - Client Secret and other secrets encrypted
+   - Don't show secrets in plain text after saving
+   - Use strong APP_KEY
+
+**3. Validation**:
+   - Validate all settings inputs
+   - Sanitize to prevent XSS/SQL injection
+   - Use appropriate type casting
+
+### Performance
+
+**1. Caching**:
+   - Use settings cache (automatic with Spatie)
+   - Clear cache only when necessary
+   - Avoid repeated queries
+
+**2. Lazy Loading**:
+   - Don't load settings if not needed
+   - Access via `app()` only when needed
+
+**3. Optimize**:
+   - Group settings changes into single `save()` call
+   - Avoid repeated saves
+
+## API Reference
+
+### GeneralSettings Class
+
+```php
+class GeneralSettings extends Settings
+{
+    public string $site_name;
+    public string|null $site_description;
+    public bool $oauth_enabled;
+    public array $oauth_allowed_domains;
+    public string|null $oauth_google_client_id;
+    public string|null $oauth_google_client_secret;
+    public string|null $admin_email;
+    public bool $maintenance_mode;
+
+    // Helper methods can be added
+    public function isOAuthEnabled(): bool
+    {
+        return $this->oauth_enabled;
+    }
+
+    public function isEmailDomainAllowed(string $email): bool
+    {
+        $domain = Str::after($email, '@');
+        return in_array($domain, $this->oauth_allowed_domains);
+    }
+}
+```
+
+### Access Pattern
+
+```php
+// Singleton pattern (recommended)
+$settings = app(GeneralSettings::class);
+
+// Facade pattern (if defined)
+use App\Facades\Settings;
+$siteName = Settings::get('site_name');
+
+// Dependency Injection (in service)
+class MyService
+{
+    public function __construct(
+        private GeneralSettings $settings
+    ) {}
+
+    public function doSomething(): void
+    {
+        $enabled = $this->settings->oauth_enabled;
+    }
+}
+```
+
+## Next Steps
+
+After configuring settings:
+
+<CardGroup cols={2}>
+  <Card title="OAuth Management" icon="google" href="/features/oauth-management">
+    Configure Google OAuth in detail
+  </Card>
+  <Card title="User Management" icon="user" href="/features/user-management">
+    Create and manage users
+  </Card>
+  <Card title="Setup Wizard" icon="cog" href="/features/setup-wizard">
+    Repeat initial setup
+  </Card>
+</CardGroup>

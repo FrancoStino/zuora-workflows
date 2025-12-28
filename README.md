@@ -6,9 +6,10 @@
   <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="60%">
 </figure><br /><br />
 
-[![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/FrancoStino/zuora-workflows?style=for-the-badge&color=2196F3&logoColor=white)](https://github.com/FrancoStino/zuora-workflows/releases)
-[![Read the Docs](https://img.shields.io/badge/Read%20the%20Docs-000?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://francostino.github.io/zuora-workflows/)
+[![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
+<br />
+[![Read the Docs](https://img.shields.io/badge/Read%20the%20Docs-000?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://docs.zuora.workflows.davideladisa.it/)
 </div>
 
 A powerful web application for synchronizing, viewing, and managing Zuora workflows directly from your [Filament admin
@@ -17,9 +18,17 @@ dashboards, and comprehensive workflow management.
 
 ## Table of Contents
 
-- [Features](#features) • [Requirements](#requirements) • [Installation](#installation) • [Configuration](#configuration)
-- [Usage](#usage) • [Architecture](#architecture) • [Database Schema](#database-schema)
-- [Monitoring](#monitoring--troubleshooting) • [Testing](#testing) • [Contributing](#contributing) • [License](#license)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Architecture](#architecture)
+- [Database Schema](#database-schema)
+- [Monitoring](#monitoring--troubleshooting)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 

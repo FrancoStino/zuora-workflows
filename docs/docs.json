@@ -1,92 +1,104 @@
 {
-  "$schema": "https://mintlify.com/schema.json",
-  "theme": "mint",
-  "name": "Zuora Workflow",
-  "description": "A comprehensive workflow management system for Zuora with synchronization, visualization, and monitoring capabilities",
-  "colors": {
-    "primary": "#0D9488",
-    "dark": "#0D9488",
-    "light": "#0D9488"
-  },
-  "logo": {
-    "dark": "/assets/images/logo-white.svg",
-    "light": "/assets/images/logo.svg"
-  },
-  "favicon": {
-    "dark": "/assets/images/favicon.ico",
-    "light": "/assets/images/favicon.ico"
-  },
-  "navbar": {
-    "primary": {
-      "type": "github",
-      "href": "https://github.com/FrancoStino/zuora-workflows"
+    "$schema": "https://mintlify.com/schema.json",
+    "theme": "mint",
+    "name": "Zuora Workflow",
+    "description": "A comprehensive workflow management system for Zuora with synchronization, visualization, and monitoring capabilities",
+    "colors": {
+        "primary": "#0D9488",
+        "dark": "#0D9488",
+        "light": "#0D9488"
+    },
+    "logo": {
+        "dark": "/assets/images/logo-white.svg",
+        "light": "/assets/images/logo.svg"
+    },
+    "favicon": {
+        "dark": "/assets/images/favicon.ico",
+        "light": "/assets/images/favicon.ico"
+    },
+    "navbar": {
+        "primary": {
+            "type": "github",
+            "href": "https://github.com/FrancoStino/zuora-workflows"
+        }
+    },
+    "navigation": {
+        "groups": [
+            {
+                "group": "Overview",
+                "pages": [
+                    "index",
+                    "introduction"
+                ]
+            },
+            {
+                "group": "Getting started",
+                "pages": [
+                    "getting-started/requirements",
+                    "getting-started/installtion",
+                    "getting-started/configuration",
+                    "getting-started/first-use"
+                ]
+            },
+            {
+                "group": "Architecture",
+                "pages": [
+                    "architecture/overview"
+                ]
+            },
+            {
+                "group": "Features",
+                "pages": [
+                    "features/customer-management",
+                    "features/user-management",
+                    "features/role-management",
+                    "features/oauth-management",
+                    "features/task-management",
+                    "features/workflow-management",
+                    "features/dashboard-widgets",
+                    "features/jobs-monitoring",
+                    "features/setup-wizard",
+                    "features/settings-management",
+                    "features/workflow-synchronization"
+                ]
+            },
+            {
+                "group": "Developer guide",
+                "pages": [
+                    "developer/cli-commands",
+                    "developer/troubleshooting"
+                ]
+            },
+            {
+                "group": "API reference",
+                "pages": [
+                    "api/zuora-service",
+                    "api/workflow-sync-service",
+                    "api/oauth-service"
+                ]
+            }
+        ]
+    },
+    "background": {
+        "decoration": "gradient"
+    },
+    "search": {
+        "prompt": "Search..."
+    },
+    "api": {
+        "playground": {
+            "display": "interactive"
+        }
+    },
+    "appearance": {
+        "default": "system"
+    },
+    "footer": {
+        "socials": {
+            "website": "https://www.davideladisa.it/",
+            "linkedin": "https://www.linkedin.com/in/davide-ladisa/",
+            "github": "https://github.com/FrancoStino/",
+            "instagram": "https://www.instagram.com/davideladisa.it/"
+        }
     }
-  },
-  "navigation": {
-    "groups": [
-      {
-        "group": "Overview",
-        "pages": [
-          "index",
-          "introduction"
-        ]
-      },
-      {
-        "group": "Getting started",
-        "pages": [
-          "getting-started/requirements",
-          "getting-started/installation",
-          "getting-started/configuration",
-          "getting-started/first-use"
-        ]
-      },
-      {
-        "group": "Architecture",
-        "pages": [
-          "architecture/overview"
-        ]
-      },
-      {
-        "group": "Features",
-        "pages": [
-          "features/workflow-synchronization"
-        ]
-      },
-      {
-        "group": "Developer guide",
-        "pages": [
-          "developer/cli-commands",
-          "developer/troubleshooting"
-        ]
-      },
-      {
-        "group": "API reference",
-        "pages": [
-          "api/zuora-service"
-        ]
-      }
-    ]
-  },
-  "background": {
-    "decoration": "gradient"
-  },
-  "search": {
-    "prompt": "Search or ask"
-  },
-  "api": {
-    "playground": {
-      "display": "interactive"
-    }
-  },
-  "appearance": {
-    "default": "system"
-  },
-  "footer": {
-    "socials": {
-      "website": "https://www.davideladisa.it",
-      "linkedin": "https://www.linkedin.com/in/davide-ladisa/",
-      "github": "https://github.com/FrancoStino/",
-      "instagram": "https://www.instagram.com/davideladisa.it/"
-    }
-  }
 }
