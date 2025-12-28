@@ -50,6 +50,17 @@
     ]
   },
   "background": {
-    "decoration": "windows"
+    "decoration": "gradient"
+  },
+  "search": {
+    "prompt": "Search or ask"
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
+    }
+  },
+  "appearance": {
+    "default": "system"
   }
 }
