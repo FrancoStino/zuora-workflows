@@ -2,6 +2,7 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "Zuora Workflow",
   "description": "A comprehensive workflow management system for Zuora with synchronization, visualization, and monitoring capabilities",
+  "theme": "mint",
   "logo": {
     "dark": "/images/logo-white.svg",
     "light": "/images/logo.svg"
