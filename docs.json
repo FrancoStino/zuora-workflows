@@ -1,0 +1,79 @@
+{
+  "name": "Zuora Workflow Manager",
+  "logo": {
+    "light": "/images/logo.svg",
+    "dark": "/images/logo-white.svg"
+  },
+  "favicon": "/images/favicon.ico",
+  "colors": {
+    "primary": "#2196F3",
+    "light": "#4CAF50",
+    "dark": "#1976D2"
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Panoramica",
+        "pages": [
+          "index",
+          "introduzione"
+        ]
+      },
+      {
+        "group": "Guida introduttiva",
+        "pages": [
+          "getting-started/requisiti",
+          "getting-started/installazione",
+          "getting-started/configurazione",
+          "getting-started/primo-utilizzo"
+        ]
+      },
+      {
+        "group": "Architettura",
+        "pages": [
+          "architecture/panoramica",
+          "architecture/service-layer",
+          "architecture/models",
+          "architecture/jobs-queue",
+          "architecture/filament-ui"
+        ]
+      },
+      {
+        "group": "Funzionalità",
+        "pages": [
+          "features/sincronizzazione-workflow",
+          "features/gestione-customer",
+          "features/gestione-task",
+          "features/visualizzazione-workflow",
+          "features/settings"
+        ]
+      },
+      {
+        "group": "Guida sviluppatore",
+        "pages": [
+          "developer/comandi-cli",
+          "developer/api-zuora",
+          "developer/database-schema",
+          "developer/testing",
+          "developer/troubleshooting"
+        ]
+      },
+      {
+        "group": "Deployment",
+        "pages": [
+          "deployment/produzione",
+          "deployment/queue-worker",
+          "deployment/monitoraggio"
+        ]
+      },
+      {
+        "group": "Riferimenti API",
+        "pages": [
+          "api/zuora-service",
+          "api/workflow-sync-service",
+          "api/models"
+        ]
+      }
+    ]
+  }
+}
