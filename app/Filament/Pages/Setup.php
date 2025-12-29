@@ -3,40 +3,40 @@
 namespace App\Filament\Pages;
 
 use App\Exceptions\SetupException;
-use App\Models\AppSetting;
+use App\Filament\Concerns\HasGeneralSettingsSchema;
 use App\Models\User;
-use App\Rules\ValidateDomain;
+use App\Settings\GeneralSettings;
 use BackedEnum;
 use Exception;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Checkbox;
-use Filament\Forms\Components\Placeholder;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Wizard;
 use Filament\Schemas\Components\Wizard\Step;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
-use Log;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use Throwable;
 
 class Setup extends Page implements HasForms
 {
+    use HasGeneralSettingsSchema;
     use InteractsWithForms;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
     protected static bool $shouldRegisterNavigation = false;
 
@@ -56,38 +56,16 @@ class Setup extends Page implements HasForms
 
     public function mount(): void
     {
-        if ($this->isSetupCompleted()) {
-            $this->redirectBasedOnAuthStatus();
-
-            return;
-        }
-
+        // Il middleware AuthenticateWithSetupBypass gestisce il redirect
+        // se il setup è completato, quindi qui arriviamo solo se:
+        // 1. Setup non completato, oppure
+        // 2. Setup completato + parametro ?reset presente
         $this->form->fill();
-    }
-
-    /**
-     * Check if application setup is already completed.
-     */
-    private function isSetupCompleted(): bool
-    {
-        $setupRecord = DB::table('setup_completed')->first();
-
-        return $setupRecord && $setupRecord->completed;
-    }
-
-    /**
-     * Redirect user based on authentication status.
-     */
-    private function redirectBasedOnAuthStatus(): void
-    {
-        $redirectPath = Auth::check() ? '/' : '/login';
-        $this->redirect($redirectPath);
     }
 
     public function form(Schema $schema): Schema
     {
         return $schema
-            ->columns(1)
             ->schema([
                 Wizard::make([
                     Step::make('Welcome')
@@ -95,36 +73,14 @@ class Setup extends Page implements HasForms
                         ->schema([
                             Section::make()
                                 ->schema([
-                                    Placeholder::make('welcome')
-                                        ->content(new HtmlString('Welcome to Zuora Workflows! This wizard will help you set up your application. You will create the first administrator account and configure OAuth and Zuora settings.')),
+                                    TextEntry::make('welcome')
+                                        ->state(new HtmlString('Welcome to Zuora Workflows! This wizard will help you set up your application. You will create the first administrator account and configure OAuth and Zuora settings.')),
                                 ]),
                         ]),
                     Step::make('OAuth Configuration')
-                        ->description('Configure OAuth allowed domains')
+                        ->description('Configure Google OAuth settings')
                         ->columns(1)
-                        ->schema([
-                            Placeholder::make('oauth_info')
-                                ->content(new HtmlString('Configure which email domains are allowed to login via Google OAuth. Leave empty to allow all domains.')),
-                            Checkbox::make('allowed_domains_checkbox')
-                                ->label('Do you want configure allowed domain?')
-                                ->live(),
-                            TagsInput::make('oauth_domains')
-                                ->label('Allowed Email Domains')
-                                ->placeholder('example.com, company.com')
-                                ->helperText('Enter comma-separated domains (e.g., example.com, company.com). Leave empty to allow all domains.')
-                                ->separator(',')
-                                ->splitKeys(['Tab', ' ', ','])
-                                ->trim()
-                                ->rules(['array', new ValidateDomain])
-                                ->required(fn (Get $get): bool => $get('allowed_domains_checkbox'))
-                                ->prefix('https://(www.)?')
-                                ->suffixIcon(Heroicon::GlobeAlt)
-                                ->visible(fn (Get $get): bool => $get('allowed_domains_checkbox'))
-                                ->suggestions([
-                                    // TODO: Inserire il dominio attuale dinamicamente (secondo e primo livello)
-
-                                ]),
-                        ]),
+                        ->schema($this->getOAuthFields()), // Reuse OAuth schema components
                     Step::make('Admin Account')
                         ->description('Create your administrator account')
                         ->columns(1)
@@ -137,26 +93,27 @@ class Setup extends Page implements HasForms
                                 ->label('Surname')
                                 ->required()
                                 ->maxLength(255),
-                            TextInput::make('email')
-                                ->label('Email Address')
+                            TextInput::make('admin_default_email')
+                                ->columnSpanFull()
+                                ->label('Admin Default Email')
                                 ->email()
                                 ->required()
-                                ->unique(User::class, 'email')
-                                ->maxLength(255),
-                        ]),
-                    Step::make('Summary')
-                        ->description('Review and complete the setup')
-                        ->schema([
-                            Placeholder::make('summary')
-                                ->content(new HtmlString('You are about to complete the setup. Please review the information and click "Complete Setup" to finalize the process.')),
+                                ->maxLength(255)
+                                ->helperText('The default email for the administrator account.'),
+                            TextInput::make('admin_password')
+                                ->label('Admin Password')
+                                ->password()
+                                ->required()
+                                ->revealable()
+                                ->minLength(8)
+                                ->helperText('Set a password for admin account  '),
                         ]),
                 ])
                     ->submitAction(
                         Action::make('completeSetup')
                             ->label('Complete Setup')
                             ->action('completeSetup')
-                    )
-                    ->columnSpan('full'),
+                    ),
             ])
             ->statePath('data');
     }
@@ -165,9 +122,9 @@ class Setup extends Page implements HasForms
      * Complete the setup process by creating user, assigning roles, and finalizing configuration.
      * Orchestrates all setup steps with transactional integrity.
      *
-     * @throws SetupException
+     * @throws SetupException|Throwable
      */
-    public function completeSetup(): void
+    public function completeSetup(GeneralSettings $settings): void
     {
         $data = $this->form->getState();
 
@@ -176,7 +133,7 @@ class Setup extends Page implements HasForms
 
             $user = $this->createAdminUser($data);
             $this->generateShieldRolesIfNeeded($user);
-            $this->saveOAuthConfiguration($data);
+            $this->saveConfiguration($data, $settings);
             $this->markSetupAsCompleted();
 
             DB::commit();
@@ -200,11 +157,26 @@ class Setup extends Page implements HasForms
      */
     private function createAdminUser(array $data): User
     {
+        $user = User::where('email', $data['admin_default_email'])->first();
+
+        if ($user) {
+            $user->update([
+                'name' => $data['name'],
+                'surname' => $data['surname'],
+            ]);
+
+            if (! empty($data['admin_password'])) {
+                $user->update(['password' => bcrypt($data['admin_password'])]);
+            }
+
+            return $user;
+        }
+
         return User::create([
             'name' => $data['name'],
             'surname' => $data['surname'],
-            'email' => $data['email'],
-            'password' => null,
+            'email' => $data['admin_default_email'],
+            'password' => ! empty($data['admin_password']) ? bcrypt($data['admin_password']) : null,
         ]);
     }
 
@@ -213,7 +185,7 @@ class Setup extends Page implements HasForms
      *
      * @param  User  $user  The admin user to assign super-admin role
      *
-     * @throws SetupException
+     * @throws SetupException|BindingResolutionException
      */
     private function generateShieldRolesIfNeeded(User $user): void
     {
@@ -263,6 +235,8 @@ class Setup extends Page implements HasForms
         $permissions = [
             'ViewAny:Workflow',
             'View:Workflow',
+            'ViewAny:Task',
+            'View:Task',
         ];
 
         foreach ($permissions as $permissionName) {
@@ -283,17 +257,25 @@ class Setup extends Page implements HasForms
     }
 
     /**
-     * Save OAuth domain configuration if provided.
+     * Save OAuth configuration to settings.
      *
      * @param  array<string, mixed>  $data  Setup form data
      */
-    private function saveOAuthConfiguration(array $data): void
+    private function saveConfiguration(array $data, GeneralSettings $settings): void
     {
-        if (empty($data['oauth_domains'])) {
-            return;
-        }
+        $settings->site_name = $data['site_name'] ?? $settings->site_name;
+        $settings->site_description = $data['site_description'] ?? $settings->site_description;
 
-        AppSetting::setOAuthDomains($data['oauth_domains']);
+        $settings->maintenance_mode = $data['maintenance_mode'] ?? $settings->maintenance_mode;
+
+        $settings->oauth_enabled = $data['oauth_enabled'] ?? $settings->oauth_enabled;
+
+        if ($settings->oauth_enabled) {
+            $settings->oauth_google_client_id = $data['oauth_google_client_id'] ?? $settings->oauth_google_client_id;
+            $settings->oauth_google_client_secret = $data['oauth_google_client_secret'] ?? $settings->oauth_google_client_secret;
+            $settings->oauth_allowed_domains = $data['oauth_allowed_domains'] ?? $settings->oauth_allowed_domains;
+        }
+        $settings->save();
     }
 
     /**

@@ -1,0 +1,483 @@
+---
+title: Task Management
+description: Guide to visualization and management of tasks extracted from workflows
+---
+
+# Task Management
+
+Tasks are the operational units that compose Zuora Workflows. They are automatically extracted from each workflow's JSON export during synchronization.
+
+## Overview
+
+### What is a Task?
+
+A **Task** in Zuora Workflow Manager represents:
+
+- An action or step within a Zuora Workflow
+- An element that executes when the workflow is triggered
+- A node in the workflow graph with connections to other tasks
+
+### Automatic Extraction
+
+Tasks are **automatically extracted** from the workflow's JSON export:
+
+```php
+// In the Workflow Model
+public function syncTasksFromJson(): int
+{
+    $tasksData = $this->json_export['tasks'];
+
+    foreach ($tasksData as $taskData) {
+        $this->tasks()->updateOrCreate(
+            ['task_id' => $taskData['id']],
+            $taskAttributes
+        );
+    }
+}
+```
+
+No manual task creation is needed.
+
+### Relationships
+
+```
+Customer
+  └─ Workflows (hasMany)
+      └─ Tasks (hasMany)
+```
+
+## Task Structure
+
+### Main Attributes
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **id** | Integer | Internal task ID |
+| **task_id** | String | Zuora Task ID |
+| **workflow_id** | Integer | Parent workflow ID |
+| **name** | String | Task name |
+| **description** | String? | Auto-generated description |
+| **action_type** | String? | Action type (Email, Export, SOAP, etc.) |
+| **object** | String? | Zuora object it acts on |
+| **state** | String | Task state (default: 'pending') |
+| **priority** | String | Priority (High, Medium, Low) |
+| **call_type** | String? | API call type |
+| **next_task_id** | String? | Next task ID |
+| **created_on** | DateTime | Creation date from Zuora |
+| **updated_on** | DateTime | Update date from Zuora |
+
+### Advanced Attributes
+
+| Field | Type | Description |
+|-------|------|-------------|
+| **parameters** | JSON | Task configuration parameters |
+| **tags** | Array | Associated tags |
+| **assignment** | Array | Task assignments |
+| **zuora_org_id** | String? | Zuora organization ID |
+| **zuora_org_ids** | Array | List of org IDs |
+| **subprocess_id** | String? | Subprocess ID |
+| **concurrent_limit** | Integer | Concurrent execution limit |
+
+## Task Types
+
+### Common Action Types
+
+| Type | Description | Example |
+|------|-------------|----------|
+| **Email** | Send email | Send Invoice Email |
+| **Export** | Export data | Export Subscriptions |
+| **SOAP** | Call SOAP API | Call REST API |
+| **Wait** | Wait for a time period | Wait 24 hours |
+| **Decision** | Logical branching | Check Subscription Status |
+| **Subprocess** | Call another workflow | Call Renewal Workflow |
+| **DataFlow** | Data operation | Transform Data |
+
+### Visualizing by Type
+
+The Tasks table shows the **action_type** as a colored badge:
+
+- 🟧 Email - Orange color
+- 🟦 Export - Blue color
+- 🟩 SOAP - Green color
+- 🟨 Decision - Yellow color
+- ⬜ Wait - Gray color
+
+## Viewing Tasks
+
+### Tasks List
+
+1. Navigate to **Tasks** in the sidebar under **Zuora Management**
+
+The Tasks table shows:
+
+| Column | Description |
+|---------|-------------|
+| **ID** | Internal task ID |
+| **Name** | Task name |
+| **Workflow** | Parent workflow (clickable) |
+| **Action Type** | Action type (badge) |
+| **Priority** | Priority (badge) |
+| **State** | State (badge) |
+| **Created On** | Creation date |
+| **Actions** | Available actions |
+
+### Filters
+
+The Tasks table has advanced filters:
+
+#### Filter by Workflow
+
+Filter tasks by a specific workflow:
+
+1. Click on the **Workflow** filter
+2. Select the workflow
+3. Table shows only tasks from that workflow
+
+#### Filter by Action Type
+
+Filter by action type:
+
+1. Click on the **Action Type** filter
+2. Select the type (Email, Export, etc.)
+3. Table shows only tasks of that type
+
+#### Filter by Priority
+
+Filter by priority:
+
+1. Click on the **Priority** filter
+2. Select: High, Medium, Low
+3. Table shows only tasks with that priority
+
+#### Filter by State
+
+Filter by state:
+
+1. Click on the **State** filter
+2. Select the state
+3. Table shows only tasks with that state
+
+### Navigation Badge
+
+The **Tasks** icon in the sidebar shows a badge with the total number of tasks.
+
+## Task Details
+
+### Detail Page
+
+Click on a task to see complete details.
+
+#### Information Tab
+
+Shows general information:
+
+- **Task ID**: Internal ID
+- **Zuora Task ID**: ID from Zuora
+- **Name**: Complete name
+- **Description**: Auto-generated description
+- **Workflow**: Link to parent workflow
+
+#### Parameters Tab
+
+Shows task configuration parameters in JSON:
+
+```json
+{
+  "email": {
+    "subject": "Invoice #12345",
+    "to": "customer@example.com",
+    "template": "invoice_template"
+  }
+}
+```
+
+For Email tasks, you'll see:
+- **subject**: Email subject
+- **to**: Recipient(s)
+- **template**: Email template used
+
+For Export tasks, you'll see:
+- **where_clause**: SQL condition
+- **export_format**: Export format (CSV, etc.)
+- **limit**: Record limit
+
+#### Tags Tab
+
+Shows associated tags:
+
+- Tags for categorization
+- Tags for search
+- Tags for organization
+
+#### Assignment Tab
+
+Shows task assignments:
+
+- Assigned users
+- Assigned groups
+- Assignment rules
+
+#### Metadata Tab
+
+Shows metadata:
+
+- **Created On**: Creation date from Zuora
+- **Updated On**: Update date from Zuora
+- **Zuora Org ID**: Organization ID
+- **Subprocess ID**: Subprocess ID
+
+## Searching Tasks
+
+### Global Search
+
+Use the global search (magnifying glass icon or `Cmd/Ctrl + K`):
+
+- Search by task name
+- Search by action type
+- Search by workflow name
+
+### Table Search
+
+1. Use the search bar above the table
+2. Type the search term
+3. Table filters automatically
+
+### Search Fields
+
+Global search includes:
+
+- **Name**: Task name
+- **Description**: Task description
+- **Action Type**: Action type
+- **Workflow Name**: Parent workflow name
+
+## Task Synchronization
+
+### Automatic Synchronization
+
+Tasks are synchronized automatically when:
+
+1. A workflow is synchronized from Zuora
+2. The JSON export is downloaded
+3. The `syncTasksFromJson()` method is executed
+
+<Note>
+No separate synchronization is needed for tasks. They are synchronized together with the workflow.
+</Note>
+
+### Manual Synchronization
+
+To force task synchronization for a workflow:
+
+1. Navigate to **Workflows**
+2. Click on the workflow
+3. Click the **Sync Tasks** button in the detail page
+
+### Task Updates
+
+When a workflow is synchronized:
+
+1. New tasks are created
+2. Existing tasks are updated
+3. Tasks no longer present are deleted (cleanup)
+
+<Tip>
+Automatic cleanup ensures tasks are always synchronized with the Zuora workflow.
+</Tip>
+
+## Priority Management
+
+### Priority Levels
+
+| Priority | Description | When to use |
+|----------|-------------|---------------|
+| **High** | Critical, must be executed immediately | Tasks with direct customer impact |
+| **Medium** | Normal, executed in standard order | Standard operational tasks |
+| **Low** | Not critical, can be delayed | Report or analytics tasks |
+
+### Priority Visualization
+
+Priority is shown as a colored badge:
+
+- 🔴 High - Red
+- 🟡 Medium - Yellow
+- 🟢 Low - Green
+
+### Modifying Priority
+
+<Tip>
+Priority is synchronized from Zuora and cannot be modified manually. To change priority, modify the workflow in Zuora.
+</Tip>
+
+## Task States
+
+### Available States
+
+| State | Description | When occurs |
+|-------|-------------|-------------------|
+| **pending** | Waiting for execution | Task created but not yet executed |
+| **running** | Currently executing | Task in progress of processing |
+| **completed** | Execution completed successfully | Task executed successfully |
+| **failed** | Execution failed | Task generated an error |
+| **skipped** | Skipped by condition | Decision task didn't select this path |
+
+<Note>
+By default, all tasks are synchronized with state `pending`. The state is updated by Zuora during workflow execution.
+</Note>
+
+## Analysis and Reporting
+
+### Analysis by Workflow
+
+View all tasks from a workflow:
+
+1. Open the workflow
+2. Click on **Tasks** tab
+3. See complete list of tasks
+
+This is useful for:
+
+- Understanding the workflow flow
+- Identifying critical tasks
+- Analyzing task dependencies
+
+### Analysis by Action Type
+
+Analyze task type distribution:
+
+1. Use **Action Type** filter
+2. Select each type
+3. Count the results
+
+Example of utility:
+
+- How many Email tasks in the system?
+- Which API calls are made most often?
+- Are there "Wait" tasks that are too long?
+
+### Analysis by Priority
+
+Identify critical tasks:
+
+1. Use **Priority** filter → **High**
+2. Review all high-priority tasks
+3. Analyze if they are truly critical
+
+## Best Practices
+
+### Workflow Analysis
+
+**Structured approach**:
+
+1. **First pass**: Overview
+   - Total number of tasks
+   - Distribution by action type
+   - Average priority
+
+2. **Second pass**: Detail
+   - High priority tasks
+   - Tasks with complex dependencies
+   - External integration tasks
+
+3. **Third pass**: Optimization
+   - Identify duplicate tasks
+   - Look for simplification opportunities
+   - Validate flow logic
+
+### Troubleshooting
+
+**Common problems**:
+
+1. **Missing tasks**:
+   - Verify workflow is synchronized
+   - Check that JSON export is complete
+   - Verify tasks exist in Zuora
+
+2. **Duplicate tasks**:
+   - Verify that `task_id` is unique
+   - Check that workflow is synchronized only once
+   - Verify that `syncTasksFromJson()` works correctly
+
+3. **Incorrect parameters**:
+   - Check that `parameters` JSON is valid
+   - Verify all required fields are present
+   - Compare with original JSON export
+
+### Performance
+
+**Optimizations**:
+
+1. **Eager Loading**:
+   - Always load the related workflow:
+     ```php
+     $tasks = Task::with('workflow')->get();
+     ```
+
+2. **Indexes**:
+   - Ensure indexes are present:
+     - `workflow_id`
+     - `task_id`
+     - `action_type`
+
+3. **Pagination**:
+   - Use pagination for many tasks:
+     ```php
+     Task::with('workflow')->paginate(50);
+     ```
+
+## API Reference
+
+### Task Model
+
+```php
+// Relationships
+$task->workflow;    // Parent workflow
+$task->workflow_id; // ID of the workflow
+
+// Common filters
+Task::where('workflow_id', $workflowId)->get();
+Task::where('action_type', 'Email')->get();
+Task::where('priority', 'High')->get();
+
+// Eager loading
+Task::with('workflow')->get();
+
+// Pagination
+Task::with('workflow')->paginate(50);
+
+// Sorting
+Task::orderBy('created_on', 'desc')->get();
+Task::orderBy('priority', 'desc')->get();
+```
+
+### TaskPolicy
+
+Permissions defined in `TaskPolicy`:
+
+| Permission | Description |
+|------------|-------------|
+| `viewAny` | View tasks list |
+| `view` | View task details |
+
+<Note>
+Tasks cannot be created, modified, or deleted manually. They are managed through workflow synchronization.
+</Note>
+
+## Next Steps
+
+After analyzing tasks:
+
+<CardGroup cols={2}>
+  <Card title="Workflow Management" icon="rectangle-stack" href="/features/workflow-management">
+    Manage and visualize workflows
+  </Card>
+  <Card title="Workflow Synchronization" icon="refresh" href="/features/workflow-synchronization">
+    Learn how to synchronize workflows
+  </Card>
+  <Card title="Graph Visualization" icon="chart-network" href="/features/workflow-visualization">
+    Explore interactive graphs
+  </Card>
+  <Card title="Analysis and Reports" icon="bar-chart" href="/features/workflow-analysis">
+    Create reports and analyze data
+  </Card>
+</CardGroup>

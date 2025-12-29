@@ -1,0 +1,484 @@
+---
+title: User Management
+description: Complete guide to system user management
+---
+
+# User Management
+
+User management allows you to create and manage accounts that access the Zuora Workflow Manager admin panel.
+
+## Overview
+
+### User Types
+
+Zuora Workflow Manager supports two authentication types:
+
+| Type | Description | When to use |
+|------|-------------|---------------|
+| **Classic authentication** | Email + local password | Internal users, developers, administrators |
+| **OAuth (Google)** | Access via Google Account | External clients, enterprise users |
+
+### Standard Roles
+
+The application uses **Filament Shield** for access control:
+
+| Role | Description | Permissions |
+|-------|-------------|----------|
+| **super_admin** | Full administrator | All permissions including Customers and Settings |
+| **workflow_user** | Workflow user | View access to Workflows and Tasks |
+| **panel_user** | Base user | Limited panel access |
+
+## Creating a User (Admin)
+
+### Prerequisites
+
+- Account with `super_admin` role
+- Access to Users section
+
+### Step 1: Navigate to Users
+
+1. Login to the admin panel
+2. Click **Users** in the sidebar
+
+### Step 2: Create New User
+
+1. Click the **New User** button in the top right
+2. Fill out the form:
+
+#### Form Fields
+
+| Field | Description | Required | Validation |
+|-------|-------------|----------|-------------|
+| **Name** | User's first name | Yes | Max 255 characters |
+| **Surname** | User's last name | Yes | Max 255 characters |
+| **Email** | Unique email | Yes | Valid email, unique |
+| **Password** | Account password | Yes | Minimum 8 characters |
+| **Roles** | Roles to assign | No | Multi-select |
+
+### Step 3: Assign Roles
+
+In the **Roles** field:
+
+1. Select one or more roles:
+   - `super_admin` → Full access
+   - `workflow_user` → View workflows and tasks
+   - `panel_user` → Base access
+
+2. You can assign multiple roles to the same user (accumulates permissions)
+
+<Note>
+Role assignment determines access to various sections of the admin panel.
+</Note>
+
+### Step 4: Save User
+
+Click **Create** to create the account.
+
+<Tip>
+If you don't specify a password, the user can set it on first login or use OAuth if enabled.
+</Tip>
+
+## Editing a User
+
+### Step 1: Select User
+
+1. Navigate to the Users list
+2. Click on the user to edit
+
+### Step 2: Edit Data
+
+You can modify:
+
+- **Name/Surname**: First and last name
+- **Email**: Email address
+- **Password**: Password (can leave blank to not modify)
+- **Roles**: Add or remove roles
+
+### Step 3: Save Changes
+
+Click **Save** to apply the changes.
+
+<Warning>
+Modifying email requires the new email to be unique in the system.
+</Warning>
+
+## Viewing Users
+
+### Users List
+
+The Users table shows:
+
+| Column | Description |
+|---------|-------------|
+| **Name** | User's full name |
+| **Email** | User's email |
+| **Roles** | Assigned roles (badges) |
+| **Created At** | Creation date |
+| **Updated At** | Last update date |
+| **Actions** | Available actions |
+
+### User Details
+
+Click on a user to see:
+
+- **Personal information**: Name, surname, email
+- **Avatar**: Profile image (from OAuth if present)
+- **Roles**: Complete list of assigned roles
+- **Permissions**: List of permissions derived from roles
+- **Dates**: Creation and last update
+
+## Assigning Roles
+
+### Edit Existing Roles
+
+1. Click on the user
+2. In the **Roles** section, select/deselect the roles
+3. Click **Save**
+
+### Multi-Role
+
+A user can have multiple roles:
+
+```php
+// Example: user with multiple roles
+$roles = ['super_admin', 'workflow_user'];
+
+// Permissions are combined
+// super_admin → All permissions
+// workflow_user → View workflows and tasks
+// Result: All permissions (super_admin takes precedence)
+```
+
+### Role Impact on Permissions
+
+| Role | Access to... |
+|-------|--------------|
+| `super_admin` | All sections: Customers, Workflows, Tasks, Users, Roles, Settings, Jobs |
+| `workflow_user` | Workflows, Tasks (read only) |
+| `panel_user` | Limited dashboard, no access to resources |
+
+## OAuth Authentication (Google)
+
+### OAuth Configuration
+
+Before enabling OAuth:
+
+1. Navigate to **Settings** → **General Settings**
+2. Select **OAuth Configuration**
+3. Configure:
+   - **OAuth Enabled**: `true`
+   - **Google Client ID**: Your Google OAuth Client ID
+   - **Google Client Secret**: Your Google OAuth Client Secret
+   - **Allowed Domains**: Allowed email domains (e.g., `example.com`)
+4. Click **Save**
+
+<Note>
+See the [OAuth Management](/features/oauth-management) section for detailed configuration instructions.
+</Note>
+
+### OAuth Access
+
+Users can access with:
+
+1. **Google Login**: Click "Sign in with Google" on the login page
+2. **Domain Validation**: The email domain must be in "Allowed Domains"
+3. **Automatic Creation**: If user doesn't exist, it's automatically created
+4. **Role Assignment**: New OAuth users receive the `workflow_user` role
+
+### OAuth Avatar
+
+When a user accesses via OAuth:
+
+- Avatar is automatically downloaded from Google
+- Saved in the `avatar_url` field of the User model
+- Displayed in the admin panel
+
+## Policies and Permissions
+
+### UserPolicy
+
+The `UserPolicy` defines who can do what:
+
+| Action | Who can execute |
+|--------|------------------|
+| `viewAny` | Users with `super_admin` role |
+| `view` | Users with `super_admin` role |
+| `create` | Users with `super_admin` role |
+| `update` | Users with `super_admin` role |
+| `delete` | Users with `super_admin` role |
+
+### Granular Permissions
+
+Beyond roles, Filament Shield provides granular permissions:
+
+```php
+// Permission examples
+'ViewAny:User'
+'View:User'
+'Create:User'
+'Update:User'
+'Delete:User'
+```
+
+These permissions can be modified in the **Roles** section.
+
+## Deleting a User
+
+### Warning
+
+Deleting a user:
+
+- Removes access to the system
+- Doesn't delete data created by the user (audit log remains)
+- Is irreversible
+
+### Procedure
+
+1. Click on the user to delete
+2. Click **Delete** in the top right corner
+3. Confirm deletion in the modal
+
+<Warning>
+You can only delete users that are not yourself. To delete your own account, use another super_admin account.
+</Warning>
+
+## Password Reset
+
+### Reset from Admin
+
+1. Click on the user
+2. Modify the **Password** field
+3. Enter the new password (minimum 8 characters)
+4. Click **Save**
+
+### Reset with CLI
+
+```bash
+# Reset password via tinker
+lando artisan tinker
+
+>>> $user = User::where('email', 'user@example.com')->first()
+>>> $user->password = Hash::make('new_password')
+>>> $user->save()
+```
+
+### Reset via Artisan
+
+```bash
+# Create new admin user if you've lost access
+lando artisan make:filament-user
+
+# Follow the instructions for:
+# - Email
+# - Password
+# - Full name
+```
+
+## Best Practices
+
+### Role Management
+
+**Principle of least privilege**:
+
+✅ **Good practices**:
+- Assign only necessary roles
+- Use `workflow_user` for users who only need to view
+- Limit `super_admin` access to a few trusted users
+- Revoke roles when no longer necessary
+
+❌ **Avoid**:
+- Giving `super_admin` to all users
+- Assigning roles without specific reason
+- Leaving obsolete roles active
+
+### Password Policy
+
+**Requirements**:
+- Minimum 8 characters
+- Mix of letters and numbers recommended
+- Special characters optional but recommended
+
+**Best practices**:
+- Change password regularly (every 90 days)
+- Don't reuse passwords
+- Use strong and unique passwords
+- Consider OAuth authentication for security
+
+### Security
+
+1. **Anomalous access**:
+   - Monitor unusual logins
+   - Check authentication logs
+   - Revoke access if suspicious
+
+2. **Forgotten passwords**:
+   - Use admin reset
+   - Don't share passwords via email
+   - Use secure channels to communicate new credentials
+
+3. **Multi-role**:
+   - Document why a user has multiple roles
+   - Revoke temporary roles when they expire
+   - Review roles periodically
+
+### Onboarding
+
+**Procedures for new users**:
+
+1. **Account creation**:
+   - Create user with appropriate role
+   - If needed, send welcome email
+   - Communicate login (email and initial password)
+
+2. **Training**:
+   - Provide link to documentation
+   - Explain accessible sections
+   - Show how to navigate in the panel
+
+3. **Monitoring**:
+   - Check first login
+   - Verify user can access correct resources
+   - Answer initial questions
+
+### Offboarding
+
+**Procedures for users leaving**:
+
+1. **Revoke access**:
+   - Delete or disable account
+   - Remove roles (if prefer to keep account)
+   - Reset password if deleting account
+
+2. **Audit**:
+   - Check data created by user
+   - Verify no operations in progress
+   - Reassign responsibilities if needed
+
+3. **Documentation**:
+   - Record revocation date
+   - Update internal registers
+   - Notify team of the change
+
+## Troubleshooting
+
+### User Cannot Login
+
+**Diagnosis**:
+
+```bash
+# Verify user exists
+lando artisan tinker
+>>> User::where('email', 'user@example.com')->first()
+
+# Verify password
+>>> $user = User::where('email', 'user@example.com')->first()
+>>> Hash::check('password', $user->password) // true/false
+
+# Verify roles
+>>> $user->getRoleNames()
+```
+
+**Solutions**:
+
+1. **Non-existent account**: Create new user
+2. **Incorrect password**: Reset password
+3. **Missing role**: Assign appropriate roles
+4. **Disabled account**: Check if user is active
+
+### Insufficient Permissions
+
+**Symptom**: User sees "Unauthorized" errors or doesn't see sections
+
+**Solutions**:
+
+1. **Verify roles**:
+   - Edit user
+   - Check assigned Roles
+   - Add missing roles
+
+2. **Reload permissions**:
+   ```bash
+   lando artisan cache:clear
+   lando artisan permission:cache-reset
+   ```
+
+3. **Check Policy**:
+   - Check that Policy doesn't restrict access
+   - Verify if there are specific restrictions
+
+### OAuth Not Working
+
+**Symptoms**:
+- Error "Domain not allowed"
+- Error "Invalid credentials"
+- User not created after OAuth login
+
+**Solutions**:
+
+1. **Verify domain**:
+   - Settings → General Settings → Allowed Domains
+   - Add user email domain
+
+2. **Verify Google credentials**:
+   - Google Cloud Console → Credentials
+   - Verify Client ID and Secret
+   - Verify Redirect URI
+
+3. **Check logs**:
+   ```bash
+   lando logs -f | grep -i "oauth"
+   ```
+
+## API Reference
+
+### User Model
+
+```php
+// Query user
+$user = User::where('email', 'user@example.com')->first();
+
+// Verify roles
+$user->hasRole('super_admin'); // true/false
+$user->hasAnyRole(['super_admin', 'workflow_user']); // true/false
+$user->hasAllRoles(['super_admin', 'workflow_user']); // true/false
+
+// Verify permissions
+$user->hasPermissionTo('ViewAny:Customer'); // true/false
+$user->can('delete', $user); // Policy check
+
+// Get roles
+$user->getRoleNames(); // Collection of strings
+$user->roles; // Collection of Role models
+
+// Get all permissions
+$user->getAllPermissions(); // Collection of Permission models
+```
+
+### Avatar URL
+
+```php
+// Get avatar URL
+$user->avatar_url; // null or string with image URL
+
+// Filament implementation
+$user->getFilamentAvatarUrl(); // HasAvatar interface method
+```
+
+## Next Steps
+
+After configuring users:
+
+<CardGroup cols={2}>
+  <Card title="Role Management" icon="shield-check" href="/features/role-management">
+    Configure roles and granular permissions
+  </Card>
+  <Card title="OAuth Management" icon="google" href="/features/oauth-management">
+    Configure Google OAuth authentication
+  </Card>
+  <Card title="Customer Management" icon="user-group" href="/features/customer-management">
+    Configure Zuora customers
+  </Card>
+  <Card title="RBAC Architecture" icon="sitemap" href="/architecture/rbac">
+    Deep dive into access control system
+  </Card>
+</CardGroup>

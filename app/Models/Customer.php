@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedCastZuoraClientSecret;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -16,6 +17,10 @@ class Customer extends Model
 
     protected $hidden = [
         'zuora_client_secret',
+    ];
+
+    protected $casts = [
+        'zuora_client_secret' => EncryptedCastZuoraClientSecret::class,
     ];
 
     public function workflows(): HasMany

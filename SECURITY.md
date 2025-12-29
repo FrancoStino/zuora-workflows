@@ -2,9 +2,11 @@
 
 ## Reporting Security Vulnerabilities
 
-We take security seriously. If you discover a security vulnerability in this project, please report it responsibly by emailing security@example.com instead of using the public issue tracker.
+We take security seriously. If you discover a security vulnerability in this project, please report it responsibly by
+emailing security@example.com instead of using the public issue tracker.
 
 When reporting a vulnerability, please include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact
@@ -13,11 +15,13 @@ When reporting a vulnerability, please include:
 ## Security Guidelines
 
 ### Requirements
+
 - All dependencies must be kept up to date
 - Code must pass security scanning tools
 - Sensitive data should never be committed to the repository
 
 ### Secure Coding Practices
+
 - Validate and sanitize all user inputs
 - Use parameterized queries to prevent SQL injection
 - Implement proper authentication and authorization
@@ -26,23 +30,28 @@ When reporting a vulnerability, please include:
 - Implement rate limiting for API endpoints
 
 ### Dependency Management
+
 - Regularly run `composer audit` and `npm audit`
 - Address security updates promptly
 - Keep Laravel and PHP versions supported and patched
 
 ## Supported Versions
 
-| Version | Supported          |
-|---------|--------------------|
-| 1.0+    | ✅ Fully supported |
+| Version | Supported         |
+|---------|-------------------|
+| 2.0+    | ✅ Fully supported |
+| 1.0+    | ❌ Not supported   |
 | 0.x     | ❌ Not supported   |
 
 ## Security Headers
+
 Ensure the following headers are configured in your web server:
+
 - `Strict-Transport-Security`
 - `X-Content-Type-Options`
 - `X-Frame-Options`
 - `Content-Security-Policy`
 
 ## Contact
+
 For security inquiries, please contact the security team.

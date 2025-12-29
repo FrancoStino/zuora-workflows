@@ -2,50 +2,34 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SyncCustomersJob;
 use App\Models\Customer;
-use App\Services\WorkflowSyncService;
 use Exception;
 use Illuminate\Console\Command;
 
 class SyncWorkflows extends Command
 {
-    protected $signature = 'app:sync-workflows {--customer=} {--all}';
+    protected $signature = 'app:sync-workflows {--customer=} {--all} {--sync : Run synchronously instead of queuing}';
 
-    protected $description = 'Sync workflows from Zuora API to local database per customer';
+    protected $description = 'Queue workflows sync jobs from Zuora API to local database per customer';
 
-    public function handle(WorkflowSyncService $syncService): int
+    public function handle(): int
     {
         try {
             if ($this->option('all')) {
-                return $this->syncAllCustomers($syncService);
+                return $this->queueAllCustomers();
             }
 
-            return $this->syncSingleCustomer($syncService);
+            return $this->queueSingleCustomer();
 
         } catch (Exception $e) {
-            $this->error('Error syncing workflows: '.$e->getMessage());
+            $this->error('Error queuing workflow sync: '.$e->getMessage());
 
             return 1;
         }
     }
 
-    private function syncSingleCustomer(WorkflowSyncService $syncService): int
-    {
-        $customerName = $this->option('customer');
-        if (! $customerName) {
-            $this->error('Specify --customer=NAME or use --all');
-
-            return 1;
-        }
-
-        $customer = Customer::where('name', $customerName)->firstOrFail();
-        $stats = $syncService->syncCustomerWorkflows($customer);
-        $this->displayStats($stats, $customer->name);
-
-        return 0;
-    }
-
-    private function syncAllCustomers(WorkflowSyncService $syncService): int
+    private function queueAllCustomers(): int
     {
         $customers = Customer::all();
 
@@ -55,31 +39,48 @@ class SyncWorkflows extends Command
             return 0;
         }
 
-        $this->info("Syncing {$customers->count()} customers...\n");
+        $this->info("Queuing sync jobs for {$customers->count()} customers...\n");
 
         foreach ($customers as $customer) {
-            $this->info("Syncing: {$customer->name}");
-            $stats = $syncService->syncCustomerWorkflows($customer);
-            $this->displayStats($stats, $customer->name);
+            if ($this->option('sync')) {
+                SyncCustomersJob::dispatchSync($customer);
+                $this->info("✓ Sync completed for: {$customer->name}");
+            } else {
+                SyncCustomersJob::dispatch($customer);
+                $this->info("✓ Sync job queued for: {$customer->name}");
+            }
+        }
+
+        $this->newLine();
+
+        if (! $this->option('sync')) {
+            $this->info('All jobs queued successfully. Monitor with:');
+            $this->line('  php artisan queue:work');
+            $this->line('  php artisan queue:monitor');
         }
 
         return 0;
     }
 
-    private function displayStats(array $stats, string $customerName): void
+    private function queueSingleCustomer(): int
     {
-        $this->line("<info>Customer: {$customerName}</info>");
-        $this->line("  Created: {$stats['created']}");
-        $this->line("  Updated: {$stats['updated']}");
-        $this->line("  Deleted: {$stats['deleted']}");
-        $this->line("  Total processed: {$stats['total']}");
+        $customerName = $this->option('customer');
+        if (! $customerName) {
+            $this->error('Specify --customer=NAME or use --all');
 
-        if (! empty($stats['errors'])) {
-            foreach ($stats['errors'] as $error) {
-                $this->error("  Error: {$error}");
-            }
+            return 1;
         }
 
-        $this->line('');
+        $customer = Customer::where('name', $customerName)->firstOrFail();
+
+        if ($this->option('sync')) {
+            SyncCustomersJob::dispatchSync($customer);
+            $this->info("✓ Sync completed for: {$customer->name}");
+        } else {
+            SyncCustomersJob::dispatch($customer);
+            $this->info("✓ Sync job queued for: {$customer->name}");
+        }
+
+        return 0;
     }
 }
