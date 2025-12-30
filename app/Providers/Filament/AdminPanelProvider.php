@@ -45,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->spa(hasPrefetching: true)
             ->colors([
                 'primary' => Color::Teal,
+                'gold' => Color::Yellow,
             ])
             ->topbar(false)
             ->brandName('Zuora Workflows')
