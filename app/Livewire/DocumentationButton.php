@@ -10,7 +10,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Support\Icons\Heroicon;
 use Livewire\Component;
 
-class DocumentationButton extends Component implements HasForms, HasActions
+class DocumentationButton extends Component implements HasActions, HasForms
 {
     use InteractsWithActions;
     use InteractsWithForms;
@@ -19,10 +19,11 @@ class DocumentationButton extends Component implements HasForms, HasActions
     {
         return Action::make('documentation')
             ->color('primary')
+            ->outlined()
             ->label('Documentation')
             ->icon(Heroicon::OutlinedBookOpen)
             ->extraAttributes(['class' => 'w-full'])
-            ->url('zuoraworkflows.mintlify.app', shouldOpenInNewTab: true);
+            ->url('https://zuoraworkflows.mintlify.app', shouldOpenInNewTab: true);
     }
 
     public function render()

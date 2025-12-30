@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
 
         FilamentView::registerRenderHook(
             PanelsRenderHook::USER_MENU_BEFORE,
-            fn(): string => Blade::render('<livewire:documentation-button />'),
+            fn (): string => Blade::render('<livewire:documentation-button />'),
         );
     }
 }
