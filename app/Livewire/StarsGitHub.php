@@ -10,7 +10,6 @@ use Livewire\Component;
 
 class StarsGitHub extends Component
 {
-
     public function render()
     {
         $stars = $this->getStars();
@@ -39,7 +38,7 @@ BLADE;
             try {
                 $response = Http::timeout(5)
                     ->withHeaders([
-                        'Authorization' => 'Bearer ' . config('services.github.token'),
+                        'Authorization' => 'Bearer '.config('services.github.token'),
                         'Accept' => 'application/vnd.github.v3+json',
                     ])
                     ->get('https://api.github.com/repos/FrancoStino/zuora-workflows');
