@@ -15,9 +15,9 @@ return new class extends Migration
             Schema::create('customers', function (Blueprint $table) {
                 $table->id();
                 $table->string('name');
-                $table->string('client_id');
-                $table->string('client_secret');
-                $table->string('base_url');
+                $table->string('zuora_client_id');
+                $table->text('zuora_client_secret'); // TEXT per supportare encryption
+                $table->string('zuora_base_url');
                 $table->timestamps();
             });
         }

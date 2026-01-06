@@ -15,14 +15,21 @@ services:
     type: phpmyadmin
     hosts:
       - database
-
-proxy:
-  phpmyadmin:
-    - phpmyadmin.zuora-workflows.lndo.site
-
-events:
-  post-start:
-    - appserver: composer install
+  redis:
+    type: redis
+  appserver:
+    build_as_root:
+      - curl -sL https://deb.nodesource.com/setup_24.x | bash -
+      - apt-get update -y
+      - apt-get install -y nodejs
+      - npm install -g yarn
+    build:
+      - yarn
+    ssl: true
+    ports:
+      - '24690:24690'
+      - '24691:24691'
+      - '24692:24692'
 
 tooling:
   pint:
@@ -37,3 +44,21 @@ tooling:
   artisan:
     service: appserver
     cmd: php artisan
+  queue:
+    service: appserver
+    description: Start the queue worker
+    cmd: php artisan queue:work
+  schedule:
+    service: appserver
+    description: Start the scheduler
+    cmd: php artisan schedule:work
+  node:
+    service: appserver
+  yarn:
+    service: appserver
+
+  dev:
+    service: appserver
+    description: Start vite dev server
+    user: root
+    cmd: yarn dev

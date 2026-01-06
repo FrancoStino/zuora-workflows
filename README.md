@@ -6,39 +6,50 @@
   <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="60%">
 </figure><br /><br />
 
-[![PHP Version](https://img.shields.io/badge/PHP-8.4+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
-[![Laravel Version](https://img.shields.io/badge/Laravel-12.0-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com)
-[![Filament](https://custom-icon-badges.demolab.com/badge/Filament-4.2-df4090?style=for-the-badge&logo=filament&logoColor=white)](https://filamentphp.com/)
-[![Lando](https://custom-icon-badges.demolab.com/badge/Lando-DEV_Environment-df4090?style=for-the-badge&logo=lando&logoColor=white)](https://lando.dev/)
-[![MariaDB](https://img.shields.io/badge/MariaDB-11.4-003545?style=for-the-badge&logo=mariadb&logoColor=white)](https://mariadb.org/)
-[![Redis](https://img.shields.io/badge/Redis-7.0-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
-[![Nginx](https://img.shields.io/badge/Nginx-Latest-009639?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org/)
-[![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/FrancoStino/zuora-workflows?style=for-the-badge&color=2196F3&logoColor=white)](https://github.com/FrancoStino/zuora-workflows/releases)
-
+[![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
+<br />
+[![Read the Docs](https://img.shields.io/badge/Read%20the%20Docs-000?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://zuoraworkflows.mintlify.app)
 </div>
 
-A powerful web application for synchronizing, viewing, and managing Zuora workflows directly from your Filament admin
-dashboard. Built with modern Laravel architecture featuring automated sync jobs, real-time dashboards, and comprehensive
-workflow management.
+A powerful web application for synchronizing, viewing, and managing Zuora workflows directly from your [Filament admin
+dashboard](https://filamentphp.com/). Built with modern Laravel architecture featuring automated sync jobs, real-time
+dashboards, and comprehensive workflow management.
 
 ## Table of Contents
 
-- [Features](#features) • [Requirements](#requirements) • [Installation](#installation) • [Configuration](#configuration)
-- [Usage](#usage) • [Architecture](#architecture) • [Database Schema](#database-schema)
-- [Monitoring](#monitoring--troubleshooting) • [Testing](#testing) • [Contributing](#contributing) • [License](#license)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Architecture](#architecture)
+- [Database Schema](#database-schema)
+- [Monitoring](#monitoring--troubleshooting)
+- [Testing](#testing)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
 ## Features
 
-- 🔄 **Automatic Synchronization**: Hourly sync + manual sync button for immediate updates
-- 📊 **Filament Dashboard**: Rich workflow visualization with search, filters, and sorting
+- 🔄 **Automatic Synchronization**: Configurable scheduled sync (hourly by default) + manual sync buttons
+- 📊 **Filament Dashboard**: Rich workflow and task visualization with search, filters, and sorting
 - ⚙️ **Background Jobs**: Queue-based processing with retry logic (3 attempts, 60s backoff)
-- 🔐 **OAuth 2.0**: Secure token management with 1-hour caching
-- 📥 **Workflow Download**: Direct export from Zuora
+- 🔐 **OAuth 2.0**: Secure token management with 1-hour caching + Google OAuth login integration
+- 📥 **Workflow & Task Export**: Direct export from Zuora with automatic task extraction
 - 🔒 **RBAC**: Role-based access control via Filament Shield
 - 🗄️ **Multi-tenant**: Per-customer Zuora credentials in database
+- 📋 **Job Monitoring**: Real-time job tracking with Moox Jobs integration
+- 🎯 **Task Management**: Automatic task extraction and visualization from workflow JSON
+- 📈 **Workflow Graph Visualization**: Interactive graphical representation of workflows with
+  @joint/layout-directed-graph
+- ⚙️ **Settings Management**: Comprehensive app settings via Spatie Laravel Settings with encrypted storage
+- 🔒 **Secure Settings**: Encrypted storage for sensitive data (OAuth secrets) using custom EncryptedCast
+- 📋 **Tasks Filters**: Advanced filtering by action_type, priority, and state
+- 📥 **JSON Operations**: Copy and download workflow JSON directly from UI
+- 🖼️ **Tasks Relation Manager**: View workflow tasks in dedicated tab with sortable columns
 
 ---
 
@@ -48,12 +59,13 @@ workflow management.
 |-----------------------------------|---------|---------------------------------------|
 | [Lando](https://lando.dev)        | Latest  | [lando.dev](https://lando.dev)        |
 | [Docker](https://www.docker.com/) | 20.0+   | [docker.com](https://www.docker.com/) |
-| [Node.js](https://nodejs.org/)    | 20.19+  | [nodejs.org](https://nodejs.org/)     |
+| [Node.js](https://nodejs.org/)    | 24.0+   | [nodejs.org](https://nodejs.org/)     |
 | [Yarn](https://yarnpkg.com/)      | Latest  | [yarnpkg.com](https://yarnpkg.com/)   |
 
 **Lando Stack:** PHP 8.4, MariaDB 11.4, Nginx, Redis 7.0, Xdebug
 
-**Key Dependencies:** Laravel 12, Filament 4.2, Filament Shield, Tailwind CSS 4, Vite 7
+**Key Dependencies:** Laravel 12, Filament 4.2, Filament Shield, Spatie Laravel Settings, @joint/layout-directed-graph,
+Tailwind CSS 4, Vite 7
 
 ---
 
@@ -97,7 +109,11 @@ lando artisan key:generate
 # Run migrations
 lando artisan migrate
 
-# Install frontend dependencies (use yarn globally, not via lando)
+# Install frontend dependencies
+# Option 1: Use Lando Yarn (recommended - consistent across all developers)
+lando yarn install
+
+# Option 2: Use Yarn globally
 yarn install
 
 # Build frontend assets
@@ -119,13 +135,26 @@ After login:
     - **Client Secret**: Your Zuora OAuth client secret
     - **Base URL**: `https://rest.zuora.com` (or `https://rest.test.zuora.com` for sandbox)
 4. Save the customer
-5. Click **Sync Workflows** to sync workflows from Zuora
+5. Click **Sync Workflows** to queue workflow synchronization
+
+**Step 6: Start Queue Worker (Development)**
+
+For local development with queue processing:
+
+```bash
+# Start queue worker (processes jobs immediately)
+lando queue
+
+# OR start scheduler (for automatic hourly sync)
+lando schedule
+```
 
 **Quick Commands:**
 
 ```bash
 lando artisan migrate                # Run migrations
-lando artisan queue:work             # Start queue worker (database/redis only)
+lando queue                          # Start queue worker (recommended)
+lando schedule                       # Start scheduler (optional)
 lando test                           # Run tests
 lando logs -f                        # View logs
 lando mariadb                        # Database access
@@ -139,31 +168,49 @@ lando mariadb                        # Database access
 
 ### Queue Driver Setup
 
-The application uses the database queue driver by default. The `.env.example` file specifies:
+The application uses **database queue driver** for background job processing. Configure in `.env`:
 
 ```env
+# Development (default)
+QUEUE_CONNECTION=database
+
+# Production (recommended)
+QUEUE_CONNECTION=database
+
+# Alternative: Immediate processing (no background jobs)
 QUEUE_CONNECTION=sync
+
+# Alternative: Redis (requires Redis server)
+QUEUE_CONNECTION=redis
 ```
 
-To change to [Redis](https://redis.io/) or another [Laravel](https://laravel.com/docs/queues) queue driver:
+**Queue Processing:**
 
-```env
-QUEUE_CONNECTION=redis  # or sync, sqs, etc.
-```
+- **Development:** Use `lando queue` to start the queue worker
+- **Production:** Set up a cron job to run `php artisan schedule:run` every minute (
+  see [Deployment Guide](docs/DEPLOYMENT.md))
 
 See [Laravel Queue Documentation](https://laravel.com/docs/queues) for more driver options.
 
 ### Scheduler Configuration
 
-Workflows sync hourly by default. Modify in `app/Console/Kernel.php`:
+Scheduled tasks are defined in `routes/console.php` (Laravel 12):
+
+**Automatic Workflow Synchronization:**
 
 ```php
-->hourly();              // Default
-->everyThirtyMinutes();  // Every 30 min
-->everyFiveMinutes();    // Every 5 min
+// Sync all customer workflows automatically
+Schedule::command('app:sync-workflows --all')
+    ->hourly()              // Default (every hour)
+    // ->everyThirtyMinutes()  // Every 30 minutes
+    // ->everyFiveMinutes()    // Every 5 minutes
+    // ->daily()               // Once per day at midnight
+    ->name('sync-customer-workflows');
 ```
 
-Start scheduler: `lando artisan schedule:work`
+**Development:** Start scheduler with `lando schedule`
+
+**Production:** Configure cron job (see [Deployment Guide](docs/DEPLOYMENT.md))
 
 ### Zuora API Configuration
 
@@ -190,6 +237,28 @@ The application automatically handles:
   items per page)
 - Error handling and retry logic for failed syncs
 
+### Settings Configuration
+
+Application settings are managed via **Spatie Laravel Settings** and stored in the database:
+
+**Settings Access:**
+
+- Navigate to **Settings** → **General Settings** (Super Admin only)
+- Configure site info, OAuth settings, application config, and maintenance mode
+- Settings are persisted in database and loaded automatically
+
+**Security:**
+
+- Sensitive fields (OAuth client secret) are encrypted using custom `EncryptedCast`
+- Encryption uses Laravel's Crypt facade (APP_KEY from .env)
+- Settings access restricted to super_admin role via Filament policy
+
+**OAuth Login:**
+
+- Configure Google OAuth in Settings or via environment variables
+- Set allowed email domains for registration
+- Enable/disable OAuth authentication from Settings UI
+
 ---
 
 ## Usage
@@ -200,14 +269,42 @@ The application automatically handles:
 2. Create customer with Zuora credentials (Client ID, Secret, Base URL)
 3. Click **Sync Workflows** button to sync from Zuora
 4. View, filter, and search workflows in the table
+5. Click on any workflow to:
+    - View workflow details with **Tasks Relation Manager** tab
+    - Visualize workflow structure in **Graphical View** tab (using @joint/layout-directed-graph)
+    - View raw JSON in **Workflow Json** tab
+    - **Download workflow JSON** or **copy to clipboard**
+    - Filter tasks by action type, priority, and state
+    - View task details in slide-over modal
+
+**Settings Management:**
+
+1. Navigate to **Settings** → **General Settings** (Super Admin only)
+2. Configure:
+    - Site information (name, description)
+    - OAuth settings (enable/disable, allowed domains, Google credentials)
+    - Application configuration (admin email)
+    - Maintenance mode toggle
 
 **CLI Commands:**
 
 ```bash
-lando artisan app:sync-workflows --customer="Name"  # Sync one
-lando artisan app:sync-workflows --all              # Sync all
-lando artisan queue:work                            # Start queue worker (database/redis only)
-lando artisan queue:failed                          # Check failed jobs (database/redis only)
+# Workflow Synchronization
+lando artisan app:sync-workflows --customer="Name"  # Queue sync for one customer
+lando artisan app:sync-workflows --all              # Queue sync for all customers
+lando artisan app:sync-workflows --all --sync       # Sync all synchronously (no queue)
+
+# Task Synchronization (rarely needed - automatic during workflow sync)
+lando artisan workflows:sync-tasks --all            # Re-extract tasks from existing workflows
+lando artisan workflows:sync-tasks --workflow-id=123
+
+# Queue Management
+lando queue                                         # Start queue worker (recommended)
+lando schedule                                      # Start scheduler for automatic sync
+lando artisan queue:failed                          # Check failed jobs
+lando artisan queue:retry all                       # Retry all failed jobs
+
+# Development
 lando composer run dev                              # Full dev stack
 ```
 
@@ -215,13 +312,75 @@ lando composer run dev                              # Full dev stack
 
 ## Architecture
 
-**Service Layer:**
+### Service Layer
 
-- `ZuoraService`: OAuth 2.0 authentication, HTTP API calls, token caching
-- `WorkflowSyncService`: Orchestrates sync, handles pagination, CRUD operations
-- `SyncCustomerWorkflows` Job: Queue-based processing with retry logic
+- **`ZuoraService`**: OAuth 2.0 authentication, HTTP API calls, token caching (1-hour TTL)
+- **`WorkflowSyncService`**: Orchestrates sync, handles pagination, CRUD operations, task extraction
+- **`OAuthService`**: Google OAuth integration for user authentication
+- **`GeneralSettings`**: Spatie Laravel Settings for application configuration with encrypted cast for sensitive data
 
-**Flow:** Filament UI → Dispatch Job → WorkflowSyncService → ZuoraService → Zuora REST API
+### Background Jobs
+
+- **`SyncCustomerWorkflows`**: Queue-based workflow synchronization with retry logic (3 attempts, 60s backoff)
+- Automatically dispatched on customer creation and manual sync button clicks
+- Processes workflows in background without blocking the UI
+
+### Task Management
+
+- **Automatic Extraction**: Tasks are automatically extracted from workflow JSON during sync
+- **Database Storage**: Tasks stored in `tasks` table with foreign key to workflows
+- **Model Method**: `Workflow->syncTasksFromJson()` handles task extraction and synchronization
+- **Tasks Relation Manager**: Dedicated tab in workflow view with sortable columns and filters
+- **Task Filters**: Filter by action_type (Email, Export, SOAP, etc.), priority (High, Medium, Low), and state
+- **Task Details**: View complete task information in slide-over modal
+
+### Workflow Visualization
+
+- **Graphical View**: Interactive graph visualization using @joint/layout-directed-graph library
+- **JSON Export**: Copy or download workflow JSON directly from UI
+- **View Workflow Page**: Comprehensive workflow details with tabs for different views
+
+### Settings Management
+
+- **Spatie Laravel Settings**: Centralized application configuration
+- **Encrypted Storage**: Custom `EncryptedCast` for securing sensitive data (OAuth secrets)
+- **Multi-section Schema**: Site info, OAuth config, application settings, maintenance
+- **Role-based Access**: Settings page restricted to super_admin role only
+
+### Queue Processing Flow
+
+```
+User Action (UI/CLI)
+    ↓
+SyncCustomerWorkflows::dispatch() → Job queued
+    ↓
+Queue Worker (lando queue / cron)
+    ↓
+WorkflowSyncService::syncCustomerWorkflows()
+    ├─ Fetch workflows from Zuora API (paginated)
+    ├─ Download workflow JSON export
+    ├─ Save/update workflows in database
+    └─ Extract and sync tasks from JSON
+    ↓
+Database (workflows + tasks)
+    ↓
+Filament UI (instant display)
+```
+
+### Monitoring
+
+- **Moox Jobs Integration**: Real-time job monitoring in Filament admin panel
+    - View running jobs
+    - Monitor waiting jobs
+    - Track failed jobs and retry
+    - View job batches
+
+### Scheduled Tasks (Laravel 12)
+
+Defined in `routes/console.php`:
+
+- Automatic workflow synchronization (configurable frequency)
+- Automatic queue processing (every minute in development)
 
 ---
 
@@ -272,6 +431,59 @@ CREATE TABLE customers
 );
 ```
 
+### Settings Table
+
+```sql
+CREATE TABLE settings
+(
+    id         BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    group      VARCHAR(255) NOT NULL,
+    name       VARCHAR(255) NOT NULL,
+    locked     BOOLEAN      NOT NULL DEFAULT 0,
+    payload    JSON         NOT NULL,
+    created_at TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    UNIQUE KEY unique_group_name (group, name),
+    INDEX      idx_group (group)
+);
+```
+
+**Settings Sections:**
+
+- **Site Information**: Site name and description
+- **OAuth Configuration**: Google OAuth settings with encrypted client secret
+- **Application Configuration**: Admin default email
+- **Maintenance**: Maintenance mode toggle
+
+**Security Note:** Sensitive fields (e.g., `oauth_google_client_secret`) are encrypted using Laravel's Crypt via custom
+`EncryptedCast`.
+
+### Tasks Table
+
+```sql
+CREATE TABLE tasks
+(
+    id                 BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    workflow_id        BIGINT UNSIGNED NOT NULL,
+    zuora_id           VARCHAR(255) NOT NULL,
+    name               VARCHAR(255) NOT NULL,
+    task_type          VARCHAR(255),
+    object_id          TEXT,
+    action_type        VARCHAR(255),
+    call_type          VARCHAR(255),
+    data               JSON,
+    workflow_task_json JSON,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (workflow_id) REFERENCES workflows (id) ON DELETE CASCADE,
+    INDEX              idx_workflow_id (workflow_id),
+    INDEX              idx_zuora_id (zuora_id),
+    INDEX              idx_task_type (task_type)
+);
+```
+
 ### Jobs Table ([Laravel Queue](https://laravel.com/docs/queues))
 
 ```sql
@@ -290,6 +502,47 @@ CREATE TABLE jobs
 ```
 
 For [Redis](https://redis.io/) queue support, configure `QUEUE_CONNECTION=redis` in `.env`.
+
+### Job Manager Tables (Moox Jobs)
+
+```sql
+-- Job monitoring and management
+CREATE TABLE job_manager
+(
+    id,
+    job_id,
+    name,
+    queue,
+    connection,
+    status,
+    .
+    .
+    .
+);
+CREATE TABLE failed_jobs
+(
+    id,
+    uuid,
+    connection,
+    queue,
+    payload,
+    exception,
+    .
+    .
+    .
+);
+CREATE TABLE job_batches
+(
+    id,
+    name,
+    total_jobs,
+    pending_jobs,
+    failed_jobs,
+    .
+    .
+    .
+);
+```
 
 ---
 
@@ -332,7 +585,10 @@ lando exec appserver grep -i "workflow" storage/logs/laravel.log
 **Check queue health and process jobs** (only when `QUEUE_CONNECTION=database` or `redis`):
 
 ```bash
-# Start queue worker
+# Start queue worker (recommended shortcut)
+lando queue
+
+# Or use artisan directly
 lando artisan queue:work --verbose
 
 # Check failed jobs
@@ -341,9 +597,19 @@ lando artisan queue:failed
 # Retry specific failed job
 lando artisan queue:retry {job-id}
 
+# Retry all failed jobs
+lando artisan queue:retry all
+
 # Clear all failed jobs
 lando artisan queue:flush
 ```
+
+**Moox Jobs Panel:** Access via Filament admin panel → Jobs menu
+
+- **Jobs**: View running and completed jobs
+- **Jobs Waiting**: See queued jobs waiting for processing
+- **Failed Jobs**: View and retry failed jobs
+- **Job Batches**: Monitor batch operations
 
 **Note:** With `QUEUE_CONNECTION=sync`, jobs execute immediately and queue commands are not needed.
 

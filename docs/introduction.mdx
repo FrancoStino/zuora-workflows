@@ -1,70 +1,143 @@
 ---
 title: Introduction
-description: A powerful Laravel admin panel for managing Zuora workflows with role-based access control
+description: Overview of Zuora Workflow Manager and its main features
 ---
 
-# Zuora Workflow Manager
+# Introduction to Zuora Workflow Manager
 
-Zuora Workflow Manager is a powerful web application for synchronizing, viewing, and managing Zuora workflows directly from your Filament admin dashboard. Built with modern Laravel architecture featuring automated sync jobs, real-time dashboards, and comprehensive workflow management.
+Zuora Workflow Manager is a web application built with Laravel 12 and Filament 4.2 that simplifies Zuora workflow management through a modern and intuitive administrative interface.
 
-## Key features
+## Why Zuora Workflow Manager?
 
-- **Automatic synchronization** - Hourly sync with manual sync button for immediate updates
-- **Filament dashboard** - Rich workflow visualization with search, filters, and sorting
-- **Background jobs** - Queue-based processing with retry logic (3 attempts, 60s backoff)
-- **OAuth 2.0 authentication** - Secure token management with 1-hour caching
-- **Workflow download** - Direct export from Zuora
-- **Role-based access control** - RBAC via Filament Shield
-- **Multi-tenant support** - Per-customer Zuora credentials in database
+Managing Zuora workflows can be complex, especially when working with:
+- Multiple customer organizations
+- Manual data synchronization
+- Limited workflow visualization
+- Lack of automation
 
-## Technology stack
+Zuora Workflow Manager solves these problems by providing:
 
-Built with modern PHP and Laravel ecosystem:
+### 1. Automatic synchronization
+- Scheduled sync every hour (configurable)
+- Manual on-demand sync via UI
+- Background processing with queues
+- Automatic retry on errors
 
-- **PHP 8.4+** - Latest PHP features and performance
-- **Laravel 12** - Modern PHP framework
-- **Filament 4.2** - Beautiful admin panel
-- **MariaDB 11.4** - Reliable database with foreign keys and indexes
-- **Redis 7.0** - Fast caching and queue management
-- **Tailwind CSS 4** - Modern styling
-- **Vite 7** - Fast asset bundling
+### 2. Multi-tenant
+- Management of multiple customer organizations
+- Separate Zuora credentials for each customer
+- Complete data isolation
+- Security with credential encryption
 
-## Use cases
+### 3. Advanced visualization
+- Rich and responsive Filament dashboard
+- Graphical workflow visualization
+- Complete task details
+- JSON workflow export
 
-Zuora Workflow Manager is ideal for:
+### 4. Task management
+- Automatic task extraction from JSON
+- Advanced filters by type, priority, and status
+- Detailed visualization with slide-over
+- Relationships between tasks and workflows
 
-- **Workflow monitoring** - Track and visualize all Zuora workflows in one place
-- **Multi-customer management** - Manage workflows for multiple Zuora accounts
-- **Automated synchronization** - Keep workflows up-to-date automatically
-- **Team collaboration** - Role-based access for different team members
-- **Workflow export** - Download workflow definitions for backup or analysis
+## Architecture
 
-## Architecture overview
+The application is built following SOLID principles and uses:
 
-The application follows a clean service-oriented architecture:
+### Service layer
+- **ZuoraService**: OAuth 2.0 authentication and API call management
+- **WorkflowSyncService**: Workflow synchronization orchestration
+- **OAuthService**: Google OAuth integration for login
 
-```
-Filament UI → Dispatch Job → WorkflowSyncService → ZuoraService → Zuora REST API
-```
+### Models
+- **Customer**: Organizations with Zuora credentials
+- **Workflow**: Workflows synchronized from Zuora
+- **Task**: Tasks extracted from workflows
+- **User**: Application users with RBAC
 
-**Service layer:**
-- `ZuoraService` - OAuth 2.0 authentication, HTTP API calls, token caching
-- `WorkflowSyncService` - Orchestrates sync, handles pagination, CRUD operations
-- `SyncCustomerWorkflows` Job - Queue-based processing with retry logic
+### Background jobs
+- **SyncCustomersJob**: Job for customer workflow synchronization
+- Retry logic with exponential backoff
+- Progress tracking with Moox Jobs
+
+### Filament resources
+- **CustomerResource**: Customer management
+- **WorkflowResource**: Workflow visualization
+- **TaskResource**: Task management
+- **UserResource**: User management
+- **RoleResource**: Role and permission management
+
+## Typical workflow
+
+1. **Initial setup**
+   - Installation with Lando
+   - Environment configuration
+   - Admin account creation
+
+2. **Customer configuration**
+   - Add customer in UI
+   - Enter Zuora credentials (Client ID, Secret, Base URL)
+   - Credential validation
+
+3. **Workflow synchronization**
+   - Click "Sync Workflows" in UI
+   - Job queued for background processing
+   - Download workflows from Zuora API
+   - Save to local database
+   - Automatic task extraction
+
+4. **Visualization and management**
+   - Navigate workflows in dashboard
+   - Advanced filters and search
+   - Graphical visualization
+   - JSON export
+   - Task details
+
+5. **Monitoring**
+   - Moox Jobs dashboard for job status
+   - Application logs for troubleshooting
+   - System health check
+
+## Technologies used
+
+### Backend
+- **Laravel 12**: Modern PHP framework
+- **PHP 8.4**: Latest PHP version
+- **MariaDB 11.4**: Relational database
+- **Redis 7.0**: Cache and queues
+
+### Frontend
+- **Filament 4.2**: Admin panel framework
+- **Tailwind CSS 4**: Utility-first CSS
+- **Alpine.js**: Lightweight JavaScript framework
+- **@joint/layout-directed-graph**: Graph visualization
+
+### DevOps
+- **Lando**: Containerized development environment
+- **Docker**: Containerization
+- **GitHub Actions**: CI/CD
+- **Vite 7**: Modern build tool
+
+### Key packages
+- **Filament Shield**: RBAC for Filament
+- **Spatie Laravel Settings**: Settings management
+- **Moox Jobs**: Job monitoring
+- **Filament Socialite**: OAuth login
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Installation" icon="download" href="/installation">
-    Get started with installation and setup
+  <Card title="Requirements" icon="list-check" href="/getting-started/requirements">
+    Check system requirements
   </Card>
-  <Card title="Configuration" icon="gear" href="/configuration">
-    Configure Zuora credentials and queue settings
+  <Card title="Installation" icon="download" href="/getting-started/installation">
+    Install the application
   </Card>
-  <Card title="Usage" icon="play" href="/usage">
-    Learn how to sync and manage workflows
+  <Card title="Configuration" icon="gear" href="/getting-started/configuration">
+    Configure the environment
   </Card>
-  <Card title="Deployment" icon="rocket" href="/deployment">
-    Deploy to production environments
+  <Card title="First use" icon="rocket" href="/getting-started/first-use">
+    Start using the application
   </Card>
 </CardGroup>

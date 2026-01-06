@@ -2,11 +2,8 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\Setup;
 use App\Filament\Resources\Workflows\Pages\ViewWorkflow;
-use App\Http\Middleware\CheckSetupCompleted;
-use App\Http\Middleware\RequireAuthAfterSetup;
+use App\Http\Middleware\AuthenticateWithSetupBypass;
 use App\Services\OAuthService;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use CharrafiMed\GlobalSearchModal\GlobalSearchModalPlugin;
@@ -21,28 +18,37 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Enums\Width;
 use Filament\View\PanelsRenderHook;
-use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Resma\FilamentAwinTheme\FilamentAwinTheme;
+use Moox\Jobs\JobsBatchesPlugin;
+use Moox\Jobs\JobsFailedPlugin;
+use Moox\Jobs\JobsPlugin;
+use Moox\Jobs\JobsWaitingPlugin;
+use WatheqAlshowaiter\FilamentStickyTableHeader\StickyTableHeaderPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
+    private static ?array $manifest = null;
+
     public function panel(Panel $panel): Panel
     {
         return $panel
             ->default()
             ->id('admin')
             ->path('')
-            ->login(Login::class)
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->login()
             ->maxContentWidth(Width::Full)
+            ->spa(hasPrefetching: true)
             ->colors([
                 'primary' => Color::Teal,
+                'gold' => Color::Yellow,
             ])
+            ->topbar(false)
             ->brandName('Zuora Workflows')
             ->brandLogo(asset('images/logo.svg'))
             ->darkModeBrandLogo(asset('images/logo-white.svg'))
@@ -52,16 +58,15 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Zuora Management',
             ])
-            ->discoverResources(in : app_path('Filament/Resources'), for : 'App\Filament\Resources')
-            ->discoverPages(in : app_path('Filament/Pages'), for : 'App\Filament\Pages')
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
-                Setup::class,
             ])
-            ->discoverWidgets(in : app_path('Filament/Widgets'), for : 'App\Filament\Widgets')
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                AccountWidget::class,
-                // FilamentInfoWidget::class,
+                //                AccountWidget::class,
+                //                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -73,52 +78,84 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                CheckSetupCompleted::class,
-                RequireAuthAfterSetup::class,
+                AuthenticateWithSetupBypass::class,
+            ])
+            ->authMiddleware([
+                //
             ])
             ->authGuard('web')
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
                 function () {
-                    $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
-                    $cssFile = $manifest['resources/css/workflow-graph.css']['file'] ?? 'assets/workflow-graph.css';
+                    $cssFile = self::getManifest()['resources/css/workflow-graph.css']['file'] ?? 'assets/workflow-graph.css';
 
                     return '<link rel="stylesheet" href="'.asset('build/'.$cssFile).'">';
                 },
-                scopes : [ViewWorkflow::class]
+                scopes: [ViewWorkflow::class]
             )
             ->renderHook(
                 PanelsRenderHook::SCRIPTS_AFTER,
                 function () {
-                    $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
-                    $appJs = $manifest['resources/js/app.js']['file'] ?? 'assets/app.js';
+                    $appJs = self::getManifest()['resources/js/app.js']['file'] ?? 'assets/app.js';
 
                     return '<script type="module" src="'.asset('build/'.$appJs).'"></script>';
                 },
-                scopes : [ViewWorkflow::class]
+                scopes: [ViewWorkflow::class]
             )
             ->renderHook(
                 PanelsRenderHook::FOOTER,
-                fn () => view('footer'))
+                fn () => view('filament.sections.footer'))
             ->plugins([
                 GlobalSearchModalPlugin::make()
                     ->highlightQueryStyles([
                         'background-color' => 'teal',
                         'font-weight' => 'bold',
                     ])
-                    ->showGroupSearchCounts(),   // Enable per-category count display
-                FilamentAwinTheme::make()
-                    ->primaryColor(Color::Teal),
+                    ->showGroupSearchCounts(),
                 FilamentShieldPlugin::make(),
-                FilamentSocialitePlugin::make()
-                    ->domainAllowList(app(OAuthService::class)->getAllowedDomains())
-                    ->registration(true)
-                    ->providers([
-                        Provider::make('google')
-                            ->label('Google')
-                            ->icon('fab-google')
-                            ->color(Color::Red),
-                    ]),
+                $this->configureSocialitePlugin(),
+                StickyTableHeaderPlugin::make(),
+                JobsPlugin::make(),
+                JobsWaitingPlugin::make(),
+                JobsFailedPlugin::make(),
+                JobsBatchesPlugin::make(),
+
             ]);
+    }
+
+    public static function getManifest(): array
+    {
+        if (self::$manifest === null) {
+            self::$manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true, 512, JSON_THROW_ON_ERROR);
+        }
+
+        return self::$manifest;
+    }
+
+    private function configureSocialitePlugin(): ?FilamentSocialitePlugin
+    {
+        $config = OAuthService::getGoogleOAuthConfig();
+
+        config([
+            'services.google.client_id' => $config['client_id'] ?? config('services.google.client_id'),
+            'services.google.client_secret' => $config['client_secret'] ?? config('services.google.client_secret'),
+            'services.google.redirect' => $config['redirect'] ?? config('services.google.redirect'),
+        ]);
+
+        // If not enabled, disable social login
+
+        if (($config['enabled'] ?? false) && ($config['client_id'] ?? false) && ($config['client_secret'] ?? false)) {
+            return FilamentSocialitePlugin::make()
+                ->domainAllowList(app(OAuthService::class)::getAllowedDomains())
+                ->registration()
+                ->providers([
+                    Provider::make('google')
+                        ->label('Google')
+                        ->icon('fab-google')
+                        ->color(Color::Red),
+                ]);
+        }
+
+        return FilamentSocialitePlugin::make();
     }
 }
