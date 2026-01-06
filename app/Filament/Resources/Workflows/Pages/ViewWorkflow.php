@@ -114,7 +114,7 @@ class ViewWorkflow extends ViewRecord
                     ->columnSpanFull()
                     ->contained(false)
                     ->tabs([
-                        Tab::make('Workflow Json')
+                        Tab::make('Workflow JSON')
                             ->icon('json')
                             ->schema([
                                 ViewEntry::make('copy_json_button')

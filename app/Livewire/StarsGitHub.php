@@ -37,10 +37,6 @@ BLADE;
         return Cache::remember('github_stars', 86400, static function () {
             try {
                 $response = Http::timeout(5)
-                    ->withHeaders([
-                        'Authorization' => 'Bearer '.config('services.github.token'),
-                        'Accept' => 'application/vnd.github.v3+json',
-                    ])
                     ->get('https://api.github.com/repos/FrancoStino/zuora-workflows');
 
                 return $response->successful()
