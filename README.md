@@ -109,7 +109,11 @@ lando artisan key:generate
 # Run migrations
 lando artisan migrate
 
-# Install frontend dependencies (use yarn globally, not via lando)
+# Install frontend dependencies
+# Option 1: Use Lando Yarn (recommended - consistent across all developers)
+lando yarn install
+
+# Option 2: Use Yarn globally
 yarn install
 
 # Build frontend assets

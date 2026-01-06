@@ -93,7 +93,19 @@ If you receive database connection errors, make sure Lando is started correctly 
 
 ## Step 5: Install frontend dependencies
 
-Install frontend dependencies with Yarn (use Yarn globally, not through Lando):
+Install frontend dependencies with Yarn. You have two options:
+
+**Option 1: Use Yarn via Lando (recommended)**
+
+This ensures all developers use the same Yarn version and works consistently across all operating systems:
+
+```bash
+lando yarn install
+```
+
+**Option 2: Use Yarn globally**
+
+If you prefer to use Yarn installed locally on your system:
 
 ```bash
 yarn install
@@ -253,12 +265,44 @@ lando logs -f                      # View all logs
 lando logs -s appserver -f         # PHP container logs
 ```
 
-### Composer and Yarn
+### Yarn commands via Lando
+
+You can use Yarn through Lando to ensure consistent behavior across all team members and operating systems.
+
+**Benefits of using Lando Yarn:**
+- **Consistent version**: All developers use the same Yarn version
+- **Cross-platform**: Works identically on macOS, Windows, and Linux
+- **Isolated**: No need to install Yarn globally on your system
+- **No conflicts**: Avoids version conflicts with other projects
+
+**Available Yarn commands:**
+```bash
+lando yarn install                 # Install frontend dependencies
+lando yarn run build               # Compile assets for production
+lando yarn run dev                 # Development with hot-reload (HMR)
+lando yarn run preview             # Preview production build
+```
+
+**Usage example:**
+```bash
+# Install dependencies
+lando yarn install
+
+# Start development server with hot-reload
+lando yarn run dev
+
+# Build for production
+lando yarn run build
+```
+
+<Tip>
+For new contributors, using `lando yarn` is recommended as it guarantees the same environment as other team members.
+</Tip>
+
+### Composer
 ```bash
 lando composer install             # Install PHP dependencies
 lando composer update              # Update PHP dependencies
-yarn install                       # Install frontend dependencies
-yarn run build                     # Compile assets
 ```
 
 ## Troubleshooting
