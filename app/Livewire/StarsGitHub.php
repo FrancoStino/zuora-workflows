@@ -41,6 +41,7 @@ BLADE;
                 return $response->successful()
                     ? $response['value']
                     : null;
+
             } catch (Exception) {
                 return null;
             }
