@@ -1,3 +1,12 @@
+# [2.0.1](https://github.com/FrancoStino/zuora-workflows/compare/v2.0.0...v2.0.1) (2026-01-07)
+
+
+### Bug Fixes
+
+* handle exception in StarsGitHub.php ([939ce1e](https://github.com/FrancoStino/zuora-workflows/commit/939ce1eda4f69f9c03b2aae3c7bcbc08b3a0dd20))
+
+
+
 # [2.0.0](https://github.com/FrancoStino/zuora-workflows/compare/v1.4.0...v2.0.0) (2026-01-06)
 
 
