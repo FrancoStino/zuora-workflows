@@ -19,7 +19,7 @@
     "navbar": {
         "primary": {
             "type": "github",
-            "href": "https://github.com/FrancoStino/zuora-workflows"
+            "href": "https://github.com/FrancoStino/zuora-workflow-manager"
         }
     },
     "navigation": {
@@ -102,7 +102,7 @@
         }
     },
     "styling": {
-      "latex": true,
-      "eyebrows": "section"
+        "latex": true,
+        "eyebrows": "section"
     }
 }
