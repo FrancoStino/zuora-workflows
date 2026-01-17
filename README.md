@@ -6,7 +6,7 @@
   <img src="public/images/zuora-logo-readme.png" alt="Zuora Workflows Logo" width="60%">
 </figure><br /><br />
 
-[![Latest Release](https://img.shields.io/github/v/release/FrancoStino/zuora-workflows?style=for-the-badge&color=2196F3&logoColor=white)](https://github.com/FrancoStino/zuora-workflows/releases)
+[![Latest Release](https://img.shields.io/github/v/release/FrancoStino/zuora-workflows?style=for-the-badge&color=2196F3&logoColor=white)](https://github.com/FrancoStino/zuora-workflow-manager/releases)
 [![License](https://img.shields.io/badge/License-MIT-4CAF50?style=for-the-badge&logoColor=white)](LICENSE)
 <br />
 [![Read the Docs](https://img.shields.io/badge/Read%20the%20Docs-103426?style=for-the-badge&logo=readthedocs&logoColor=fff)](https://zuoraworkflows.mintlify.app)
@@ -93,7 +93,7 @@ using [Docker](https://www.docker.com/) containers.
 **Step 1: Clone the Repository**
 
 ```bash
-git clone https://github.com/FrancoStino/zuora-workflows.git
+git clone https://github.com/FrancoStino/zuora-workflow-manager.git
 cd zuora-workflows
 ```
 
@@ -749,8 +749,8 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) file for 
 
 ## Support & Community
 
-- **Issues**: [GitHub Issues](https://github.com/FrancoStino/zuora-workflows/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/FrancoStino/zuora-workflows/discussions)
+- **Issues**: [GitHub Issues](https://github.com/FrancoStino/zuora-workflow-manager/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/FrancoStino/zuora-workflow-manager/discussions)
 - **Security**: See [SECURITY.md](SECURITY.md)
 
 ---

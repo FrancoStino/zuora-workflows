@@ -3,7 +3,7 @@
         {{-- Copyright notice --}}
         <div class="text-sm">
             © {{ date('Y') }}
-            <x-filament::link href="https://github.com/FrancoStino/zuora-workflows" target="_blank">
+            <x-filament::link href="https://github.com/FrancoStino/zuora-workflow-manager" target="_blank">
                 Zuora Workflow Manager
             </x-filament::link>
             - All Rights Reserved.
@@ -13,7 +13,7 @@
         <div class="flex gap-4">
             <x-filament::button
                 tag="a"
-                href="https://github.com/FrancoStino/zuora-workflows"
+                href="https://github.com/FrancoStino/zuora-workflow-manager"
                 target="_blank"
                 rel="noopener noreferrer"
                 color="gray"
@@ -33,7 +33,7 @@
 
             <x-filament::button
                 tag="a"
-                href="https://github.com/FrancoStino/zuora-workflows/issues"
+                href="https://github.com/FrancoStino/zuora-workflow-manager/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 color="gray"
