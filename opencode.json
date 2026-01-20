@@ -5,6 +5,7 @@
             "type": "local",
             "enabled": true,
             "command": [
+                "lando",
                 "php",
                 "artisan",
                 "boost:mcp"
