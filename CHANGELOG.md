@@ -1,4 +1,18 @@
-# [2.1.2](https://github.com/FrancoStino/zuora-workflow-manager/compare/v2.1.1...v2.1.2) (2026-01-17)
+# [2.1.3](https://github.com/FrancoStino/zuora-workflow-manager/compare/v2.1.2...v2.1.3) (2026-01-22)
+
+
+### Bug Fixes
+
+* set maintenance page title to 'Maintenance' ([dbc7c91](https://github.com/FrancoStino/zuora-workflow-manager/commit/dbc7c91004f27d7c125dd720c1849b518f3fe01e))
+
+
+### Features
+
+* add maintenance page and middleware ([5607e05](https://github.com/FrancoStino/zuora-workflow-manager/commit/5607e05bf909850a305425780dd4b3d140dc5390))
+
+
+
+## [2.1.2](https://github.com/FrancoStino/zuora-workflow-manager/compare/v2.1.1...v2.1.2) (2026-01-17)
 
 
 ### Features
