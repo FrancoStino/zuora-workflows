@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b505de5debd22a5a17b04300d76fbddf",
+    "content-hash": "d590701219ed13b6c793c9f9abb6ba07",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -526,20 +526,20 @@
         },
         {
             "name": "charrafimed/global-search-modal",
-            "version": "v4.2.3",
+            "version": "v5.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CharrafiMed/global-search-modal.git",
-                "reference": "51cd19e497a1211af6ba5ed440f4e6eb9b70e150"
+                "reference": "dc437eab47acf6bccedda13e50f8c36e01421fdc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CharrafiMed/global-search-modal/zipball/51cd19e497a1211af6ba5ed440f4e6eb9b70e150",
-                "reference": "51cd19e497a1211af6ba5ed440f4e6eb9b70e150",
+                "url": "https://api.github.com/repos/CharrafiMed/global-search-modal/zipball/dc437eab47acf6bccedda13e50f8c36e01421fdc",
+                "reference": "dc437eab47acf6bccedda13e50f8c36e01421fdc",
                 "shasum": ""
             },
             "require": {
-                "filament/support": "^4.0"
+                "filament/support": "^4.0||^5.0"
             },
             "type": "library",
             "extra": {
@@ -567,9 +567,9 @@
             "description": "advanced global search modal",
             "support": {
                 "issues": "https://github.com/CharrafiMed/global-search-modal/issues",
-                "source": "https://github.com/CharrafiMed/global-search-modal/tree/v4.2.3"
+                "source": "https://github.com/CharrafiMed/global-search-modal/tree/v5.0.0"
             },
-            "time": "2025-12-02T12:45:46+00:00"
+            "time": "2026-01-22T11:50:07+00:00"
         },
         {
             "name": "chillerlan/php-qrcode",
@@ -13655,5 +13655,5 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }
