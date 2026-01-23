@@ -14,7 +14,7 @@
   "license": "MIT",
   "require": {
     "bezhansalleh/filament-shield": "^4.0",
-    "charrafimed/global-search-modal": "^4.2",
+    "charrafimed/global-search-modal": "^5.0",
     "codebar-ag/laravel-filament-json-field": "^13.0",
     "dutchcodingcompany/filament-socialite": "^3.0",
     "filament/filament": "^4.2",
