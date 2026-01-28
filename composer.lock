@@ -9937,16 +9937,16 @@
         },
         {
             "name": "watheqalshowaiter/filament-sticky-table-header",
-            "version": "1.4.0",
+            "version": "1.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WatheqAlshowaiter/filament-sticky-table-header.git",
-                "reference": "c58283996eb5a2273ebf5c31f59193985b711bba"
+                "reference": "ceac5227b5a3b80b052c0a2ce16d5db39a0792ae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WatheqAlshowaiter/filament-sticky-table-header/zipball/c58283996eb5a2273ebf5c31f59193985b711bba",
-                "reference": "c58283996eb5a2273ebf5c31f59193985b711bba",
+                "url": "https://api.github.com/repos/WatheqAlshowaiter/filament-sticky-table-header/zipball/ceac5227b5a3b80b052c0a2ce16d5db39a0792ae",
+                "reference": "ceac5227b5a3b80b052c0a2ce16d5db39a0792ae",
                 "shasum": ""
             },
             "require": {
@@ -9999,7 +9999,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-01-16T19:01:01+00:00"
+            "time": "2026-01-27T21:35:39+00:00"
         }
     ],
     "packages-dev": [
