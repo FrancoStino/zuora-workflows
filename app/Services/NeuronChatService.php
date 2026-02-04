@@ -20,25 +20,19 @@ class NeuronChatService
 
     public function ask(ChatThread $thread, string $question): ChatMessage
     {
-        if (!$this->settings->aiChatEnabled) {
+        if (! $this->settings->aiChatEnabled) {
             throw new \RuntimeException('AI chat is not enabled');
         }
 
-        $thread->messages()->create([
-            'role' => 'user',
-            'content' => $question,
-        ]);
-        $thread->generateTitleFromFirstMessage();
-
         $this->pdo = $this->createLoggedPdo();
-        $agent = new DataAnalystAgent($this->pdo);
+        $agent = $this->getAgent();
 
         try {
             $response = $agent->chat(new UserMessage($question));
             $content = $response->getContent();
 
             $queryGenerated = $this->pdo->getLastQuery();
-            
+
             return $thread->messages()->create([
                 'role' => 'assistant',
                 'content' => $content,
@@ -59,13 +53,64 @@ class NeuronChatService
 
             return $thread->messages()->create([
                 'role' => 'assistant',
-                'content' => 'Error: ' . $e->getMessage(),
+                'content' => 'Error: '.$e->getMessage(),
                 'metadata' => [
                     'error' => true,
                     'error_message' => $e->getMessage(),
                 ],
             ]);
         }
+    }
+
+    public function askStream(ChatThread $thread, string $question): \Generator
+    {
+        if (! $this->settings->aiChatEnabled) {
+            throw new \RuntimeException('AI chat is not enabled');
+        }
+
+        // Headers anti-buffering
+        header('X-Accel-Buffering: no');
+        header('Cache-Control: no-cache');
+        header('Content-Type: text/event-stream');
+
+        $this->pdo = $this->createLoggedPdo();
+        $agent = $this->getAgent();
+
+        $fullResponse = '';
+
+        try {
+            foreach ($agent->stream(new UserMessage($question)) as $chunk) {
+                $fullResponse .= $chunk;
+                yield $chunk;
+            }
+
+            // Salva messaggio completo alla fine
+            $queryGenerated = $this->pdo->getLastQuery();
+
+            $thread->messages()->create([
+                'role' => 'assistant',
+                'content' => $fullResponse,
+                'query_generated' => $queryGenerated,
+                'metadata' => [
+                    'provider' => $this->settings->aiProvider,
+                    'model' => $this->settings->aiModel,
+                    'streaming' => true,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('NeuronChatService streaming error', [
+                'thread_id' => $thread->id,
+                'question' => $question,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e; // Re-throw per permettere fallback nel componente Livewire
+        }
+    }
+
+    protected function getAgent(): DataAnalystAgent
+    {
+        return new DataAnalystAgent($this->pdo);
     }
 
     public function getQueryLog(): array
@@ -80,13 +125,20 @@ class NeuronChatService
 
     private function createLoggedPdo(): LoggedPDO
     {
-        $config = config('database.connections.mysql');
-        $dsn = sprintf(
-            'mysql:host=%s;port=%s;dbname=%s',
-            $config['host'],
-            $config['port'] ?? 3306,
-            $config['database']
-        );
-        return new LoggedPDO($dsn, $config['username'], $config['password']);
+        $connection = config('database.default');
+        $config = config("database.connections.{$connection}");
+
+        if ($connection === 'sqlite') {
+            $dsn = "sqlite:{$config['database']}";
+        } else {
+            $dsn = sprintf(
+                'mysql:host=%s;port=%s;dbname=%s',
+                $config['host'],
+                $config['port'] ?? 3306,
+                $config['database']
+            );
+        }
+
+        return new LoggedPDO($dsn, $config['username'] ?? '', $config['password'] ?? '');
     }
 }
