@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\ChatThread;
-use App\Services\ChatService;
+use App\Services\NeuronChatService;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -57,7 +57,7 @@ class ChatBox extends Component implements HasActions, HasSchemas
         return Action::make('send')
             ->label('Send')
             ->icon('heroicon-o-paper-airplane')
-            ->disabled(fn(): bool => $this->isLoading)
+            ->disabled(fn (): bool => $this->isLoading)
             ->action('sendMessage');
     }
 
@@ -67,8 +67,7 @@ class ChatBox extends Component implements HasActions, HasSchemas
             ->label('Retry')
             ->icon('heroicon-o-arrow-path')
             ->color('warning')
-            ->visible(fn(): bool
-                => $this->hasError
+            ->visible(fn (): bool => $this->hasError
                 && $this->lastQuestion !== null)
             ->action('retryLastQuestion');
     }
@@ -79,7 +78,7 @@ class ChatBox extends Component implements HasActions, HasSchemas
             return;
         }
 
-        $this->hasError  = false;
+        $this->hasError = false;
         $this->isLoading = true;
 
         $this->js("setTimeout(() => \$wire.generateResponse('{$this->escapeJs($this->lastQuestion)}'), 50)");
@@ -92,7 +91,7 @@ class ChatBox extends Component implements HasActions, HasSchemas
 
     public function sendMessage(): void
     {
-        $state   = $this->form->getState();
+        $state = $this->form->getState();
         $message = trim($state['message'] ?? '');
 
         if (empty($message)) {
@@ -100,11 +99,11 @@ class ChatBox extends Component implements HasActions, HasSchemas
         }
 
         $this->form->fill(['message' => '']);
-        $this->hasError     = false;
+        $this->hasError = false;
         $this->lastQuestion = $message;
 
         $this->thread->messages()->create([
-            'role'    => 'user',
+            'role' => 'user',
             'content' => $message,
         ]);
         $this->thread->generateTitleFromFirstMessage();
@@ -117,21 +116,32 @@ class ChatBox extends Component implements HasActions, HasSchemas
     public function generateResponse(string $question): void
     {
         try {
-            $chatService = app(ChatService::class);
-            $response
-                         = $chatService->generateAssistantResponse($this->thread,
-                $question);
-            $this->thread->refresh();
+            $chatService = app(NeuronChatService::class);
 
-            // Check if the response contains an error
-            if ($response->metadata['error'] ?? false) {
-                $this->hasError = true;
-            } else {
-                $this->hasError     = false;
-                $this->lastQuestion = null;
+            // Streaming
+            foreach ($chatService->askStream($this->thread, $question) as $chunk) {
+                $this->stream('streamContent', $chunk);
             }
+
+            $this->thread->refresh();
+            $this->hasError = false;
+            $this->lastQuestion = null;
         } catch (Exception $e) {
-            $this->hasError = true;
+            // Fallback to sync if streaming fails
+            try {
+                $chatService = app(NeuronChatService::class);
+                $response = $chatService->ask($this->thread, $question);
+                $this->thread->refresh();
+
+                if ($response->metadata['error'] ?? false) {
+                    $this->hasError = true;
+                } else {
+                    $this->hasError = false;
+                    $this->lastQuestion = null;
+                }
+            } catch (Exception $fallbackError) {
+                $this->hasError = true;
+            }
         } finally {
             $this->isLoading = false;
         }
@@ -144,12 +154,10 @@ class ChatBox extends Component implements HasActions, HasSchemas
             ->get();
 
         return view('livewire.chat-box', [
-            'messages'       => $allMessages->filter(fn($msg,
-            )
-                => in_array($msg->role, ['user', 'assistant'])),
-            'systemMessages' => $allMessages->filter(fn($msg,
-            )
-                => ! in_array($msg->role, ['user', 'assistant'])),
+            'messages' => $allMessages->filter(fn ($msg,
+            ) => in_array($msg->role, ['user', 'assistant'])),
+            'systemMessages' => $allMessages->filter(fn ($msg,
+            ) => ! in_array($msg->role, ['user', 'assistant'])),
         ]);
     }
 }
