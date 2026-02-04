@@ -2,11 +2,15 @@
 
 namespace App\AI;
 
+use App\Services\ModelsDevService;
 use App\Settings\GeneralSettings;
 use Illuminate\Support\Facades\DB;
 use NeuronAI\Agent;
+use NeuronAI\Chat\History\ChatHistoryInterface;
+use NeuronAI\Chat\History\InMemoryChatHistory;
 use NeuronAI\Providers\AIProviderInterface;
-use NeuronAI\Providers\OpenAI\OpenAI;
+use NeuronAI\Providers\HttpClientOptions;
+use NeuronAI\Providers\OpenAILike;
 use NeuronAI\SystemPrompt;
 use NeuronAI\Tools\Toolkits\MySQL\MySQLSchemaTool;
 use NeuronAI\Tools\Toolkits\MySQL\MySQLSelectTool;
@@ -22,11 +26,21 @@ class DataAnalystAgent extends Agent
     protected function provider(): AIProviderInterface
     {
         $settings = app(GeneralSettings::class);
+        $modelsService = app(ModelsDevService::class);
 
-        return new OpenAI(
+        $baseUri = $modelsService->getApiEndpoint($settings->aiProvider);
+
+        return new OpenAILike(
+            baseUri: $baseUri,
             key: $settings->aiApiKey,
             model: $settings->aiModel,
+            options: new HttpClientOptions(timeout: 120),
         );
+    }
+
+    protected function chatHistory(): ChatHistoryInterface
+    {
+        return new InMemoryChatHistory(contextWindow: 200000);
     }
 
     public function instructions(): string
