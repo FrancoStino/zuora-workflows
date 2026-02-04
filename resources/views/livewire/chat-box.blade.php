@@ -89,8 +89,9 @@
                                     </x-filament::section>
                                 @endif
 
-                                <div class="mt-2 prose prose-sm dark:prose-invert max-w-none prose-table:w-full prose-table:border-collapse prose-thead:bg-gray-100 dark:prose-thead:bg-gray-800 prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-semibold prose-th:border-b prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-td:px-4 prose-td:py-3 prose-td:border-b prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-tr:even:bg-gray-50/50 dark:prose-tr:even:bg-gray-700/30"
-                                     x-data="{ copied: false }">
+                                <div
+                                    class="mt-2 prose prose-sm dark:prose-invert max-w-none prose-table:w-full prose-table:border-collapse prose-thead:bg-gray-100 dark:prose-thead:bg-gray-800 prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-semibold prose-th:border-b prose-th:border-gray-300 dark:prose-th:border-gray-600 prose-td:px-4 prose-td:py-3 prose-td:border-b prose-td:border-gray-200 dark:prose-td:border-gray-700 prose-tr:even:bg-gray-50/50 dark:prose-tr:even:bg-gray-700/30"
+                                    x-data="{ copied: false }">
                                     <div class="relative">
                                         <button
                                             type="button"
@@ -183,10 +184,12 @@
             @endif
 
             {{-- Message Input Form --}}
-            <div class="flex-shrink-0 border-t border-gray-200 dark:border-white/10 pt-4 mt-4">
+            <div class="shrink-0 border-t border-gray-200 dark:border-white/10 pt-4 mt-4">
                 <form wire:submit.prevent="sendMessage">
                     <div class="flex gap-4">
-                        {{ $this->form }}
+                        <div class="flex-auto">
+                            {{ $this->form }}
+                        </div>
                         @if ($this->retryAction->isVisible())
                             {{ $this->retryAction }}
                         @endif
