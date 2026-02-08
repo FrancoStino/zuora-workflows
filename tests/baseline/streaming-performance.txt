@@ -1,0 +1,29 @@
+# Streaming Performance Baseline - Placeholder
+# This file will be populated with Apache Bench results for streaming endpoints
+
+## Test Configuration
+- Requests: 50
+- Concurrency: 5
+- Endpoint: /api/chat/threads/{id}/messages
+- Method: POST
+- Content-Type: application/json
+
+## Note
+Streaming benchmarking will be executed when:
+1. Streaming SSE endpoint is implemented
+2. Development server is running
+3. Test thread and user exist
+
+## Expected Metrics
+- Time per request (mean)
+- Requests per second
+- Connection Times (min/mean/max/median)
+- SSE event delivery latency
+- Failed requests: 0
+
+## Command
+```bash
+ab -n 50 -c 5 -p message.json -T application/json \
+   http://localhost:8000/api/chat/threads/123/messages \
+   > tests/baseline/streaming-performance.txt
+```

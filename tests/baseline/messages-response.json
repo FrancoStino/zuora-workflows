@@ -1,0 +1,40 @@
+{
+  "note": "Placeholder - Will be populated when API endpoint is available",
+  "endpoint": "/api/chat/threads/{id}/messages",
+  "method": "GET",
+  "expected_structure": {
+    "data": [
+      {
+        "id": "integer",
+        "chat_thread_id": "integer",
+        "role": "string (user|assistant)",
+        "content": "string",
+        "query_generated": "string|null",
+        "query_results": "array|null",
+        "metadata": {
+          "provider": "string",
+          "model": "string",
+          "results_count": "integer",
+          "timestamp": "ISO8601"
+        },
+        "created_at": "ISO8601 timestamp",
+        "updated_at": "ISO8601 timestamp"
+      }
+    ],
+    "links": {
+      "first": "string",
+      "last": "string",
+      "prev": "string|null",
+      "next": "string|null"
+    },
+    "meta": {
+      "current_page": "integer",
+      "from": "integer",
+      "last_page": "integer",
+      "per_page": "integer",
+      "to": "integer",
+      "total": "integer"
+    }
+  },
+  "command": "curl -s http://localhost:8000/api/chat/threads/123/messages | jq . > tests/baseline/messages-response.json"
+}

@@ -1,0 +1,25 @@
+{
+  "note": "Placeholder - Will be populated when API endpoint is available",
+  "endpoint": "/api/chat/threads/{id}",
+  "method": "GET",
+  "expected_structure": {
+    "id": "integer",
+    "user_id": "integer",
+    "title": "string",
+    "created_at": "ISO8601 timestamp",
+    "updated_at": "ISO8601 timestamp",
+    "messages": [
+      {
+        "id": "integer",
+        "chat_thread_id": "integer",
+        "role": "string (user|assistant)",
+        "content": "string",
+        "query_generated": "string|null",
+        "query_results": "array|null",
+        "metadata": "object",
+        "created_at": "ISO8601 timestamp"
+      }
+    ]
+  },
+  "command": "curl -s http://localhost:8000/api/chat/threads/123 | jq . > tests/baseline/thread-response.json"
+}
