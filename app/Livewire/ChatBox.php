@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\ChatThread;
-use App\Services\NeuronChatService;
+use App\Services\LaragentChatService;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
@@ -116,11 +116,8 @@ class ChatBox extends Component implements HasActions, HasSchemas
     public function generateResponse(string $question): void
     {
         try {
-            // Use container to get ChatService based on AI_PROVIDER config
-            // This supports both neuron-ai and laragent seamlessly
-            $chatService = app(NeuronChatService::class);
+            $chatService = app(LaragentChatService::class);
 
-            // Streaming
             foreach ($chatService->askStream($this->thread, $question) as $chunk) {
                 $this->stream('streamContent', $chunk);
             }
@@ -129,9 +126,8 @@ class ChatBox extends Component implements HasActions, HasSchemas
             $this->hasError = false;
             $this->lastQuestion = null;
         } catch (Exception $e) {
-            // Fallback to sync if streaming fails
             try {
-                $chatService = app(NeuronChatService::class);
+                $chatService = app(LaragentChatService::class);
                 $response = $chatService->ask($this->thread, $question);
                 $this->thread->refresh();
 

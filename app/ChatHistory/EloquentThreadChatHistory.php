@@ -24,13 +24,26 @@ class EloquentThreadChatHistory implements ChatHistory
         if ($identifier instanceof SessionIdentityContract) {
             $this->identifier = $identifier->getChatName() ?? $identifier->getKey();
             $userId = $identifier->getUserId() ? (int) $identifier->getUserId() : Auth::id();
+            $this->thread = $this->findOrCreateThread($this->identifier, $userId);
         } elseif ($identifier === null) {
             // Pattern 2: No identifier (StorageManager/ServiceProvider pattern)
             // Generate unique identifier, use authenticated user
             $this->identifier = 'thread-' . uniqid();
             $userId = Auth::id();
+            if (!$userId) {
+                throw new \RuntimeException('User ID is required for EloquentThreadChatHistory. User must be authenticated.');
+            }
+            $this->thread = $this->findOrCreateThread($this->identifier, $userId);
+        } elseif (is_numeric($identifier)) {
+            // Pattern 3: Numeric string = thread ID - load existing thread directly
+            $this->identifier = $identifier;
+            $thread = ChatThread::find((int) $identifier);
+            if (!$thread) {
+                throw new \RuntimeException("ChatThread with ID {$identifier} not found.");
+            }
+            $this->thread = $thread;
         } else {
-            // Pattern 3: String identifier + optional userId or config array
+            // Pattern 4: String identifier + optional userId or config array
             $this->identifier = $identifier;
             
             // userIdOrConfig can be:
@@ -47,13 +60,13 @@ class EloquentThreadChatHistory implements ChatHistory
                 // null or other: fallback to Auth::id()
                 $userId = Auth::id();
             }
-        }
 
-        if (!$userId) {
-            throw new \RuntimeException('User ID is required for EloquentThreadChatHistory. User must be authenticated.');
-        }
+            if (!$userId) {
+                throw new \RuntimeException('User ID is required for EloquentThreadChatHistory. User must be authenticated.');
+            }
 
-        $this->thread = $this->findOrCreateThread($this->identifier, $userId);
+            $this->thread = $this->findOrCreateThread($this->identifier, $userId);
+        }
     }
 
     protected function findOrCreateThread(string $identifier, int $userId): ChatThread

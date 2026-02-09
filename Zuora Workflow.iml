@@ -189,6 +189,7 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/php-http/discovery" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/php-http/multipart-stream-builder" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/redberry/mcp-client-laravel" />
+      <excludeFolder url="file://$MODULE_DIR$/storage/backups" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

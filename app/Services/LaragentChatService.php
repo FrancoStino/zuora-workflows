@@ -65,19 +65,23 @@ class LaragentChatService
             throw new \RuntimeException('AI chat is not enabled');
         }
 
-        // Headers anti-buffering
-        header('X-Accel-Buffering: no');
-        header('Cache-Control: no-cache');
-        header('Content-Type: text/event-stream');
-
         $fullResponse = '';
 
         try {
             $agent = $this->getAgent($thread);
             
-            foreach ($agent->streamResponse($question, 'sse') as $chunk) {
-                $fullResponse .= $chunk;
-                yield $chunk;
+            // Use respondStreamed() which returns a Generator with StreamedAssistantMessage chunks
+            foreach ($agent->respondStreamed($question) as $chunk) {
+                if ($chunk instanceof \LarAgent\Messages\StreamedAssistantMessage) {
+                    $delta = $chunk->getLastChunk();
+                    if ($delta !== null && $delta !== '') {
+                        $fullResponse .= $delta;
+                        yield $delta;
+                    }
+                } elseif (is_string($chunk) && $chunk !== '') {
+                    $fullResponse .= $chunk;
+                    yield $chunk;
+                }
             }
 
             // Salva messaggio completo alla fine
@@ -106,7 +110,9 @@ class LaragentChatService
 
     protected function getAgent(ChatThread $thread): DataAnalystAgentLaragent
     {
-        return DataAnalystAgentLaragent::forUserId((string) $thread->user_id);
+        // Use thread ID as the chat session key to maintain per-thread context
+        // This ensures each conversation has its own history
+        return DataAnalystAgentLaragent::forUserId((string) $thread->id);
     }
 
     public function getQueryLog(): array

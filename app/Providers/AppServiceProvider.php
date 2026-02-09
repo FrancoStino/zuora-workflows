@@ -22,18 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Conditional ChatService binding based on AI_PROVIDER feature flag
-        // Allows switching between neuron-ai and laragent implementations
-        $this->app->bind(\App\Services\NeuronChatService::class, function ($app) {
-            $provider = config('app.ai_provider', 'neuron');
-            $settings = $app->make(\App\Settings\GeneralSettings::class);
-            
-            if ($provider === 'laragent') {
-                return new \App\Services\LaragentChatService($settings);
-            }
-            
-            return new \App\Services\NeuronChatService($settings);
-        });
+        // LaragentChatService is the primary chat service
+        // No feature flag needed - using LarAgent only
     }
 
     /**

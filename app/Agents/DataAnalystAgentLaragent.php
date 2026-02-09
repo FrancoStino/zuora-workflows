@@ -10,16 +10,36 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use LarAgent\Agent;
 use LarAgent\Attributes\Tool;
+use LarAgent\Core\Contracts\Tool as ToolInterface;
+use LarAgent\Core\Contracts\ToolCall as ToolCallInterface;
+use LarAgent\Drivers\OpenAi\OpenAiCompatible;
+use LarAgent\Context\Truncation\SimpleTruncationStrategy;
+use LarAgent\Messages\AssistantMessage;
+use LarAgent\Messages\UserMessage;
 use PDO;
 
 class DataAnalystAgentLaragent extends Agent
 {
     protected PDO $pdo;
-    protected $history = 'database';
     protected $provider = null;
     protected $model = null;
     protected $temperature = null;
     protected $maxCompletionTokens = null;
+
+    /**
+     * Enable truncation to prevent context window overflow for long conversations.
+     */
+    protected $enableTruncation = true;
+
+    /**
+     * Truncation threshold in tokens (conservative: ~30% of typical 128K context).
+     */
+    protected $truncationThreshold = 40000;
+
+    /**
+     * Thread ID used as chat session key
+     */
+    protected ?int $threadId = null;
 
     protected array $allowedStatements = ['SELECT', 'WITH', 'SHOW', 'DESCRIBE', 'EXPLAIN'];
     protected array $forbiddenStatements = [
@@ -31,19 +51,73 @@ class DataAnalystAgentLaragent extends Agent
     public function __construct($key, bool $usesUserId = false, ?string $group = null)
     {
         $this->pdo = DB::connection()->getPdo();
+        
+        // Store thread ID if numeric for later history loading
+        if (is_numeric($key)) {
+            $this->threadId = (int) $key;
+        }
+        
         $this->configureDynamicProvider();
         parent::__construct($key, $usesUserId, $group);
         
-        // Monitoring: Log tool execution for observability
-        $this->afterToolExecution(function ($tool, $result) {
-            $toolName = is_string($tool) ? $tool : (method_exists($tool, 'getName') ? $tool->getName() : 'unknown');
+        // Load existing messages from database into LarAgent's history
+        if ($this->threadId) {
+            $this->loadExistingMessages();
+        }
+    }
+
+    /**
+     * Load existing messages from the database into LarAgent's chat history.
+     * This syncs our DB-stored messages with LarAgent's internal history.
+     */
+    protected function loadExistingMessages(): void
+    {
+        $thread = ChatThread::find($this->threadId);
+        if (!$thread) {
+            return;
+        }
+
+        $dbMessages = $thread->messages()->orderBy('created_at', 'asc')->get();
+        
+        foreach ($dbMessages as $dbMessage) {
+            $message = match ($dbMessage->role) {
+                'user' => new UserMessage($dbMessage->content ?? ''),
+                'assistant' => new AssistantMessage($dbMessage->content ?? ''),
+                default => null,
+            };
             
-            Log::channel('laragent')->info('LarAgent Tool Executed', [
-                'tool' => $toolName,
-                'success' => !is_null($result),
-                'timestamp' => now()->toIso8601String(),
-            ]);
-        });
+            if ($message) {
+                $this->chatHistory()->addMessage($message);
+            }
+        }
+    }
+
+    /**
+     * Truncation strategy: keep the last 30 messages to maintain context
+     * while preventing token overflow. System prompts are preserved.
+     */
+    protected function truncationStrategy(): SimpleTruncationStrategy
+    {
+        return new SimpleTruncationStrategy([
+            'keep_messages' => 30,
+            'preserve_system' => true,
+        ]);
+    }
+
+    /**
+     * Event triggered after executing a tool - used for monitoring/observability.
+     */
+    protected function afterToolExecution(ToolInterface $tool, ToolCallInterface $toolCall, &$result): bool
+    {
+        $toolName = method_exists($tool, 'getName') ? $tool->getName() : 'unknown';
+
+        Log::channel('laragent')->info('LarAgent Tool Executed', [
+            'tool' => $toolName,
+            'success' => !is_null($result),
+            'timestamp' => now()->toIso8601String(),
+        ]);
+
+        return true;
     }
 
     protected function configureDynamicProvider(): void
@@ -51,18 +125,34 @@ class DataAnalystAgentLaragent extends Agent
         $settings = app(GeneralSettings::class);
         $modelsService = app(ModelsDevService::class);
 
-        $this->provider = $this->mapProviderName($settings->aiProvider);
+        $this->provider = $this->mapProviderToLaragent($settings->aiProvider);
         $this->model = $settings->aiModel;
 
+        // Set API key from GeneralSettings (stored in database)
+        if ($settings->aiApiKey) {
+            $this->apiKey = $settings->aiApiKey;
+        }
+
+        // Set API URL from ModelsDevService (e.g., nvidia -> https://integrate.api.nvidia.com/v1)
         $baseUri = $modelsService->getApiEndpoint($settings->aiProvider);
         if ($baseUri) {
             $this->apiUrl = $baseUri;
+            // Use OpenAiCompatible driver for external providers (nvidia, openrouter, etc.)
+            $this->driver = OpenAiCompatible::class;
         }
+
+        Log::channel('laragent')->debug('DataAnalystAgentLaragent configured', [
+            'provider' => $this->provider,
+            'model' => $this->model,
+            'apiUrl' => $this->apiUrl ?? 'default',
+            'driver' => $this->driver ?? 'default',
+            'hasApiKey' => !empty($this->apiKey),
+        ]);
     }
 
-    protected function mapProviderName(string $neuronProvider): string
+    protected function mapProviderToLaragent(string $provider): string
     {
-        return match ($neuronProvider) {
+        return match ($provider) {
             'openai' => 'default',
             'anthropic' => 'anthropic',
             'gemini' => 'gemini',

@@ -4,18 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ChatThread;
-use App\Services\NeuronChatService;
+use App\Services\LaragentChatService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
  * ChatBenchmarkController
  * 
- * TEST-ONLY controller for performance benchmarking during laragent migration.
+ * TEST-ONLY controller for performance benchmarking.
  * Provides minimal REST API endpoints for Apache Bench load testing.
  * 
- * @see .sisyphus/plans/laragent-migration.md Task 10
- * @deprecated Remove after migration completion
+ * @deprecated Remove after benchmarking completion
  */
 class ChatBenchmarkController extends Controller
 {
@@ -35,7 +34,7 @@ class ChatBenchmarkController extends Controller
             'success' => true,
             'data' => $threads,
             'meta' => [
-                'provider' => config('app.ai_provider'),
+                'provider' => 'laragent',
                 'timestamp' => now()->toIso8601String(),
             ],
         ]);
@@ -61,7 +60,7 @@ class ChatBenchmarkController extends Controller
         $startTime = microtime(true);
 
         try {
-            $chatService = app(NeuronChatService::class);
+            $chatService = app(LaragentChatService::class);
             $response = $chatService->ask($thread, $validated['message']);
             $latency = (microtime(true) - $startTime) * 1000;
 
@@ -72,7 +71,7 @@ class ChatBenchmarkController extends Controller
                     'thread_id' => $thread->id,
                 ],
                 'meta' => [
-                    'provider' => config('app.ai_provider'),
+                    'provider' => 'laragent',
                     'latency_ms' => round($latency, 2),
                     'timestamp' => now()->toIso8601String(),
                 ],
@@ -84,7 +83,7 @@ class ChatBenchmarkController extends Controller
                 'success' => false,
                 'error' => $e->getMessage(),
                 'meta' => [
-                    'provider' => config('app.ai_provider'),
+                    'provider' => 'laragent',
                     'latency_ms' => round($latency, 2),
                     'timestamp' => now()->toIso8601String(),
                 ],
