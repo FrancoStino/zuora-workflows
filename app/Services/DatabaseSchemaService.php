@@ -67,7 +67,7 @@ class DatabaseSchemaService
         foreach ($results as $row) {
             $tableName = $row['TABLE_NAME'];
 
-            if (!isset($tables[$tableName])) {
+            if (! isset($tables[$tableName])) {
                 $tables[$tableName] = [
                     'name' => $tableName,
                     'engine' => $row['ENGINE'],
@@ -76,7 +76,7 @@ class DatabaseSchemaService
                     'columns' => [],
                     'primary_key' => [],
                     'unique_keys' => [],
-                    'indexes' => []
+                    'indexes' => [],
                 ];
             }
 
@@ -87,8 +87,8 @@ class DatabaseSchemaService
                     'full_type' => $row['COLUMN_TYPE'],
                     'nullable' => $row['IS_NULLABLE'] === 'YES',
                     'default' => $row['COLUMN_DEFAULT'],
-                    'auto_increment' => str_contains((string)$row['EXTRA'], 'auto_increment'),
-                    'comment' => $row['COLUMN_COMMENT']
+                    'auto_increment' => str_contains((string) $row['EXTRA'], 'auto_increment'),
+                    'comment' => $row['COLUMN_COMMENT'],
                 ];
 
                 if ($row['CHARACTER_MAXIMUM_LENGTH']) {
@@ -116,7 +116,7 @@ class DatabaseSchemaService
 
     protected function getRelationships(): array
     {
-        $stmt = $this->pdo->prepare("
+        $stmt = $this->pdo->prepare('
             SELECT
                 kcu.CONSTRAINT_NAME,
                 kcu.TABLE_NAME as source_table,
@@ -131,9 +131,10 @@ class DatabaseSchemaService
                 AND kcu.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA
             WHERE kcu.TABLE_SCHEMA = DATABASE() AND kcu.REFERENCED_TABLE_NAME IS NOT NULL
             ORDER BY kcu.TABLE_NAME, kcu.ORDINAL_POSITION
-        ");
+        ');
 
         $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -159,14 +160,14 @@ class DatabaseSchemaService
 
         $indexes = [];
         foreach ($results as $row) {
-            $key = $row['TABLE_NAME'] . '.' . $row['INDEX_NAME'];
-            if (!isset($indexes[$key])) {
+            $key = $row['TABLE_NAME'].'.'.$row['INDEX_NAME'];
+            if (! isset($indexes[$key])) {
                 $indexes[$key] = [
                     'table' => $row['TABLE_NAME'],
                     'name' => $row['INDEX_NAME'],
                     'unique' => $row['NON_UNIQUE'] == 0,
                     'type' => $row['INDEX_TYPE'],
-                    'columns' => []
+                    'columns' => [],
                 ];
             }
             $indexes[$key]['columns'][] = $row['COLUMN_NAME'];
@@ -187,13 +188,14 @@ class DatabaseSchemaService
         ");
 
         $stmt->execute();
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     protected function formatSchemaForLLM(array $structure): string
     {
         $output = "# MySQL Database Schema Analysis\n\n";
-        $output .= "This database contains " . count($structure['tables']) . " tables with the following structure:\n\n";
+        $output .= 'This database contains '.count($structure['tables'])." tables with the following structure:\n\n";
 
         $output .= "## Tables Overview\n";
         foreach ($structure['tables'] as $table) {
@@ -227,18 +229,18 @@ class DatabaseSchemaService
                 $output .= "\n";
             }
 
-            if (!empty($table['primary_key'])) {
-                $output .= "\n**Primary Key**: " . implode(', ', $table['primary_key']) . "\n";
+            if (! empty($table['primary_key'])) {
+                $output .= "\n**Primary Key**: ".implode(', ', $table['primary_key'])."\n";
             }
 
-            if (!empty($table['unique_keys'])) {
-                $output .= "**Unique Keys**: " . implode(', ', $table['unique_keys']) . "\n";
+            if (! empty($table['unique_keys'])) {
+                $output .= '**Unique Keys**: '.implode(', ', $table['unique_keys'])."\n";
             }
 
             $output .= "\n";
         }
 
-        if (!empty($structure['relationships'])) {
+        if (! empty($structure['relationships'])) {
             $output .= "## Foreign Key Relationships\n\n";
             $output .= "Understanding these relationships is crucial for JOIN operations:\n\n";
 
@@ -249,7 +251,7 @@ class DatabaseSchemaService
             $output .= "\n";
         }
 
-        if (!empty($structure['indexes'])) {
+        if (! empty($structure['indexes'])) {
             $output .= "## Available Indexes (for Query Optimization)\n\n";
             $output .= "These indexes can significantly improve query performance:\n\n";
 

@@ -36,7 +36,7 @@ class AiSecurityTest extends TestCase
         Log::shouldReceive('info')->andReturnNull();
 
         $result = $this->agent->executeQuery("INSERT INTO tasks (name) VALUES ('hack')");
-        
+
         $this->assertIsString($result);
         $this->assertStringContainsString('query was rejected for security reasons', $result);
     }
@@ -49,7 +49,7 @@ class AiSecurityTest extends TestCase
                 return $message === 'AI Security: Blocked write operation in executeQuery' &&
                        str_contains($context['query'], 'UPDATE');
             });
-            
+
         Log::shouldReceive('debug')->andReturnNull();
         Log::shouldReceive('info')->andReturnNull();
 
@@ -67,7 +67,7 @@ class AiSecurityTest extends TestCase
                 return $message === 'AI Security: Blocked write operation in executeQuery' &&
                        str_contains($context['query'], 'DELETE');
             });
-            
+
         Log::shouldReceive('debug')->andReturnNull();
         Log::shouldReceive('info')->andReturnNull();
 
@@ -84,7 +84,7 @@ class AiSecurityTest extends TestCase
             ->withArgs(function ($message, $context) {
                 return $message === 'AI Query Executed';
             });
-            
+
         Log::shouldReceive('debug')->andReturnNull();
 
         // Create a dummy table and insert data directly via DB facade (bypassing agent security)

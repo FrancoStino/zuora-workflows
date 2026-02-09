@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Task extends Model
 {
     use HasFactory;
+
     protected $fillable
         = [
             'workflow_id',
@@ -36,12 +37,12 @@ class Task extends Model
 
     protected $casts
         = [
-            'created_on'    => 'datetime',
-            'updated_on'    => 'datetime',
-            'parameters'    => 'array',
-            'css'           => 'array',
-            'tags'          => 'array',
-            'assignment'    => 'array',
+            'created_on' => 'datetime',
+            'updated_on' => 'datetime',
+            'parameters' => 'array',
+            'css' => 'array',
+            'tags' => 'array',
+            'assignment' => 'array',
             'zuora_org_ids' => 'array',
         ];
 

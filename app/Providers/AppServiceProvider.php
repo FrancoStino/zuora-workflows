@@ -42,7 +42,7 @@ class AppServiceProvider extends ServiceProvider
 
         DB::listen(function (QueryExecuted $query) {
             $enableSecurityListener = config('app.enable_ai_security_listener', true);
-            
+
             if (! $enableSecurityListener) {
                 return;
             }

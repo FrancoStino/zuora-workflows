@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Workflow extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'customer_id',
         'zuora_id',

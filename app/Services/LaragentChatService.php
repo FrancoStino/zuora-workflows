@@ -69,7 +69,7 @@ class LaragentChatService
 
         try {
             $agent = $this->getAgent($thread);
-            
+
             // Use respondStreamed() which returns a Generator with StreamedAssistantMessage chunks
             foreach ($agent->respondStreamed($question) as $chunk) {
                 if ($chunk instanceof \LarAgent\Messages\StreamedAssistantMessage) {
@@ -131,8 +131,8 @@ class LaragentChatService
             ->where('role', 'assistant')
             ->orderBy('created_at', 'desc')
             ->first();
-        
-        if (!$lastAssistantMessage) {
+
+        if (! $lastAssistantMessage) {
             return null;
         }
 

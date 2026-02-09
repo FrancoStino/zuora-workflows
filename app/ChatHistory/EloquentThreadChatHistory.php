@@ -15,7 +15,9 @@ use LarAgent\Messages\UserMessage;
 class EloquentThreadChatHistory implements ChatHistory
 {
     protected ChatThread $thread;
+
     protected ?MessageArray $messagesCache = null;
+
     protected string $identifier;
 
     public function __construct(string|SessionIdentityContract|null $identifier = null, mixed $userIdOrConfig = null)
@@ -28,9 +30,9 @@ class EloquentThreadChatHistory implements ChatHistory
         } elseif ($identifier === null) {
             // Pattern 2: No identifier (StorageManager/ServiceProvider pattern)
             // Generate unique identifier, use authenticated user
-            $this->identifier = 'thread-' . uniqid();
+            $this->identifier = 'thread-'.uniqid();
             $userId = Auth::id();
-            if (!$userId) {
+            if (! $userId) {
                 throw new \RuntimeException('User ID is required for EloquentThreadChatHistory. User must be authenticated.');
             }
             $this->thread = $this->findOrCreateThread($this->identifier, $userId);
@@ -38,14 +40,14 @@ class EloquentThreadChatHistory implements ChatHistory
             // Pattern 3: Numeric string = thread ID - load existing thread directly
             $this->identifier = $identifier;
             $thread = ChatThread::find((int) $identifier);
-            if (!$thread) {
+            if (! $thread) {
                 throw new \RuntimeException("ChatThread with ID {$identifier} not found.");
             }
             $this->thread = $thread;
         } else {
             // Pattern 4: String identifier + optional userId or config array
             $this->identifier = $identifier;
-            
+
             // userIdOrConfig can be:
             // - int: explicit userId
             // - array: config array (ignored, for ServiceProvider compatibility)
@@ -61,7 +63,7 @@ class EloquentThreadChatHistory implements ChatHistory
                 $userId = Auth::id();
             }
 
-            if (!$userId) {
+            if (! $userId) {
                 throw new \RuntimeException('User ID is required for EloquentThreadChatHistory. User must be authenticated.');
             }
 
@@ -122,7 +124,7 @@ class EloquentThreadChatHistory implements ChatHistory
 
         $this->messagesCache = null;
 
-        if (!$this->thread->title || str_starts_with($this->thread->title, 'thread-')) {
+        if (! $this->thread->title || str_starts_with($this->thread->title, 'thread-')) {
             $this->thread->generateTitleFromFirstMessage();
         }
     }
@@ -181,7 +183,7 @@ class EloquentThreadChatHistory implements ChatHistory
             ->orderBy('created_at', 'desc')
             ->first();
 
-        if (!$dbMessage) {
+        if (! $dbMessage) {
             return null;
         }
 

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Agents\DataAnalystAgentLaragent;
-use App\ChatHistory\EloquentThreadChatHistory;
 use App\Models\ChatMessage;
 use App\Models\ChatThread;
 use App\Models\User;

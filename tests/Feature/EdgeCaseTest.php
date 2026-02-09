@@ -173,7 +173,7 @@ class EdgeCaseTest extends TestCase
         $thread = ChatThread::create(['user_id' => $user->id, 'title' => 'Empty Message Thread']);
 
         $this->expectException(\TypeError::class);
-        
+
         $this->service->ask($thread, '');
     }
 

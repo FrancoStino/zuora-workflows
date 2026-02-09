@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use LarAgent\Agent;
 use LarAgent\Attributes\Tool;
+use LarAgent\Context\Truncation\SummarizationStrategy;
 use LarAgent\Core\Contracts\Tool as ToolInterface;
 use LarAgent\Core\Contracts\ToolCall as ToolCallInterface;
 use LarAgent\Drivers\OpenAi\OpenAiCompatible;
-use LarAgent\Context\Truncation\SummarizationStrategy;
 use LarAgent\Messages\AssistantMessage;
 use LarAgent\Messages\UserMessage;
 use PDO;
@@ -22,9 +22,13 @@ use PDO;
 class DataAnalystAgentLaragent extends Agent
 {
     protected PDO $pdo;
+
     protected $provider = null;
+
     protected $model = null;
+
     protected $temperature = null;
+
     protected $maxCompletionTokens = null;
 
     /**
@@ -43,6 +47,7 @@ class DataAnalystAgentLaragent extends Agent
     protected ?int $threadId = null;
 
     protected array $allowedStatements = ['SELECT', 'WITH', 'SHOW', 'DESCRIBE', 'EXPLAIN'];
+
     protected array $forbiddenStatements = [
         'INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER',
         'TRUNCATE', 'REPLACE', 'MERGE', 'CALL', 'EXECUTE',
@@ -52,15 +57,15 @@ class DataAnalystAgentLaragent extends Agent
     public function __construct($key, bool $usesUserId = false, ?string $group = null)
     {
         $this->pdo = DB::connection()->getPdo();
-        
+
         // Store thread ID if numeric for later history loading
         if (is_numeric($key)) {
             $this->threadId = (int) $key;
         }
-        
+
         $this->configureDynamicProvider();
         parent::__construct($key, $usesUserId, $group);
-        
+
         // Load existing messages from database into LarAgent's history
         if ($this->threadId) {
             $this->loadExistingMessages();
@@ -74,7 +79,7 @@ class DataAnalystAgentLaragent extends Agent
     protected function loadExistingMessages(): void
     {
         $thread = ChatThread::find($this->threadId);
-        if (!$thread) {
+        if (! $thread) {
             return;
         }
 
@@ -87,7 +92,7 @@ class DataAnalystAgentLaragent extends Agent
                     'assistant' => new AssistantMessage($dbMessage->content ?? ''),
                     default => null,
                 };
-                
+
                 if ($message) {
                     $this->chatHistory()->addMessage($message);
                 }
@@ -115,7 +120,7 @@ class DataAnalystAgentLaragent extends Agent
 
         Log::channel('laragent')->info('LarAgent Tool Executed', [
             'tool' => $toolName,
-            'success' => !is_null($result),
+            'success' => ! is_null($result),
             'timestamp' => now()->toIso8601String(),
         ]);
 
@@ -148,7 +153,7 @@ class DataAnalystAgentLaragent extends Agent
             'model' => $this->model,
             'apiUrl' => $this->apiUrl ?? 'default',
             'driver' => $this->driver ?? 'default',
-            'hasApiKey' => !empty($this->apiKey),
+            'hasApiKey' => ! empty($this->apiKey),
         ]);
     }
 
@@ -164,7 +169,7 @@ class DataAnalystAgentLaragent extends Agent
 
     public function instructions(): string
     {
-        return 'You are a data analyst. Analyze database queries and provide insights. The current date is ' . date('Y-m-d') . '.';
+        return 'You are a data analyst. Analyze database queries and provide insights. The current date is '.date('Y-m-d').'.';
     }
 
     #[Tool('Retrieves MySQL database schema information including tables, columns, relationships, and indexes. Use this tool first to understand the database structure before writing any SQL queries. Essential for generating accurate queries with proper table/column names, JOIN conditions, and performance optimization. DO NOT call this tool if you already have database schema information in the context.')]
@@ -175,18 +180,18 @@ class DataAnalystAgentLaragent extends Agent
 
     #[Tool('Use this tool only to run SELECT query against the MySQL database. This the tool to use only to gather information from the MySQL database.', [
         'query' => 'string - The SELECT query to execute (only read-only queries allowed)',
-        'parameters' => 'array|null - Optional: Key-value pairs for parameter binding'
+        'parameters' => 'array|null - Optional: Key-value pairs for parameter binding',
     ])]
     public function executeQuery(string $query, ?array $parameters = null): string|array
     {
-        if (!$this->validateReadOnly($query)) {
+        if (! $this->validateReadOnly($query)) {
             Log::error('AI Security: Blocked write operation in executeQuery', [
                 'query' => $query,
-                'tool' => 'executeQuery'
+                'tool' => 'executeQuery',
             ]);
-            
-            return "The query was rejected for security reasons. " .
-                   "It looks like you are trying to run a write query using the read-only query tool.";
+
+            return 'The query was rejected for security reasons. '.
+                   'It looks like you are trying to run a write query using the read-only query tool.';
         }
 
         try {
@@ -196,20 +201,21 @@ class DataAnalystAgentLaragent extends Agent
 
             if ($parameters && is_array($parameters)) {
                 foreach ($parameters as $name => $value) {
-                    $paramName = str_starts_with($name, ':') ? $name : ':' . $name;
+                    $paramName = str_starts_with($name, ':') ? $name : ':'.$name;
                     $statement->bindValue($paramName, $value);
                 }
             }
 
             $statement->execute();
+
             return $statement->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             Log::error('AI Query Execution Failed', [
                 'query' => $query,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
-            return "Query execution failed: " . $e->getMessage();
+            return 'Query execution failed: '.$e->getMessage();
         }
     }
 
@@ -225,8 +231,8 @@ class DataAnalystAgentLaragent extends Agent
     {
         $cleanQuery = $this->sanitizeQuery($query);
         $firstKeyword = $this->getFirstKeyword($cleanQuery);
-        
-        if (!in_array($firstKeyword, $this->allowedStatements)) {
+
+        if (! in_array($firstKeyword, $this->allowedStatements)) {
             return false;
         }
 
@@ -245,8 +251,9 @@ class DataAnalystAgentLaragent extends Agent
     protected function sanitizeQuery(string $query): string
     {
         $query = preg_replace('/--.*$/m', '', $query);
-        $query = preg_replace('/\/\*.*?\*\//s', '', (string)$query);
-        return preg_replace('/\s+/', ' ', trim((string)$query));
+        $query = preg_replace('/\/\*.*?\*\//s', '', (string) $query);
+
+        return preg_replace('/\s+/', ' ', trim((string) $query));
     }
 
     protected function getFirstKeyword(string $query): string
@@ -254,6 +261,7 @@ class DataAnalystAgentLaragent extends Agent
         if (preg_match('/^\s*(\w+)/i', $query, $matches)) {
             return strtoupper($matches[1]);
         }
+
         return '';
     }
 
@@ -262,6 +270,6 @@ class DataAnalystAgentLaragent extends Agent
      */
     protected function containsKeyword(string $query, string $keyword): bool
     {
-        return preg_match('/\b' . preg_quote($keyword, '/') . '\b/i', $query) === 1;
+        return preg_match('/\b'.preg_quote($keyword, '/').'\b/i', $query) === 1;
     }
 }

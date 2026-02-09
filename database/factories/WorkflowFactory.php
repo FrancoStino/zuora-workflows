@@ -15,7 +15,7 @@ class WorkflowFactory extends Factory
         return [
             'customer_id' => Customer::factory(),
             'zuora_id' => $this->faker->uuid(),
-            'name' => $this->faker->words(3, true) . ' Workflow',
+            'name' => $this->faker->words(3, true).' Workflow',
             'description' => $this->faker->sentence(),
             'state' => $this->faker->randomElement(['Active', 'Draft', 'Inactive']),
             'created_on' => $this->faker->dateTimeBetween('-1 year', 'now'),
@@ -24,4 +24,3 @@ class WorkflowFactory extends Factory
         ];
     }
 }
-

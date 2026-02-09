@@ -15,7 +15,7 @@ class TaskFactory extends Factory
         return [
             'workflow_id' => Workflow::factory(),
             'task_id' => $this->faker->uuid(),
-            'name' => $this->faker->words(2, true) . ' Task',
+            'name' => $this->faker->words(2, true).' Task',
             'description' => $this->faker->sentence(),
             'state' => $this->faker->randomElement(['pending', 'running', 'completed', 'failed']),
             'action_type' => $this->faker->randomElement(['Email', 'Export', 'SOAP', 'Callout']),
@@ -24,4 +24,3 @@ class TaskFactory extends Factory
         ];
     }
 }
-

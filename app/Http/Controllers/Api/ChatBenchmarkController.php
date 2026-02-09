@@ -10,17 +10,17 @@ use Illuminate\Http\Request;
 
 /**
  * ChatBenchmarkController
- * 
+ *
  * TEST-ONLY controller for performance benchmarking.
  * Provides minimal REST API endpoints for Apache Bench load testing.
- * 
+ *
  * @deprecated Remove after benchmarking completion
  */
 class ChatBenchmarkController extends Controller
 {
     /**
      * List chat threads (paginated)
-     * 
+     *
      * Endpoint: GET /api/chat/threads
      * Purpose: Apache Bench baseline for thread listing performance
      */
@@ -42,10 +42,10 @@ class ChatBenchmarkController extends Controller
 
     /**
      * Send message and get AI response
-     * 
+     *
      * Endpoint: POST /api/chat/threads/{thread}/messages
      * Purpose: Apache Bench test for message processing latency
-     * 
+     *
      * Request body:
      * {
      *   "message": "Your question here"
