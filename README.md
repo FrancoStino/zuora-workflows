@@ -367,10 +367,14 @@ lando composer run dev                              # Full dev stack
 - **`LaragentChatService`**: AI chat service with streaming SSE support, metadata tracking
 - **`DataAnalystAgentLaragent`**: Natural language database query agent with MySQL tools
 - **`EloquentThreadChatHistory`**: Custom adapter preserving existing chat_threads/chat_messages schema
+- **Context Management**: Smart `SummarizationStrategy` maintains long-term context by summarizing old messages (chunks of 10) instead of deleting them.
 - **Security Layer**: 
-  - Layer 1: `beforeToolExecution` hook (agent-level validation)
+  - Layer 1: `validateReadOnly` regex hook (agent-level validation blocking INSERT/UPDATE/DELETE)
   - Layer 2: `DB::listen` event (application-level fallback)
-  - Blocks: INSERT, UPDATE, DELETE operations from AI
+  - Driver: Enforced `OpenAiCompatible` for external providers
+- **Performance**:
+  - `DatabaseSchemaService`: Caches database structure for 1 hour to reduce latency
+  - Streaming: Real-time token streaming via PHP Generators
 - **Monitoring**: Dedicated log channel (`storage/logs/laragent.log`) with tool execution tracking
 
 ### Queue Processing Flow
